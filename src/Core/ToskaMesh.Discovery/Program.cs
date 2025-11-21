@@ -35,7 +35,8 @@ builder.Services.AddMeshTelemetry("Discovery");
 builder.Services.AddMeshHealthChecks()
     .AddConsul(options =>
     {
-        options.HostName = builder.Configuration["Consul:Address"] ?? "http://localhost:8500";
+        options.HostName = "localhost";
+        options.Port = 8500;
     });
 
 // Add CORS

@@ -25,8 +25,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add Mesh common services (includes Consul, MassTransit, etc.)
+// Add Mesh common services
 builder.Services.AddMeshCommon();
+
+// Add Consul service registry
+builder.Services.AddConsulServiceRegistry(builder.Configuration);
 
 // Add OpenTelemetry
 builder.Services.AddMeshTelemetry("Gateway");
