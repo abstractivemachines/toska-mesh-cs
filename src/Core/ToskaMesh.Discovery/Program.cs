@@ -1,5 +1,6 @@
 using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
+using ToskaMesh.Common.Messaging;
 using ToskaMesh.Common.ServiceDiscovery;
 using ToskaMesh.Discovery.Services;
 using ToskaMesh.Telemetry;
@@ -16,6 +17,9 @@ builder.Services.AddSwaggerGen(c =>
 
 // Add Toska Mesh common services
 builder.Services.AddMeshCommon();
+
+// Add MassTransit for messaging
+builder.Services.AddMeshMassTransit(builder.Configuration);
 
 // Add Consul service registry
 builder.Services.AddConsulServiceRegistry(builder.Configuration);
