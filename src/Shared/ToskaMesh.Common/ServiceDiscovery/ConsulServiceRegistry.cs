@@ -1,6 +1,8 @@
 using Consul;
 using Microsoft.Extensions.Logging;
 using ToskaMesh.Protocols;
+using ConsulHealthStatus = Consul.HealthStatus;
+using MeshHealthStatus = ToskaMesh.Protocols.HealthStatus;
 
 namespace ToskaMesh.Common.ServiceDiscovery;
 
@@ -20,7 +22,7 @@ public class ConsulServiceRegistry : IServiceRegistry
         _logger = logger;
     }
 
-    public async Task<bool> RegisterServiceAsync(ServiceRegistration registration, CancellationToken cancellationToken = default)
+    public async Task<ServiceRegistrationResult> RegisterAsync(ServiceRegistration registration, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -30,13 +32,12 @@ public class ConsulServiceRegistry : IServiceRegistry
                 Name = registration.ServiceName,
                 Address = registration.Address,
                 Port = registration.Port,
-                Tags = registration.Tags.ToArray(),
                 Meta = registration.Metadata,
-                Check = registration.HealthCheckEndpoint != null ? new AgentServiceCheck
+                Check = registration.HealthCheck != null ? new AgentServiceCheck
                 {
-                    HTTP = $"{(registration.Metadata.ContainsKey("scheme") ? registration.Metadata["scheme"] : "http")}://{registration.Address}:{registration.Port}{registration.HealthCheckEndpoint}",
-                    Interval = TimeSpan.FromSeconds(10),
-                    Timeout = TimeSpan.FromSeconds(5),
+                    HTTP = $"{(registration.Metadata.ContainsKey("scheme") ? registration.Metadata["scheme"] : "http")}://{registration.Address}:{registration.Port}{registration.HealthCheck.Endpoint}",
+                    Interval = registration.HealthCheck.Interval,
+                    Timeout = registration.HealthCheck.Timeout,
                     DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)
                 } : null
             };
@@ -44,16 +45,17 @@ public class ConsulServiceRegistry : IServiceRegistry
             await _consulClient.Agent.ServiceRegister(consulRegistration, cancellationToken);
             _logger.LogInformation("Service registered: {ServiceName} ({ServiceId}) at {Address}:{Port}",
                 registration.ServiceName, registration.ServiceId, registration.Address, registration.Port);
-            return true;
+
+            return new ServiceRegistrationResult(true, registration.ServiceId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to register service {ServiceId}", registration.ServiceId);
-            return false;
+            return new ServiceRegistrationResult(false, registration.ServiceId, ex.Message);
         }
     }
 
-    public async Task<bool> DeregisterServiceAsync(string serviceId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeregisterAsync(string serviceId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -72,18 +74,18 @@ public class ConsulServiceRegistry : IServiceRegistry
     {
         try
         {
-            var queryResult = await _consulClient.Health.Service(serviceName, null, true, cancellationToken);
+            var queryResult = await _consulClient.Health.Service(serviceName, null, false, cancellationToken);
 
-            return queryResult.Response.Select(entry => new ServiceInstance
-            {
-                ServiceId = entry.Service.ID,
-                ServiceName = entry.Service.Service,
-                Address = entry.Service.Address,
-                Port = entry.Service.Port,
-                Tags = entry.Service.Tags?.ToList() ?? new List<string>(),
-                Metadata = entry.Service.Meta ?? new Dictionary<string, string>(),
-                HealthStatus = MapHealthStatus(entry.Checks)
-            }).ToList();
+            return queryResult.Response.Select(entry => new ServiceInstance(
+                ServiceName: entry.Service.Service,
+                ServiceId: entry.Service.ID,
+                Address: entry.Service.Address,
+                Port: entry.Service.Port,
+                Status: MapHealthStatus(entry.Checks),
+                Metadata: entry.Service.Meta?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>(),
+                RegisteredAt: DateTime.UtcNow, // Consul doesn't track registration time, using current time
+                LastHealthCheck: DateTime.UtcNow // Using current time as approximation
+            )).ToList();
         }
         catch (Exception ex)
         {
@@ -105,16 +107,16 @@ public class ConsulServiceRegistry : IServiceRegistry
 
             var checks = await _consulClient.Health.Checks(service.Service, cancellationToken);
 
-            return new ServiceInstance
-            {
-                ServiceId = service.ID,
-                ServiceName = service.Service,
-                Address = service.Address,
-                Port = service.Port,
-                Tags = service.Tags?.ToList() ?? new List<string>(),
-                Metadata = service.Meta ?? new Dictionary<string, string>(),
-                HealthStatus = MapHealthStatus(checks.Response)
-            };
+            return new ServiceInstance(
+                ServiceName: service.Service,
+                ServiceId: service.ID,
+                Address: service.Address,
+                Port: service.Port,
+                Status: MapHealthStatus(checks.Response),
+                Metadata: service.Meta?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>(),
+                RegisteredAt: DateTime.UtcNow,
+                LastHealthCheck: DateTime.UtcNow
+            );
         }
         catch (Exception ex)
         {
@@ -123,7 +125,7 @@ public class ConsulServiceRegistry : IServiceRegistry
         }
     }
 
-    public async Task<bool> UpdateServiceHealthAsync(string serviceId, HealthStatus status, string? output = null, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateHealthStatusAsync(string serviceId, MeshHealthStatus status, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -131,14 +133,14 @@ public class ConsulServiceRegistry : IServiceRegistry
 
             switch (status)
             {
-                case HealthStatus.Healthy:
-                    await _consulClient.Agent.PassTTL(checkId, output ?? "Service is healthy", cancellationToken);
+                case MeshHealthStatus.Healthy:
+                    await _consulClient.Agent.PassTTL(checkId, "Service is healthy", cancellationToken);
                     break;
-                case HealthStatus.Unhealthy:
-                    await _consulClient.Agent.FailTTL(checkId, output ?? "Service is unhealthy", cancellationToken);
+                case MeshHealthStatus.Unhealthy:
+                    await _consulClient.Agent.FailTTL(checkId, "Service is unhealthy", cancellationToken);
                     break;
-                case HealthStatus.Warning:
-                    await _consulClient.Agent.WarnTTL(checkId, output ?? "Service has warnings", cancellationToken);
+                case MeshHealthStatus.Degraded:
+                    await _consulClient.Agent.WarnTTL(checkId, "Service is degraded", cancellationToken);
                     break;
             }
 
@@ -152,7 +154,7 @@ public class ConsulServiceRegistry : IServiceRegistry
         }
     }
 
-    public async Task<IEnumerable<string>> GetServiceNamesAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> GetAllServicesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -166,23 +168,23 @@ public class ConsulServiceRegistry : IServiceRegistry
         }
     }
 
-    private static HealthStatus MapHealthStatus(HealthCheck[] checks)
+    private static MeshHealthStatus MapHealthStatus(HealthCheck[] checks)
     {
         if (checks == null || checks.Length == 0)
         {
-            return HealthStatus.Unknown;
+            return MeshHealthStatus.Unknown;
         }
 
-        if (checks.Any(c => c.Status == HealthStatus.Critical || c.Status == HealthStatus.Maintenance))
+        if (checks.Any(c => c.Status == ConsulHealthStatus.Critical || c.Status == ConsulHealthStatus.Maintenance))
         {
-            return HealthStatus.Unhealthy;
+            return MeshHealthStatus.Unhealthy;
         }
 
-        if (checks.Any(c => c.Status == HealthStatus.Warning))
+        if (checks.Any(c => c.Status == ConsulHealthStatus.Warning))
         {
-            return HealthStatus.Warning;
+            return MeshHealthStatus.Degraded;
         }
 
-        return checks.All(c => c.Status == HealthStatus.Passing) ? HealthStatus.Healthy : HealthStatus.Unknown;
+        return checks.All(c => c.Status == ConsulHealthStatus.Passing) ? MeshHealthStatus.Healthy : MeshHealthStatus.Unknown;
     }
 }
