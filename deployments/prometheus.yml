@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'toksa-mesh-gateway'
+    static_configs:
+      - targets: ['gateway:80']
+    metrics_path: '/metrics'
+
+  - job_name: 'toksa-mesh-auth'
+    static_configs:
+      - targets: ['auth-service:80']
+    metrics_path: '/metrics'
+
+  - job_name: 'toksa-mesh-config'
+    static_configs:
+      - targets: ['config-service:80']
+    metrics_path: '/metrics'
+
+  - job_name: 'toksa-mesh-metrics'
+    static_configs:
+      - targets: ['metrics-service:80']
+    metrics_path: '/metrics'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
