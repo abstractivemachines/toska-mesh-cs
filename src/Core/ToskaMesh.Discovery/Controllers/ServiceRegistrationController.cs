@@ -84,7 +84,7 @@ public class ServiceRegistrationController : ControllerBase
 
         if (result)
         {
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Health status updated"));
+            return Ok(ApiResponse.SuccessResult("Health status updated"));
         }
 
         return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
