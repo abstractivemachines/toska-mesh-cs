@@ -51,7 +51,7 @@ public class ApiResponse<T>
 /// </summary>
 public class ApiResponse : ApiResponse<object>
 {
-    public static ApiResponse Success(string? message = null, string? traceId = null)
+    public static ApiResponse SuccessResult(string? message = null, string? traceId = null)
     {
         return new ApiResponse
         {

@@ -10,7 +10,7 @@ public interface IServiceManager
     /// <summary>
     /// Registers a new service instance.
     /// </summary>
-    Task<bool> RegisterAsync(ServiceRegistration registration, CancellationToken cancellationToken = default);
+    Task<ServiceRegistrationResult> RegisterAsync(ServiceRegistration registration, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deregisters a service instance.

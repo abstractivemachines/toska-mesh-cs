@@ -73,7 +73,7 @@ public class ServiceDiscoveryController : ControllerBase
     public async Task<IActionResult> GetHealthyInstances(string serviceName, CancellationToken cancellationToken)
     {
         var instances = await _serviceManager.GetInstancesAsync(serviceName, cancellationToken);
-        var healthyInstances = instances.Where(i => i.HealthStatus == HealthStatus.Healthy);
+        var healthyInstances = instances.Where(i => i.Status == HealthStatus.Healthy);
 
         return Ok(ApiResponse<IEnumerable<ServiceInstance>>.SuccessResponse(healthyInstances));
     }

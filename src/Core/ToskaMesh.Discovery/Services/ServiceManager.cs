@@ -27,14 +27,14 @@ public class ServiceManager : IServiceManager
         _httpClient.Timeout = TimeSpan.FromSeconds(5);
     }
 
-    public async Task<bool> RegisterAsync(ServiceRegistration registration, CancellationToken cancellationToken = default)
+    public async Task<ServiceRegistrationResult> RegisterAsync(ServiceRegistration registration, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Registering service: {ServiceName} ({ServiceId})",
             registration.ServiceName, registration.ServiceId);
 
-        var result = await _serviceRegistry.RegisterServiceAsync(registration, cancellationToken);
+        var result = await _serviceRegistry.RegisterAsync(registration, cancellationToken);
 
-        if (result)
+        if (result.Success)
         {
             // Publish service registered event
             await _publishEndpoint.Publish(new ServiceRegisteredEvent
@@ -50,7 +50,7 @@ public class ServiceManager : IServiceManager
         }
         else
         {
-            _logger.LogWarning("Failed to register service: {ServiceId}", registration.ServiceId);
+            _logger.LogWarning("Failed to register service: {ServiceId} - {Error}", registration.ServiceId, result.ErrorMessage);
         }
 
         return result;
@@ -63,7 +63,7 @@ public class ServiceManager : IServiceManager
         // Get service info before deregistering
         var instance = await _serviceRegistry.GetServiceInstanceAsync(serviceId, cancellationToken);
 
-        var result = await _serviceRegistry.DeregisterServiceAsync(serviceId, cancellationToken);
+        var result = await _serviceRegistry.DeregisterAsync(serviceId, cancellationToken);
 
         if (result && instance != null)
         {
@@ -97,7 +97,7 @@ public class ServiceManager : IServiceManager
 
     public async Task<IEnumerable<string>> GetServiceNamesAsync(CancellationToken cancellationToken = default)
     {
-        return await _serviceRegistry.GetServiceNamesAsync(cancellationToken);
+        return await _serviceRegistry.GetAllServicesAsync(cancellationToken);
     }
 
     public async Task<bool> UpdateHealthAsync(string serviceId, HealthStatus status, string? output = null, CancellationToken cancellationToken = default)
@@ -108,8 +108,8 @@ public class ServiceManager : IServiceManager
             return false;
         }
 
-        var previousStatus = instance.HealthStatus;
-        var result = await _serviceRegistry.UpdateServiceHealthAsync(serviceId, status, output, cancellationToken);
+        var previousStatus = instance.Status;
+        var result = await _serviceRegistry.UpdateHealthStatusAsync(serviceId, status, cancellationToken);
 
         if (result && previousStatus != status)
         {
@@ -129,7 +129,7 @@ public class ServiceManager : IServiceManager
 
     public async Task PerformHealthChecksAsync(CancellationToken cancellationToken = default)
     {
-        var serviceNames = await _serviceRegistry.GetServiceNamesAsync(cancellationToken);
+        var serviceNames = await _serviceRegistry.GetAllServicesAsync(cancellationToken);
 
         foreach (var serviceName in serviceNames)
         {

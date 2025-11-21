@@ -36,13 +36,13 @@ public class ServiceRegistrationController : ControllerBase
 
         var result = await _serviceManager.RegisterAsync(registration, cancellationToken);
 
-        if (result)
+        if (result.Success)
         {
             var instance = await _serviceManager.GetInstanceAsync(registration.ServiceId, cancellationToken);
             return Ok(ApiResponse<ServiceInstance>.SuccessResponse(instance, "Service registered successfully"));
         }
 
-        return BadRequest(ApiResponse<object>.ErrorResponse("Failed to register service"));
+        return BadRequest(ApiResponse<object>.ErrorResponse(result.ErrorMessage ?? "Failed to register service"));
     }
 
     /// <summary>

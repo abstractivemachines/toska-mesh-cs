@@ -16,7 +16,6 @@ builder.Services.AddSwaggerGen(c =>
 
 // Add Toska Mesh common services
 builder.Services.AddMeshCommon();
-builder.Services.AddStructuredLogging();
 
 // Add Consul service registry
 builder.Services.AddConsulServiceRegistry(builder.Configuration);
@@ -30,7 +29,10 @@ builder.Services.AddMeshTelemetry("Discovery");
 
 // Add health checks
 builder.Services.AddMeshHealthChecks()
-    .AddConsul(builder.Configuration["Consul:Address"] ?? "http://localhost:8500");
+    .AddConsul(options =>
+    {
+        options.HostName = builder.Configuration["Consul:Address"] ?? "http://localhost:8500";
+    });
 
 // Add CORS
 builder.Services.AddCors(options =>
