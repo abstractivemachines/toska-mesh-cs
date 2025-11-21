@@ -1,8 +1,8 @@
-# Toksa Mesh C# Implementation Plan
+# Toska Mesh C# Implementation Plan
 
 ## Executive Summary
 
-This document outlines the detailed implementation plan for porting Toksa Mesh from Elixir to C#/.NET 8. The plan is divided into four phases over an estimated 12-week timeline.
+This document outlines the detailed implementation plan for porting Toska Mesh from Elixir to C#/.NET 8. The plan is divided into four phases over an estimated 12-week timeline.
 
 ## Architecture Overview
 
@@ -45,27 +45,27 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
 - [ ] Setup code quality tools (SonarQube, CodeQL)
 
 #### Week 2: Shared Libraries Implementation
-- [x] **ToksaMesh.Common**
+- [x] **ToskaMesh.Common**
   - [x] ApiResponse models
   - [x] Extension methods
   - [x] Retry policies
   - [ ] Exception handling middleware
   - [ ] Validation utilities
 
-- [x] **ToksaMesh.Protocols**
+- [x] **ToskaMesh.Protocols**
   - [x] IServiceRegistry interface
   - [x] ILoadBalancer interface
   - [x] IMeshCoordinator interface
   - [ ] ICircuitBreaker interface
   - [ ] Message contracts
 
-- [x] **ToksaMesh.Security**
+- [x] **ToskaMesh.Security**
   - [x] JwtTokenService
   - [ ] Password hasher wrapper
   - [ ] Authorization policies
   - [ ] API key authentication
 
-- [x] **ToksaMesh.Telemetry**
+- [x] **ToskaMesh.Telemetry**
   - [x] OpenTelemetry configuration
   - [x] Custom metrics
   - [ ] Distributed tracing helpers
@@ -84,14 +84,14 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
 **Goal**: Implement core mesh components
 
 #### Week 4: MeshCore & Discovery
-- [ ] **ToksaMesh.Core**
+- [ ] **ToskaMesh.Core**
   - [ ] Orleans grains for cluster coordination
   - [ ] Membership management
   - [ ] Leader election
   - [ ] Event broadcasting
   - [ ] State persistence
 
-- [ ] **ToksaMesh.Discovery**
+- [ ] **ToskaMesh.Discovery**
   - [ ] Consul service registration
   - [ ] Service instance tracking
   - [ ] Health check execution
@@ -99,7 +99,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] REST API endpoints
 
 #### Week 5: Gateway & Router
-- [ ] **ToksaMesh.Gateway**
+- [ ] **ToskaMesh.Gateway**
   - [x] YARP configuration
   - [ ] Dynamic route discovery from Consul
   - [ ] Authentication middleware
@@ -108,7 +108,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] API versioning
   - [ ] CORS configuration
 
-- [ ] **ToksaMesh.Router**
+- [ ] **ToskaMesh.Router**
   - [ ] Round-robin load balancer
   - [ ] Least connections algorithm
   - [ ] Weighted round-robin
@@ -117,7 +117,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] Request metrics tracking
 
 #### Week 6: Health Monitor
-- [ ] **ToksaMesh.HealthMonitor**
+- [ ] **ToskaMesh.HealthMonitor**
   - [ ] HTTP health check probes
   - [ ] TCP health checks
   - [ ] Custom health check support
@@ -132,7 +132,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
 **Goal**: Implement business domain services
 
 #### Week 7: Authentication Service
-- [ ] **ToksaMesh.AuthService**
+- [ ] **ToskaMesh.AuthService**
   - [ ] User registration endpoint
   - [ ] Login with JWT token generation
   - [ ] Token refresh mechanism
@@ -147,7 +147,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] Integration tests
 
 #### Week 8: Configuration & Metrics Services
-- [ ] **ToksaMesh.ConfigService**
+- [ ] **ToskaMesh.ConfigService**
   - [ ] YAML configuration parsing
   - [ ] Configuration versioning
   - [ ] Environment-specific configs
@@ -158,7 +158,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] Database persistence
   - [ ] Unit tests
 
-- [ ] **ToksaMesh.MetricsService**
+- [ ] **ToskaMesh.MetricsService**
   - [ ] Prometheus metrics aggregation
   - [ ] Custom metrics collection
   - [ ] Metrics query API
@@ -168,7 +168,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
   - [ ] Unit tests
 
 #### Week 9: Tracing Service
-- [ ] **ToksaMesh.TracingService**
+- [ ] **ToskaMesh.TracingService**
   - [ ] OpenTelemetry trace collection
   - [ ] Jaeger exporter integration
   - [ ] Zipkin exporter support
@@ -257,7 +257,7 @@ This document outlines the detailed implementation plan for porting Toksa Mesh f
 ### Local Development
 ```bash
 docker-compose up -d
-dotnet run --project src/Core/ToksaMesh.Gateway
+dotnet run --project src/Core/ToskaMesh.Gateway
 ```
 
 ### Staging (Kubernetes)
@@ -404,6 +404,6 @@ dotnet run --project src/Core/ToksaMesh.Gateway
 
 ## Conclusion
 
-This implementation plan provides a structured approach to porting Toksa Mesh to C#/.NET 8. By following this plan, the team can deliver a production-ready, cloud-native service mesh that maintains feature parity with the Elixir version while leveraging the strengths of the .NET ecosystem.
+This implementation plan provides a structured approach to porting Toska Mesh to C#/.NET 8. By following this plan, the team can deliver a production-ready, cloud-native service mesh that maintains feature parity with the Elixir version while leveraging the strengths of the .NET ecosystem.
 
 The phased approach allows for incremental delivery, continuous testing, and risk mitigation. Regular reviews and adjustments will ensure the project stays on track and meets all success criteria.
