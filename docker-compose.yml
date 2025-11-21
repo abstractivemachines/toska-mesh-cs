@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Service Discovery
+  consul:
+    image: consul:1.15
+    container_name: toskamesh-consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    networks:
+      - toskamesh
+    healthcheck:
+      test: ["CMD", "consul", "info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Message Bus
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: toskamesh-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - toskamesh
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Database
+  postgres:
+    image: postgres:15
+    container_name: toskamesh-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=toskamesh
+      - POSTGRES_PASSWORD=toskamesh
+      - POSTGRES_DB=toskamesh
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - toskamesh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toskamesh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache
+  redis:
+    image: redis:7-alpine
+    container_name: toskamesh-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - toskamesh
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  toskamesh:
+    driver: bridge
+
+volumes:
+  postgres-data:
