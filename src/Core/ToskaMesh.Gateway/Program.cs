@@ -133,13 +133,11 @@ app.UseAuthorization();
 // Enable Prometheus metrics endpoint
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
+// Use mesh health checks (JSON formatted responses)
+app.UseMeshHealthChecks();
+
 // Map endpoints
 app.MapControllers();
 app.MapReverseProxy();
-
-// Health check endpoints
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/ready");
-app.MapHealthChecks("/health/live");
 
 app.Run();
