@@ -1,4 +1,4 @@
-# Toksa Mesh - C# Implementation
+# Toska Mesh - C# Implementation
 
 A distributed service mesh implementation in C#/.NET 8, ported from the original Elixir version. This implementation provides a production-ready platform for managing distributed microservices with advanced features like service discovery, load balancing, health monitoring, and distributed tracing.
 
@@ -11,31 +11,31 @@ This C# implementation maintains the hybrid architecture of the original Elixir 
 ### Project Structure
 
 ```
-ToksaMesh/
+ToskaMesh/
 ├── src/
 │   ├── Core/                          # Core mesh components
-│   │   ├── ToksaMesh.Core/           # Central coordinator with Orleans/MassTransit
-│   │   ├── ToksaMesh.Discovery/      # Service discovery with Consul
-│   │   ├── ToksaMesh.Gateway/        # API Gateway with YARP
-│   │   ├── ToksaMesh.Router/         # Load balancing with Polly
-│   │   └── ToksaMesh.HealthMonitor/  # Health checks and circuit breakers
+│   │   ├── ToskaMesh.Core/           # Central coordinator with Orleans/MassTransit
+│   │   ├── ToskaMesh.Discovery/      # Service discovery with Consul
+│   │   ├── ToskaMesh.Gateway/        # API Gateway with YARP
+│   │   ├── ToskaMesh.Router/         # Load balancing with Polly
+│   │   └── ToskaMesh.HealthMonitor/  # Health checks and circuit breakers
 │   │
 │   ├── Services/                      # Business domain services
-│   │   ├── ToksaMesh.AuthService/    # Authentication & JWT tokens
-│   │   ├── ToksaMesh.ConfigService/  # Configuration management
-│   │   ├── ToksaMesh.MetricsService/ # Metrics collection (Prometheus)
-│   │   └── ToksaMesh.TracingService/ # Distributed tracing (OpenTelemetry)
+│   │   ├── ToskaMesh.AuthService/    # Authentication & JWT tokens
+│   │   ├── ToskaMesh.ConfigService/  # Configuration management
+│   │   ├── ToskaMesh.MetricsService/ # Metrics collection (Prometheus)
+│   │   └── ToskaMesh.TracingService/ # Distributed tracing (OpenTelemetry)
 │   │
 │   └── Shared/                        # Shared libraries
-│       ├── ToksaMesh.Common/         # Common utilities & response models
-│       ├── ToksaMesh.Protocols/      # Interfaces & contracts
-│       ├── ToksaMesh.Security/       # JWT & security utilities
-│       └── ToksaMesh.Telemetry/      # OpenTelemetry configuration
+│       ├── ToskaMesh.Common/         # Common utilities & response models
+│       ├── ToskaMesh.Protocols/      # Interfaces & contracts
+│       ├── ToskaMesh.Security/       # JWT & security utilities
+│       └── ToskaMesh.Telemetry/      # OpenTelemetry configuration
 │
 ├── tests/                            # Unit & integration tests
 ├── deployments/                      # Docker & Kubernetes configs
 ├── docs/                            # Documentation
-└── ToksaMesh.sln                    # Solution file
+└── ToskaMesh.sln                    # Solution file
 ```
 
 ## Technology Stack
@@ -142,15 +142,15 @@ docker-compose up -d postgres redis consul prometheus grafana
 2. **Run individual services**
 ```bash
 # Terminal 1 - Gateway
-cd src/Core/ToksaMesh.Gateway
+cd src/Core/ToskaMesh.Gateway
 dotnet run
 
 # Terminal 2 - Auth Service
-cd src/Services/ToksaMesh.AuthService
+cd src/Services/ToskaMesh.AuthService
 dotnet run
 
 # Terminal 3 - Config Service
-cd src/Services/ToksaMesh.ConfigService
+cd src/Services/ToskaMesh.ConfigService
 dotnet run
 ```
 
@@ -208,7 +208,7 @@ dotnet test
 dotnet format
 
 # Create migration (example for AuthService)
-cd src/Services/ToksaMesh.AuthService
+cd src/Services/ToskaMesh.AuthService
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 
@@ -220,19 +220,19 @@ dotnet publish -c Release -o ./publish
 
 1. Create new project:
 ```bash
-dotnet new webapi -n ToksaMesh.YourService -o src/Services/ToksaMesh.YourService
+dotnet new webapi -n ToskaMesh.YourService -o src/Services/ToskaMesh.YourService
 ```
 
 2. Add project to solution:
 ```bash
-dotnet sln add src/Services/ToksaMesh.YourService/ToksaMesh.YourService.csproj
+dotnet sln add src/Services/ToskaMesh.YourService/ToskaMesh.YourService.csproj
 ```
 
 3. Add shared library references:
 ```bash
-dotnet add src/Services/ToksaMesh.YourService reference src/Shared/ToksaMesh.Common
-dotnet add src/Services/ToksaMesh.YourService reference src/Shared/ToksaMesh.Protocols
-dotnet add src/Services/ToksaMesh.YourService reference src/Shared/ToksaMesh.Telemetry
+dotnet add src/Services/ToskaMesh.YourService reference src/Shared/ToskaMesh.Common
+dotnet add src/Services/ToskaMesh.YourService reference src/Shared/ToskaMesh.Protocols
+dotnet add src/Services/ToskaMesh.YourService reference src/Shared/ToskaMesh.Telemetry
 ```
 
 4. Configure telemetry in Program.cs:
@@ -261,8 +261,8 @@ builder.Services.AddMeshTelemetry("YourService");
   },
   "JwtToken": {
     "Secret": "your-super-secret-key-min-32-characters",
-    "Issuer": "ToksaMesh",
-    "Audience": "ToksaMesh",
+    "Issuer": "ToskaMesh",
+    "Audience": "ToskaMesh",
     "ExpirationHours": 24
   }
 }
@@ -272,7 +272,7 @@ builder.Services.AddMeshTelemetry("YourService");
 
 ### Unit Tests
 ```bash
-dotnet test tests/ToksaMesh.UnitTests
+dotnet test tests/ToskaMesh.UnitTests
 ```
 
 ### Integration Tests
@@ -282,7 +282,7 @@ cd deployments
 docker-compose up -d
 
 # Run integration tests
-dotnet test tests/ToksaMesh.IntegrationTests
+dotnet test tests/ToskaMesh.IntegrationTests
 ```
 
 ## Deployment

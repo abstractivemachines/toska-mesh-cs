@@ -6,28 +6,28 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["ToksaMesh.sln", "./"]
-COPY ["src/Core/ToksaMesh.Gateway/ToksaMesh.Gateway.csproj", "src/Core/ToksaMesh.Gateway/"]
-COPY ["src/Core/ToksaMesh.Discovery/ToksaMesh.Discovery.csproj", "src/Core/ToksaMesh.Discovery/"]
-COPY ["src/Shared/ToksaMesh.Common/ToksaMesh.Common.csproj", "src/Shared/ToksaMesh.Common/"]
-COPY ["src/Shared/ToksaMesh.Protocols/ToksaMesh.Protocols.csproj", "src/Shared/ToksaMesh.Protocols/"]
-COPY ["src/Shared/ToksaMesh.Security/ToksaMesh.Security.csproj", "src/Shared/ToksaMesh.Security/"]
-COPY ["src/Shared/ToksaMesh.Telemetry/ToksaMesh.Telemetry.csproj", "src/Shared/ToksaMesh.Telemetry/"]
+COPY ["ToskaMesh.sln", "./"]
+COPY ["src/Core/ToskaMesh.Gateway/ToskaMesh.Gateway.csproj", "src/Core/ToskaMesh.Gateway/"]
+COPY ["src/Core/ToskaMesh.Discovery/ToskaMesh.Discovery.csproj", "src/Core/ToskaMesh.Discovery/"]
+COPY ["src/Shared/ToskaMesh.Common/ToskaMesh.Common.csproj", "src/Shared/ToskaMesh.Common/"]
+COPY ["src/Shared/ToskaMesh.Protocols/ToskaMesh.Protocols.csproj", "src/Shared/ToskaMesh.Protocols/"]
+COPY ["src/Shared/ToskaMesh.Security/ToskaMesh.Security.csproj", "src/Shared/ToskaMesh.Security/"]
+COPY ["src/Shared/ToskaMesh.Telemetry/ToskaMesh.Telemetry.csproj", "src/Shared/ToskaMesh.Telemetry/"]
 
 # Restore dependencies
-RUN dotnet restore "src/Core/ToksaMesh.Gateway/ToksaMesh.Gateway.csproj"
+RUN dotnet restore "src/Core/ToskaMesh.Gateway/ToskaMesh.Gateway.csproj"
 
 # Copy everything else
 COPY . .
 
 # Build
-WORKDIR "/src/src/Core/ToksaMesh.Gateway"
-RUN dotnet build "ToksaMesh.Gateway.csproj" -c Release -o /app/build
+WORKDIR "/src/src/Core/ToskaMesh.Gateway"
+RUN dotnet build "ToskaMesh.Gateway.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "ToksaMesh.Gateway.csproj" -c Release -o /app/publish
+RUN dotnet publish "ToskaMesh.Gateway.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ToksaMesh.Gateway.dll"]
+ENTRYPOINT ["dotnet", "ToskaMesh.Gateway.dll"]
