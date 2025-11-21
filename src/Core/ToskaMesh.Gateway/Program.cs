@@ -35,7 +35,12 @@ builder.Services.AddConsulServiceRegistry(builder.Configuration);
 builder.Services.AddMeshTelemetry("Gateway");
 
 // Add health checks
-builder.Services.AddMeshHealthChecks();
+builder.Services.AddMeshHealthChecks()
+    .AddConsul(options =>
+    {
+        options.HostName = "localhost";
+        options.Port = 8500;
+    });
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
