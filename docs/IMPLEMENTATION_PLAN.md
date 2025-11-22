@@ -132,17 +132,17 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
 **Goal**: Implement business domain services
 
 #### Week 7: Authentication Service
-- [ ] **ToskaMesh.AuthService**
-  - [ ] User registration endpoint
-  - [ ] Login with JWT token generation
-  - [ ] Token refresh mechanism
-  - [ ] Password reset flow
-  - [ ] Email verification
-  - [ ] Role-based access control
-  - [ ] OAuth2 integration (Google, GitHub)
-  - [ ] User profile management
-  - [ ] Audit logging
-  - [ ] Database schema & migrations
+- [x] **ToskaMesh.AuthService**
+  - [x] User registration endpoint
+  - [x] Login with JWT token generation
+  - [x] Token refresh mechanism
+  - [x] Password reset flow
+  - [x] Email verification
+  - [x] Role-based access control
+  - [x] OAuth2 integration (Google, GitHub)
+  - [x] User profile management
+  - [x] Audit logging
+  - [x] Database schema & migrations
   - [ ] Unit tests
   - [ ] Integration tests
 
