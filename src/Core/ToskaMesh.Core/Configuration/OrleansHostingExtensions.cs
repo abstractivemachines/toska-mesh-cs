@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using OrleansDashboard;
 
 namespace ToskaMesh.Core.Configuration;
 
@@ -44,31 +45,8 @@ public static class OrleansHostingExtensions
                 case "localhost":
                     siloBuilder.UseLocalhostClustering();
                     break;
-
-                case "consul":
-                    siloBuilder.UseConsulClustering(options =>
-                    {
-                        options.Address = new Uri(config.ConsulAddress!);
-                    });
-                    break;
-
-                case "azuretable":
-                    siloBuilder.UseAzureStorageClustering(options =>
-                    {
-                        options.ConfigureTableServiceClient(config.AzureStorageConnectionString);
-                    });
-                    break;
-
-                case "adonet":
-                    siloBuilder.UseAdoNetClustering(options =>
-                    {
-                        options.Invariant = config.DatabaseInvariant ?? "Npgsql";
-                        options.ConnectionString = config.DatabaseConnectionString!;
-                    });
-                    break;
-
                 default:
-                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
+                    throw new NotSupportedException($"Clustering mode '{config.ClusteringMode}' is not implemented yet.");
             }
 
             // Configure grain storage
@@ -81,22 +59,7 @@ public static class OrleansHostingExtensions
                 });
             }
 
-            // Configure reminders
-            if (!string.IsNullOrEmpty(config.DatabaseConnectionString))
-            {
-                siloBuilder.UseAdoNetReminderService(options =>
-                {
-                    options.Invariant = config.DatabaseInvariant ?? "Npgsql";
-                    options.ConnectionString = config.DatabaseConnectionString;
-                });
-            }
-
-            // Configure application parts (scan for grains)
-            siloBuilder.ConfigureApplicationParts(parts =>
-            {
-                parts.AddApplicationPart(typeof(OrleansHostingExtensions).Assembly)
-                    .WithReferences();
-            });
+            // TODO: configure reminders + application parts when non-localhost clustering is implemented.
 
             // Configure dashboard (optional, for development)
             if (config.EnableDashboard)
@@ -135,39 +98,9 @@ public static class OrleansHostingExtensions
                 case "localhost":
                     clientBuilder.UseLocalhostClustering();
                     break;
-
-                case "consul":
-                    clientBuilder.UseConsulClustering(options =>
-                    {
-                        options.Address = new Uri(config.ConsulAddress!);
-                    });
-                    break;
-
-                case "azuretable":
-                    clientBuilder.UseAzureStorageClustering(options =>
-                    {
-                        options.ConfigureTableServiceClient(config.AzureStorageConnectionString);
-                    });
-                    break;
-
-                case "adonet":
-                    clientBuilder.UseAdoNetClustering(options =>
-                    {
-                        options.Invariant = config.DatabaseInvariant ?? "Npgsql";
-                        options.ConnectionString = config.DatabaseConnectionString!;
-                    });
-                    break;
-
                 default:
-                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
+                    throw new NotSupportedException($"Clustering mode '{config.ClusteringMode}' is not implemented yet.");
             }
-
-            // Configure application parts
-            clientBuilder.ConfigureApplicationParts(parts =>
-            {
-                parts.AddApplicationPart(typeof(OrleansHostingExtensions).Assembly)
-                    .WithReferences();
-            });
         });
 
         return services;
