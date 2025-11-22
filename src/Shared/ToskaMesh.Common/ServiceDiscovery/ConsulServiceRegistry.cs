@@ -26,6 +26,20 @@ public class ConsulServiceRegistry : IServiceRegistry
     {
         try
         {
+            var ttlInterval = registration.HealthCheck?.Interval;
+            if (ttlInterval == null || ttlInterval.Value <= TimeSpan.Zero)
+            {
+                ttlInterval = TimeSpan.FromSeconds(30);
+            }
+
+            // Provide a small buffer to avoid accidental expirations between updates.
+            var ttlWithBuffer = ttlInterval.Value + TimeSpan.FromSeconds(5);
+            if (ttlWithBuffer < TimeSpan.FromSeconds(10))
+            {
+                ttlWithBuffer = TimeSpan.FromSeconds(10);
+            }
+            var ttlCheckId = $"service:{registration.ServiceId}";
+
             var consulRegistration = new AgentServiceRegistration
             {
                 ID = registration.ServiceId,
@@ -33,16 +47,20 @@ public class ConsulServiceRegistry : IServiceRegistry
                 Address = registration.Address,
                 Port = registration.Port,
                 Meta = registration.Metadata,
-                Check = registration.HealthCheck != null ? new AgentServiceCheck
+                Check = new AgentServiceCheck
                 {
-                    HTTP = $"{(registration.Metadata.ContainsKey("scheme") ? registration.Metadata["scheme"] : "http")}://{registration.Address}:{registration.Port}{registration.HealthCheck.Endpoint}",
-                    Interval = registration.HealthCheck.Interval,
-                    Timeout = registration.HealthCheck.Timeout,
+                    CheckID = ttlCheckId,
+                    Name = $"{registration.ServiceName} TTL Health",
+                    TTL = ttlWithBuffer,
                     DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)
-                } : null
+                }
             };
 
             await _consulClient.Agent.ServiceRegister(consulRegistration, cancellationToken);
+
+            // Mark the TTL check as passing so the service starts healthy until the first update.
+            await _consulClient.Agent.PassTTL(ttlCheckId, "Service registered", cancellationToken);
+
             _logger.LogInformation("Service registered: {ServiceName} ({ServiceId}) at {Address}:{Port}",
                 registration.ServiceName, registration.ServiceId, registration.Address, registration.Port);
 
