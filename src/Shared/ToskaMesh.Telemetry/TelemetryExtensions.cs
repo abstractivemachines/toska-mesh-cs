@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using ToskaMesh.Telemetry.Tracing;
 
 namespace ToskaMesh.Telemetry;
 
@@ -18,13 +19,16 @@ public static class TelemetryExtensions
         string serviceName,
         string serviceVersion = "1.0.0")
     {
+        var activitySource = MeshActivitySource.Get(serviceName, serviceVersion);
+        services.AddSingleton(activitySource);
+
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(serviceName: serviceName, serviceVersion: serviceVersion))
             .WithTracing(tracing => tracing
+                .AddSource(activitySource.Name)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddSource(serviceName)
                 .AddConsoleExporter())
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
@@ -32,6 +36,18 @@ public static class TelemetryExtensions
                 .AddRuntimeInstrumentation()
                 .AddPrometheusExporter());
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers an activity source without configuring the full OpenTelemetry pipeline.
+    /// </summary>
+    public static IServiceCollection AddMeshTracing(
+        this IServiceCollection services,
+        string serviceName,
+        string serviceVersion = "1.0.0")
+    {
+        services.AddSingleton(MeshActivitySource.Get(serviceName, serviceVersion));
         return services;
     }
 

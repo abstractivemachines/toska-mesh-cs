@@ -2,7 +2,7 @@
 
 ## Foundation & Tooling
 - ~~Configure CI/CD (GitHub Actions) and integrate code-quality scanners (SonarQube, CodeQL).~~ (Done via GitHub Actions CI + CodeQL workflows)
-- Finish shared libraries: exception middleware, validation helpers, ICircuitBreaker, message contracts, password hasher wrapper, authorization policies, API-key authentication, tracing helpers, logging enrichers.
+- ~~Finish shared libraries: exception middleware, validation helpers, ICircuitBreaker, message contracts, password hasher wrapper, authorization policies, API-key authentication, tracing helpers, logging enrichers.~~
 - Complete Week-3 infrastructure: Orleans silo hosting, MassTransit + RabbitMQ setup, Consul client wiring, PostgreSQL management, Redis caching, standardized health checks.
 
 ## Core Mesh Services

@@ -49,27 +49,27 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [x] ApiResponse models
   - [x] Extension methods
   - [x] Retry policies
-  - [ ] Exception handling middleware
-  - [ ] Validation utilities
+  - [x] Exception handling middleware
+  - [x] Validation utilities
 
 - [x] **ToskaMesh.Protocols**
   - [x] IServiceRegistry interface
   - [x] ILoadBalancer interface
   - [x] IMeshCoordinator interface
-  - [ ] ICircuitBreaker interface
-  - [ ] Message contracts
+  - [x] ICircuitBreaker interface
+  - [x] Message contracts
 
 - [x] **ToskaMesh.Security**
   - [x] JwtTokenService
-  - [ ] Password hasher wrapper
-  - [ ] Authorization policies
-  - [ ] API key authentication
+  - [x] Password hasher wrapper
+  - [x] Authorization policies
+  - [x] API key authentication
 
 - [x] **ToskaMesh.Telemetry**
   - [x] OpenTelemetry configuration
   - [x] Custom metrics
-  - [ ] Distributed tracing helpers
-  - [ ] Logging enrichers
+  - [x] Distributed tracing helpers
+  - [x] Logging enrichers
 
 #### Week 3: Core Infrastructure
 - [ ] Orleans silo configuration
