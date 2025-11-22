@@ -41,8 +41,8 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
 - [x] Create all project files (.csproj)
 - [x] Configure NuGet packages
 - [x] Setup Docker development environment
-- [ ] Configure CI/CD pipeline (GitHub Actions)
-- [ ] Setup code quality tools (SonarQube, CodeQL)
+- [x] Configure CI/CD pipeline (GitHub Actions)
+- [x] Setup code quality tools (CodeQL scanning workflow)
 
 #### Week 2: Shared Libraries Implementation
 - [x] **ToskaMesh.Common**

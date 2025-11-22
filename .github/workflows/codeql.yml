@@ -1,0 +1,44 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+
+      - name: Restore dependencies
+        run: dotnet restore ToskaMesh.sln
+
+      - name: Build solution projects
+        run: |
+          dotnet build src/Shared/ToskaMesh.Common/ToskaMesh.Common.csproj --configuration Release --no-restore
+          dotnet build src/Shared/ToskaMesh.Security/ToskaMesh.Security.csproj --configuration Release --no-restore
+          dotnet build src/Shared/ToskaMesh.Telemetry/ToskaMesh.Telemetry.csproj --configuration Release --no-restore
+          dotnet build src/Core/ToskaMesh.Discovery/ToskaMesh.Discovery.csproj --configuration Release --no-restore
+          dotnet build src/Core/ToskaMesh.Gateway/ToskaMesh.Gateway.csproj --configuration Release --no-restore
+          dotnet build src/Core/ToskaMesh.Router/ToskaMesh.Router.csproj --configuration Release --no-restore
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
