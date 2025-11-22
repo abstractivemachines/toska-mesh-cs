@@ -99,29 +99,29 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [x] REST API endpoints
 
 #### Week 5: Gateway & Router
-- [ ] **ToskaMesh.Gateway**
+- [x] **ToskaMesh.Gateway**
   - [x] YARP configuration
-  - [ ] Dynamic route discovery from Consul
-  - [ ] Authentication middleware
-  - [ ] Rate limiting
-  - [ ] Request/response logging
-  - [ ] API versioning
-  - [ ] CORS configuration
+  - [x] Dynamic route discovery from Consul
+  - [x] Authentication middleware
+  - [x] Rate limiting
+  - [x] Request/response logging
+  - [x] API versioning
+  - [x] CORS configuration
 
-- [ ] **ToskaMesh.Router**
-  - [ ] Round-robin load balancer
-  - [ ] Least connections algorithm
-  - [ ] Weighted round-robin
-  - [ ] IP hash strategy
-  - [ ] Health-aware routing
-  - [ ] Request metrics tracking
+- [x] **ToskaMesh.Router**
+  - [x] Round-robin load balancer
+  - [x] Least connections algorithm
+  - [x] Weighted round-robin
+  - [x] IP hash strategy
+  - [x] Health-aware routing
+  - [x] Request metrics tracking
 
 #### Week 6: Health Monitor
-- [ ] **ToskaMesh.HealthMonitor**
-  - [ ] HTTP health check probes
-  - [ ] TCP health checks
-  - [ ] Custom health check support
-  - [ ] Circuit breaker with Polly
+- [x] **ToskaMesh.HealthMonitor**
+  - [x] HTTP health check probes
+  - [x] TCP health checks
+  - [x] Custom health check support
+  - [x] Circuit breaker with Polly
   - [ ] Bulkhead isolation
   - [ ] Health check dashboard
   - [ ] Alerting integration

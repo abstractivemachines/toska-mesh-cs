@@ -1,6 +1,9 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.IdentityModel.Tokens;
 using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
@@ -19,11 +22,30 @@ var jwtConfig = builder.Configuration.GetSection(JwtConfiguration.SectionName).G
     ?? new JwtConfiguration();
 var rateLimitConfig = builder.Configuration.GetSection(RateLimitConfiguration.SectionName).Get<RateLimitConfiguration>()
     ?? new RateLimitConfiguration();
+var corsConfig = builder.Configuration.GetSection(CorsConfiguration.SectionName).Get<CorsConfiguration>()
+    ?? new CorsConfiguration();
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("X-API-Version"),
+        new MediaTypeApiVersionReader("x-api-version"),
+        new QueryStringApiVersionReader("api-version"));
+});
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
 // Add Mesh common services
 builder.Services.AddMeshInfrastructure(
@@ -106,17 +128,48 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (corsConfig.AllowAnyOrigin || corsConfig.AllowedOrigins.Length == 0)
+        {
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(corsConfig.AllowedOrigins)
+                  .AllowCredentials();
+        }
+
+        if (corsConfig.AllowedHeaders.Length == 0 || corsConfig.AllowedHeaders.Contains("*"))
+        {
+            policy.AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithHeaders(corsConfig.AllowedHeaders);
+        }
+
+        if (corsConfig.AllowedMethods.Length == 0 || corsConfig.AllowedMethods.Contains("*"))
+        {
+            policy.AllowAnyMethod();
+        }
+        else
+        {
+            policy.WithMethods(corsConfig.AllowedMethods);
+        }
     });
 });
 
 var app = builder.Build();
+var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
 // Configure the HTTP request pipeline
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+    {
+        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Gateway {description.GroupName.ToUpperInvariant()}");
+    }
+});
 
 // Middleware ordering is important
 app.UseRequestLogging(); // Custom logging middleware
