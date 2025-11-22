@@ -1,4 +1,3 @@
-using Consul;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orleans;
@@ -85,16 +84,24 @@ public static class OrleansHostingExtensions
                     options.Invariant = config.DatabaseInvariant ?? "Npgsql";
                     options.ConnectionString = config.DatabaseConnectionString;
                 });
-            }
 
-            // Configure reminders
-            if (!string.IsNullOrEmpty(config.DatabaseConnectionString))
-            {
+                siloBuilder.AddAdoNetGrainStorage("clusterStore", options =>
+                {
+                    options.Invariant = config.DatabaseInvariant ?? "Npgsql";
+                    options.ConnectionString = config.DatabaseConnectionString;
+                });
+
                 siloBuilder.UseAdoNetReminderService(options =>
                 {
                     options.Invariant = config.DatabaseInvariant ?? "Npgsql";
                     options.ConnectionString = config.DatabaseConnectionString;
                 });
+            }
+            else
+            {
+                siloBuilder.AddMemoryGrainStorageAsDefault();
+                siloBuilder.AddMemoryGrainStorage("clusterStore");
+                siloBuilder.UseInMemoryReminderService();
             }
 
             // Configure dashboard (optional, for development)
