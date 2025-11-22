@@ -147,15 +147,15 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [ ] Integration tests
 
 #### Week 8: Configuration & Metrics Services
-- [ ] **ToskaMesh.ConfigService**
-  - [ ] YAML configuration parsing
-  - [ ] Configuration versioning
-  - [ ] Environment-specific configs
+- [x] **ToskaMesh.ConfigService**
+  - [x] YAML configuration parsing
+  - [x] Configuration versioning
+  - [x] Environment-specific configs
   - [ ] Configuration change notifications
   - [ ] Validation schemas
-  - [ ] REST API for config CRUD
-  - [ ] Configuration rollback
-  - [ ] Database persistence
+  - [x] REST API for config CRUD
+  - [x] Configuration rollback
+  - [x] Database persistence
   - [ ] Unit tests
 
 - [ ] **ToskaMesh.MetricsService**
