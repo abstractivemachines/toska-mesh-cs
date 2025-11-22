@@ -168,16 +168,16 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [x] Unit tests
 
 #### Week 9: Tracing Service
-- [ ] **ToskaMesh.TracingService**
-  - [ ] OpenTelemetry trace collection
-  - [ ] Jaeger exporter integration
-  - [ ] Zipkin exporter support
-  - [ ] Trace query API
-  - [ ] Trace visualization endpoints
-  - [ ] Sampling configuration
-  - [ ] Trace correlation
-  - [ ] Performance analysis
-  - [ ] Unit tests
+- [x] **ToskaMesh.TracingService**
+  - [x] OpenTelemetry trace collection
+  - [x] Jaeger exporter integration
+  - [x] Zipkin exporter support
+  - [x] Trace query API
+  - [x] Trace visualization endpoints
+  - [x] Sampling configuration
+  - [x] Trace correlation
+  - [x] Performance analysis
+  - [x] Unit tests
 
 ### Phase 4: Integration & Deployment (Weeks 10-12)
 

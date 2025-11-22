@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" />
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" />
@@ -22,6 +23,7 @@
     <ProjectReference Include="..\..\Shared\ToskaMesh.Common\ToskaMesh.Common.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Shared\ToskaMesh.Security\ToskaMesh.Security.csproj" />
   </ItemGroup>
 
 </Project>
