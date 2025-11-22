@@ -32,6 +32,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Grpc\ToskaMesh.Grpc.csproj" />
   </ItemGroup>
 
 </Project>

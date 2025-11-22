@@ -14,8 +14,4 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ToskaMesh.Common\ToskaMesh.Common.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -54,6 +54,7 @@ builder.Services.AddMeshInfrastructure(
     {
         options.EnableMassTransit = false;
         options.EnableRedisCache = false;
+        options.ServiceRegistryProvider = ServiceRegistryProvider.Grpc;
     },
     configureHealthChecks: health =>
     {

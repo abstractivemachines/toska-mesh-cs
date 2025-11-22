@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.Security", "src\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.Telemetry", "src\Shared\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj", "{44444444-4444-4444-4444-444444444444}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.Grpc", "src\Shared\ToskaMesh.Grpc\ToskaMesh.Grpc.csproj", "{AAAAAAA1-AAAA-AAAA-AAAA-AAAAAAAAAAA1}"
+EndProject
 
 # Core Components
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.Core", "src\Core\ToskaMesh.Core\ToskaMesh.Core.csproj", "{55555555-5555-5555-5555-555555555555}"
@@ -40,6 +42,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.MetricsService.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.TracingService.Tests", "tests\ToskaMesh.TracingService.Tests\ToskaMesh.TracingService.Tests.csproj", "{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.Security.Tests", "tests\ToskaMesh.Security.Tests\ToskaMesh.Security.Tests.csproj", "{EEEEEEE1-EEEE-EEEE-EEEE-EEEEEEEEEEE1}"
+EndProject
 
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +67,10 @@ Global
 		{44444444-4444-4444-4444-444444444444}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44444444-4444-4444-4444-444444444444}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44444444-4444-4444-4444-444444444444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA1-AAAA-AAAA-AAAA-AAAAAAAAAAA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA1-AAAA-AAAA-AAAA-AAAAAAAAAAA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA1-AAAA-AAAA-AAAA-AAAAAAAAAAA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA1-AAAA-AAAA-AAAA-AAAAAAAAAAA1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55555555-5555-5555-5555-555555555555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55555555-5555-5555-5555-555555555555}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55555555-5555-5555-5555-555555555555}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,5 +115,9 @@ Global
 		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEEEEEE1-EEEE-EEEE-EEEE-EEEEEEEEEEE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEEEEEE1-EEEE-EEEE-EEEE-EEEEEEEEEEE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEEEEEE1-EEEE-EEEE-EEEE-EEEEEEEEEEE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEEEEEE1-EEEE-EEEE-EEEE-EEEEEEEEEEE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

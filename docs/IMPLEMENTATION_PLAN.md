@@ -184,8 +184,8 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
 **Goal**: End-to-end integration, testing, and deployment
 
 #### Week 10: Inter-Service Communication
-- [ ] gRPC service definitions
-- [ ] Service-to-service authentication
+- [x] gRPC service definitions
+- [x] Service-to-service authentication
 - [ ] Message queue integration
 - [ ] Event-driven patterns
 - [ ] Saga pattern for distributed transactions
