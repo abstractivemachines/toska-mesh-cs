@@ -6,7 +6,7 @@
 - ~~Complete Week-3 infrastructure: Orleans silo hosting, MassTransit + RabbitMQ setup, Consul client wiring, PostgreSQL management, Redis caching, standardized health checks.~~
 
 ## Core Mesh Services
-- Implement ToskaMesh.Core Orleans grains (coordination, membership, leader election, event broadcasting, persistence).
+- ~~Implement ToskaMesh.Core Orleans grains (coordination, membership, leader election, event broadcasting, persistence).~~
 - ~~Extend Discovery with full Consul registration, instance tracking, health execution, metadata management, REST endpoints (align with plan).~~
 - Finish Gateway features: dynamic Consul routes, JWT enforcement, rate limiting, request logging, API versioning, strict CORS.
 - Build Router algorithms: round-robin, least connections, weighted RR, IP hash, health-aware routing, request metrics.

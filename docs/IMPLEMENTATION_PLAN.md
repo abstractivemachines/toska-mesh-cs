@@ -84,12 +84,12 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
 **Goal**: Implement core mesh components
 
 #### Week 4: MeshCore & Discovery
-- [ ] **ToskaMesh.Core**
-  - [ ] Orleans grains for cluster coordination
-  - [ ] Membership management
-  - [ ] Leader election
-  - [ ] Event broadcasting
-  - [ ] State persistence
+- [x] **ToskaMesh.Core**
+  - [x] Orleans grains for cluster coordination
+  - [x] Membership management
+  - [x] Leader election
+  - [x] Event broadcasting
+  - [x] State persistence
 
 - [x] **ToskaMesh.Discovery**
   - [x] Consul service registration
