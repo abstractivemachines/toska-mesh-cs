@@ -26,22 +26,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Mesh common services
-builder.Services.AddMeshCommon();
+builder.Services.AddMeshInfrastructure(
+    builder.Configuration,
+    configureOptions: options =>
+    {
+        options.EnableMassTransit = false;
+        options.EnableRedisCache = false;
+    },
+    configureHealthChecks: health =>
+    {
+        health.AddConsul(options =>
+        {
+            options.HostName = "localhost";
+            options.Port = 8500;
+        });
+    });
 
-// Add Consul service registry
-builder.Services.AddConsulServiceRegistry(builder.Configuration);
-
-// Add OpenTelemetry
 builder.Services.AddMeshTelemetry("Gateway");
 
 // Add health checks
-builder.Services.AddMeshHealthChecks()
-    .AddConsul(options =>
-    {
-        options.HostName = "localhost";
-        options.Port = 8500;
-    });
-
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

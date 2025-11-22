@@ -72,12 +72,12 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [x] Logging enrichers
 
 #### Week 3: Core Infrastructure
-- [ ] Orleans silo configuration
-- [ ] MassTransit setup with RabbitMQ
-- [ ] Consul client integration
-- [ ] PostgreSQL connection management
-- [ ] Redis caching setup
-- [ ] Health check infrastructure
+- [x] Orleans silo configuration
+- [x] MassTransit setup with RabbitMQ
+- [x] Consul client integration
+- [x] PostgreSQL connection management
+- [x] Redis caching setup
+- [x] Health check infrastructure
 
 ### Phase 2: Core Services (Weeks 4-6)
 

@@ -15,14 +15,21 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "Toska Mesh Discovery Service", Version = "v1" });
 });
 
-// Add Toska Mesh common services
-builder.Services.AddMeshCommon();
-
-// Add MassTransit for messaging
-builder.Services.AddMeshMassTransit(builder.Configuration);
-
-// Add Consul service registry
-builder.Services.AddConsulServiceRegistry(builder.Configuration);
+builder.Services.AddMeshInfrastructure(
+    builder.Configuration,
+    configureOptions: options =>
+    {
+        options.EnableMassTransit = true;
+        options.EnableRedisCache = false;
+    },
+    configureHealthChecks: health =>
+    {
+        health.AddConsul(options =>
+        {
+            options.HostName = "localhost";
+            options.Port = 8500;
+        });
+    });
 
 // Add discovery service manager
 builder.Services.AddSingleton<IServiceManager, ServiceManager>();
@@ -30,14 +37,6 @@ builder.Services.AddHostedService<ServiceDiscoveryBackgroundService>();
 
 // Add telemetry
 builder.Services.AddMeshTelemetry("Discovery");
-
-// Add health checks
-builder.Services.AddMeshHealthChecks()
-    .AddConsul(options =>
-    {
-        options.HostName = "localhost";
-        options.Port = 8500;
-    });
 
 // Add CORS
 builder.Services.AddCors(options =>

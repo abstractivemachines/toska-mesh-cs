@@ -36,6 +36,11 @@ public class OrleansClusterConfig
     public string? ConsulAddress { get; set; } = "http://localhost:8500";
 
     /// <summary>
+    /// Optional Consul ACL token (when required by the cluster).
+    /// </summary>
+    public string? ConsulToken { get; set; }
+
+    /// <summary>
     /// Azure Storage connection string (when using Azure Table clustering).
     /// </summary>
     public string? AzureStorageConnectionString { get; set; }
