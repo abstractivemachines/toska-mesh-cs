@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - src/Shared/ToskaMesh.Common/ToskaMesh.Common.csproj
+          - src/Shared/ToskaMesh.Security/ToskaMesh.Security.csproj
+          - src/Shared/ToskaMesh.Telemetry/ToskaMesh.Telemetry.csproj
+          - src/Core/ToskaMesh.Discovery/ToskaMesh.Discovery.csproj
+          - src/Core/ToskaMesh.Gateway/ToskaMesh.Gateway.csproj
+          - src/Core/ToskaMesh.Router/ToskaMesh.Router.csproj
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore ToskaMesh.sln
+
+      - name: Build ${{ matrix.project }}
+        run: dotnet build ${{ matrix.project }} --configuration Release --no-restore
