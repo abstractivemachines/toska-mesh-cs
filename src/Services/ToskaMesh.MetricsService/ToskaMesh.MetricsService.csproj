@@ -14,12 +14,14 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\ToskaMesh.Common\ToskaMesh.Common.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Shared\ToskaMesh.Security\ToskaMesh.Security.csproj" />
   </ItemGroup>
 
 </Project>

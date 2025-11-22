@@ -158,14 +158,14 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [x] Database persistence
   - [ ] Unit tests
 
-- [ ] **ToskaMesh.MetricsService**
-  - [ ] Prometheus metrics aggregation
-  - [ ] Custom metrics collection
-  - [ ] Metrics query API
-  - [ ] Alerting rules management
-  - [ ] Grafana dashboard provisioning
-  - [ ] Historical data storage
-  - [ ] Unit tests
+- [x] **ToskaMesh.MetricsService**
+  - [x] Prometheus metrics aggregation
+  - [x] Custom metrics collection
+  - [x] Metrics query API
+  - [x] Alerting rules management
+  - [x] Grafana dashboard provisioning
+  - [x] Historical data storage
+  - [x] Unit tests
 
 #### Week 9: Tracing Service
 - [ ] **ToskaMesh.TracingService**
