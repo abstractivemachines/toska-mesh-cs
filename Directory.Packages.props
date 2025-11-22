@@ -31,9 +31,12 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Orleans.Clustering.AdoNet" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Orleans.Clustering.AzureStorage" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Orleans.Clustering.Consul" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Orleans.Core" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Orleans.Persistence.AdoNet" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Orleans.Runtime" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Orleans.Server" Version="8.0.0" />
     <PackageVersion Include="Npgsql" Version="8.0.8" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
