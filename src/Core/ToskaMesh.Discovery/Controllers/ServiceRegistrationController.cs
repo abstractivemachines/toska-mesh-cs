@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ToskaMesh.Common;
+using ToskaMesh.Discovery.Models;
 using ToskaMesh.Discovery.Services;
 using ToskaMesh.Protocols;
 
@@ -88,6 +89,45 @@ public class ServiceRegistrationController : ControllerBase
         }
 
         return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
+    }
+
+    /// <summary>
+    /// Triggers an immediate health check for the specified service instance.
+    /// </summary>
+    [HttpPost("health/check/{serviceId}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> TriggerHealthCheck(string serviceId, CancellationToken cancellationToken)
+    {
+        var success = await _serviceManager.TriggerHealthCheckAsync(serviceId, cancellationToken);
+        if (!success)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
+        }
+
+        return Ok(ApiResponse.SuccessResult("Health check triggered"));
+    }
+
+    /// <summary>
+    /// Updates metadata for an instance.
+    /// </summary>
+    [HttpPost("metadata/{serviceId}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> UpdateMetadata(string serviceId, [FromBody] MetadataUpdateRequest request, CancellationToken cancellationToken)
+    {
+        if (request?.Metadata == null)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse("Metadata payload is required"));
+        }
+
+        var success = await _serviceManager.UpdateMetadataAsync(serviceId, request.Metadata, cancellationToken);
+        if (!success)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
+        }
+
+        return Ok(ApiResponse.SuccessResult("Metadata updated"));
     }
 }
 

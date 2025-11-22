@@ -1,3 +1,4 @@
+using ToskaMesh.Discovery.Models;
 using ToskaMesh.Protocols;
 
 namespace ToskaMesh.Discovery.Services;
@@ -28,6 +29,21 @@ public interface IServiceManager
     Task<ServiceInstance?> GetInstanceAsync(string serviceId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets tracking information for a specific instance.
+    /// </summary>
+    Task<ServiceInstanceTrackingSnapshot?> GetTrackingAsync(string serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets tracking information for all instances of a service.
+    /// </summary>
+    Task<IEnumerable<ServiceInstanceTrackingSnapshot>> GetTrackingForServiceAsync(string serviceName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets metadata summary for a service.
+    /// </summary>
+    Task<ServiceMetadataSummary> GetMetadataSummaryAsync(string serviceName, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets all registered service names.
     /// </summary>
     Task<IEnumerable<string>> GetServiceNamesAsync(CancellationToken cancellationToken = default);
@@ -41,4 +57,14 @@ public interface IServiceManager
     /// Performs health checks on all registered services.
     /// </summary>
     Task PerformHealthChecksAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Triggers a health check for a single instance immediately.
+    /// </summary>
+    Task<bool> TriggerHealthCheckAsync(string serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the metadata associated with a service instance.
+    /// </summary>
+    Task<bool> UpdateMetadataAsync(string serviceId, Dictionary<string, string> metadata, CancellationToken cancellationToken = default);
 }
