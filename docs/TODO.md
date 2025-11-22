@@ -16,7 +16,7 @@
 - ~~Auth Service: registration/login, refresh tokens, password reset, email verification, RBAC, OAuth2 integrations, profile management, audit logging, DB schema/migrations, unit & integration tests.~~
 - ~~Config Service: YAML parsing, versioning, env-specific configs, change notifications, validation schemas, CRUD API, rollback, persistence, tests.~~
 - ~~Metrics Service: Prometheus aggregation, custom metrics, query API, alert rules, Grafana provisioning, historical storage, tests.~~
-- Tracing Service: OpenTelemetry ingestion, Jaeger/Zipkin exporters, query & visualization endpoints, sampling, correlation, performance analysis, tests.
+- ~~Tracing Service: OpenTelemetry ingestion, Jaeger/Zipkin exporters, query & visualization endpoints, sampling, correlation, performance analysis, tests.~~
 
 ## Integration & Deployment
 - Inter-service communication: gRPC contracts, service-to-service auth, message queue flows, saga patterns, integration tests, E2E tracing validation, load tests (k6/JMeter).

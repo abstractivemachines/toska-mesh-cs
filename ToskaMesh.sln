@@ -38,6 +38,8 @@ EndProject
 # Tests
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.MetricsService.Tests", "tests\ToskaMesh.MetricsService.Tests\ToskaMesh.MetricsService.Tests.csproj", "{EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToskaMesh.TracingService.Tests", "tests\ToskaMesh.TracingService.Tests\ToskaMesh.TracingService.Tests.csproj", "{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}"
+EndProject
 
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,5 +103,9 @@ Global
 		{EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
