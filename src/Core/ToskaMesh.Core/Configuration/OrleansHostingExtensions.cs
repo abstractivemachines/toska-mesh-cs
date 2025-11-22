@@ -1,3 +1,4 @@
+using Consul;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orleans;
@@ -45,8 +46,35 @@ public static class OrleansHostingExtensions
                 case "localhost":
                     siloBuilder.UseLocalhostClustering();
                     break;
+
+                case "consul":
+                    siloBuilder.UseConsulSiloClustering(options =>
+                    {
+                        options.KvRootFolder = $"orleans/{config.ClusterId}";
+                        options.ConfigureConsulClient(new Uri(config.ConsulAddress ?? "http://localhost:8500"), config.ConsulToken);
+                    });
+                    break;
+
+                case "azuretable":
+#pragma warning disable CS0618
+                    siloBuilder.UseAzureStorageClustering(options =>
+                    {
+                        options.ConfigureTableServiceClient(config.AzureStorageConnectionString);
+                    });
+#pragma warning restore CS0618
+                    break;
+
+                case "adonet":
+                    siloBuilder.UseAdoNetClustering(options =>
+                    {
+                        options.Invariant = config.DatabaseInvariant ?? "Npgsql";
+                        options.ConnectionString = config.DatabaseConnectionString
+                            ?? throw new InvalidOperationException("Database connection string is required for ADO.NET clustering.");
+                    });
+                    break;
+
                 default:
-                    throw new NotSupportedException($"Clustering mode '{config.ClusteringMode}' is not implemented yet.");
+                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
             }
 
             // Configure grain storage
@@ -59,7 +87,15 @@ public static class OrleansHostingExtensions
                 });
             }
 
-            // TODO: configure reminders + application parts when non-localhost clustering is implemented.
+            // Configure reminders
+            if (!string.IsNullOrEmpty(config.DatabaseConnectionString))
+            {
+                siloBuilder.UseAdoNetReminderService(options =>
+                {
+                    options.Invariant = config.DatabaseInvariant ?? "Npgsql";
+                    options.ConnectionString = config.DatabaseConnectionString;
+                });
+            }
 
             // Configure dashboard (optional, for development)
             if (config.EnableDashboard)
@@ -98,8 +134,35 @@ public static class OrleansHostingExtensions
                 case "localhost":
                     clientBuilder.UseLocalhostClustering();
                     break;
+
+                case "consul":
+                    clientBuilder.UseConsulClientClustering(options =>
+                    {
+                        options.KvRootFolder = $"orleans/{config.ClusterId}";
+                        options.ConfigureConsulClient(new Uri(config.ConsulAddress ?? "http://localhost:8500"), config.ConsulToken);
+                    });
+                    break;
+
+                case "azuretable":
+#pragma warning disable CS0618
+                    clientBuilder.UseAzureStorageClustering(options =>
+                    {
+                        options.ConfigureTableServiceClient(config.AzureStorageConnectionString);
+                    });
+#pragma warning restore CS0618
+                    break;
+
+                case "adonet":
+                    clientBuilder.UseAdoNetClustering(options =>
+                    {
+                        options.Invariant = config.DatabaseInvariant ?? "Npgsql";
+                        options.ConnectionString = config.DatabaseConnectionString
+                            ?? throw new InvalidOperationException("Database connection string is required for ADO.NET clustering.");
+                    });
+                    break;
+
                 default:
-                    throw new NotSupportedException($"Clustering mode '{config.ClusteringMode}' is not implemented yet.");
+                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
             }
         });
 

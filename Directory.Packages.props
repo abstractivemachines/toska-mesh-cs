@@ -34,6 +34,7 @@
     <PackageVersion Include="Microsoft.Orleans.Clustering.Consul" Version="8.2.0" />
     <PackageVersion Include="Microsoft.Orleans.Core" Version="8.2.0" />
     <PackageVersion Include="Microsoft.Orleans.Persistence.AdoNet" Version="8.2.0" />
+    <PackageVersion Include="Microsoft.Orleans.Reminders.AdoNet" Version="8.2.0" />
     <PackageVersion Include="Microsoft.Orleans.Runtime" Version="8.2.0" />
     <PackageVersion Include="Microsoft.Orleans.Server" Version="8.2.0" />
     <PackageVersion Include="OrleansDashboard" Version="8.2.0" />
