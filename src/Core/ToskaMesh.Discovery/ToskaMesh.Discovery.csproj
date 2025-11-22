@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Consul" Version="1.6.10.9" />
-    <PackageReference Include="Steeltoe.Discovery.Consul" Version="3.2.0" />
-    <PackageReference Include="Steeltoe.Discovery.ClientCore" Version="3.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Consul" />
+    <PackageReference Include="Steeltoe.Discovery.Consul" />
+    <PackageReference Include="Steeltoe.Discovery.ClientCore" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
