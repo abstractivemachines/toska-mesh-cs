@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ToskaMesh.Common;
+using ToskaMesh.Discovery.Models;
 using ToskaMesh.Discovery.Services;
 using ToskaMesh.Protocols;
 
@@ -76,5 +77,44 @@ public class ServiceDiscoveryController : ControllerBase
         var healthyInstances = instances.Where(i => i.Status == HealthStatus.Healthy);
 
         return Ok(ApiResponse<IEnumerable<ServiceInstance>>.SuccessResponse(healthyInstances));
+    }
+
+    /// <summary>
+    /// Gets tracking information for a specific instance.
+    /// </summary>
+    [HttpGet("instances/{serviceId}/tracking")]
+    [ProducesResponseType(typeof(ApiResponse<ServiceInstanceTrackingSnapshot>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> GetInstanceTracking(string serviceId, CancellationToken cancellationToken)
+    {
+        var tracking = await _serviceManager.GetTrackingAsync(serviceId, cancellationToken);
+        if (tracking == null)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse("Service instance not found"));
+        }
+
+        return Ok(ApiResponse<ServiceInstanceTrackingSnapshot>.SuccessResponse(tracking));
+    }
+
+    /// <summary>
+    /// Gets tracking snapshots for all instances of a service.
+    /// </summary>
+    [HttpGet("services/{serviceName}/instances/tracking")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ServiceInstanceTrackingSnapshot>>), 200)]
+    public async Task<IActionResult> GetServiceTracking(string serviceName, CancellationToken cancellationToken)
+    {
+        var snapshots = await _serviceManager.GetTrackingForServiceAsync(serviceName, cancellationToken);
+        return Ok(ApiResponse<IEnumerable<ServiceInstanceTrackingSnapshot>>.SuccessResponse(snapshots));
+    }
+
+    /// <summary>
+    /// Gets metadata summary for a service.
+    /// </summary>
+    [HttpGet("services/{serviceName}/metadata")]
+    [ProducesResponseType(typeof(ApiResponse<ServiceMetadataSummary>), 200)]
+    public async Task<IActionResult> GetMetadataSummary(string serviceName, CancellationToken cancellationToken)
+    {
+        var summary = await _serviceManager.GetMetadataSummaryAsync(serviceName, cancellationToken);
+        return Ok(ApiResponse<ServiceMetadataSummary>.SuccessResponse(summary));
     }
 }

@@ -7,7 +7,7 @@
 
 ## Core Mesh Services
 - Implement ToskaMesh.Core Orleans grains (coordination, membership, leader election, event broadcasting, persistence).
-- Extend Discovery with full Consul registration, instance tracking, health execution, metadata management, REST endpoints (align with plan).
+- ~~Extend Discovery with full Consul registration, instance tracking, health execution, metadata management, REST endpoints (align with plan).~~
 - Finish Gateway features: dynamic Consul routes, JWT enforcement, rate limiting, request logging, API versioning, strict CORS.
 - Build Router algorithms: round-robin, least connections, weighted RR, IP hash, health-aware routing, request metrics.
 - Deliver Health Monitor: HTTP/TCP/custom probes, Polly circuit breakers, bulkheads, dashboard, alerting, historical data.

@@ -91,12 +91,12 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
   - [ ] Event broadcasting
   - [ ] State persistence
 
-- [ ] **ToskaMesh.Discovery**
-  - [ ] Consul service registration
-  - [ ] Service instance tracking
-  - [ ] Health check execution
-  - [ ] Service metadata management
-  - [ ] REST API endpoints
+- [x] **ToskaMesh.Discovery**
+  - [x] Consul service registration
+  - [x] Service instance tracking
+  - [x] Health check execution
+  - [x] Service metadata management
+  - [x] REST API endpoints
 
 #### Week 5: Gateway & Router
 - [ ] **ToskaMesh.Gateway**
