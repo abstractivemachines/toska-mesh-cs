@@ -58,7 +58,14 @@ public static class ServiceCollectionExtensions
 
         if (options.EnableConsulServiceRegistry)
         {
-            services.AddConsulServiceRegistry(configuration);
+            if (options.ServiceRegistryProvider == ServiceRegistryProvider.Grpc)
+            {
+                services.AddGrpcServiceRegistry(configuration);
+            }
+            else
+            {
+                services.AddConsulServiceRegistry(configuration);
+            }
         }
 
         if (options.EnableMassTransit)
@@ -92,6 +99,7 @@ public class MeshInfrastructureOptions
     public bool EnableMassTransit { get; set; }
     public bool EnableRedisCache { get; set; }
     public bool EnableConsulServiceRegistry { get; set; } = true;
+    public ServiceRegistryProvider ServiceRegistryProvider { get; set; } = ServiceRegistryProvider.Consul;
     public bool EnableHealthChecks { get; set; } = true;
 
     /// <summary>
@@ -103,4 +111,10 @@ public class MeshInfrastructureOptions
     /// Optional callback for registering additional custom infrastructure components.
     /// </summary>
     public Action<IServiceCollection, IConfiguration>? ConfigureAdditionalServices { get; set; }
+}
+
+public enum ServiceRegistryProvider
+{
+    Consul,
+    Grpc
 }

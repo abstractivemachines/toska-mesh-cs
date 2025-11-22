@@ -13,12 +13,15 @@
     <PackageReference Include="Steeltoe.Discovery.ClientCore" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\ToskaMesh.Common\ToskaMesh.Common.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Shared\ToskaMesh.Security\ToskaMesh.Security.csproj" />
+    <ProjectReference Include="..\..\Shared\ToskaMesh.Grpc\ToskaMesh.Grpc.csproj" />
   </ItemGroup>
 
 </Project>

@@ -19,7 +19,10 @@
 - ~~Tracing Service: OpenTelemetry ingestion, Jaeger/Zipkin exporters, query & visualization endpoints, sampling, correlation, performance analysis, tests.~~
 
 ## Integration & Deployment
-- Inter-service communication: gRPC contracts, service-to-service auth, message queue flows, saga patterns, integration tests, E2E tracing validation, load tests (k6/JMeter).
+- Inter-service communication:
+  - ~~gRPC contracts~~
+  - ~~Service-to-service authentication~~
+  - Message queue flows, saga patterns, integration tests, E2E tracing validation, load tests (k6/JMeter).
 - Containerization: create Dockerfiles for all services, finalize docker-compose coverage, ensure images build/run.
 - Kubernetes/Helm: manifests (deployments, services, ConfigMaps, Secrets, ingress, HPA), Helm charts, optional operators, service-mesh integration.
 

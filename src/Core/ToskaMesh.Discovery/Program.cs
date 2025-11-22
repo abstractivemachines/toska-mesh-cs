@@ -1,14 +1,20 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
 using ToskaMesh.Common.Messaging;
 using ToskaMesh.Common.ServiceDiscovery;
+using ToskaMesh.Discovery.Grpc;
 using ToskaMesh.Discovery.Services;
+using ToskaMesh.Security;
 using ToskaMesh.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
+builder.Services.AddGrpc();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -37,6 +43,28 @@ builder.Services.AddHostedService<ServiceDiscoveryBackgroundService>();
 
 // Add telemetry
 builder.Services.AddMeshTelemetry("Discovery");
+builder.Services.AddMeshAuthorizationPolicies();
+
+var serviceAuthOptions = builder.Configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
+builder.Services.AddSingleton(serviceAuthOptions);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = serviceAuthOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = serviceAuthOptions.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(serviceAuthOptions.Secret)),
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -59,7 +87,10 @@ app.UseGlobalExceptionHandler();
 app.UseCors();
 app.UseMeshHealthChecks();
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
+app.MapGrpcService<DiscoveryGrpcService>();
 
 app.Logger.LogInformation("Toska Mesh Discovery Service starting...");
 
