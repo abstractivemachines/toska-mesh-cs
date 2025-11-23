@@ -105,3 +105,21 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_cluster_creator_admin_permissions" {
+  description = "Grant the cluster creator (current caller) admin permissions automatically"
+  type        = bool
+  default     = true
+}
+
+variable "access_entries" {
+  description = "Map of access entries to add to the cluster for kubectl access"
+  type = map(object({
+    principal_arn = string
+    type          = optional(string, "STANDARD")
+    policy_associations = optional(map(object({
+      policy_arn = string
+    })), {})
+  }))
+  default = {}
+}

@@ -1,0 +1,247 @@
+# EKS Production values for ToskaMesh
+# This file overrides values.yaml for AWS EKS deployment
+
+environment: Production
+
+# Use ECR images with auto-pull policy
+gateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: gateway-latest
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations:
+      # Use Network Load Balancer for better performance
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  secrets:
+    # TODO: Replace with AWS Secrets Manager reference
+    jwtSecretKey: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-MIN-32-CHARS-LONG"
+
+discovery:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: discovery-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+authService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: auth-service-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+configService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: config-service-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+metricsService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: metrics-service-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+tracingService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: tracing-service-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+core:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: core-latest
+    pullPolicy: Always
+  orleans:
+    serviceName: "ToskaMesh-Production"
+    clusterId: "prod-eks"
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+healthMonitor:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: health-monitor-latest
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# External services configuration
+# Option A: In-cluster deployment (for development/testing on EKS)
+externalServices:
+  consul:
+    address: "http://consul-server.toskamesh-infra.svc.cluster.local:8500"
+  postgres:
+    host: "postgres-postgresql.toskamesh-infra.svc.cluster.local"
+    port: 5432
+    database: "toksa_mesh"
+    username: "toksa_mesh"
+    # TODO: Use Kubernetes secret or AWS Secrets Manager
+    password: "toksa_mesh_password"
+  rabbitmq:
+    host: "rabbitmq.toskamesh-infra.svc.cluster.local"
+    port: 5672
+    username: "guest"
+    # TODO: Use Kubernetes secret or AWS Secrets Manager
+    password: "guest"
+  redis:
+    host: "redis-master.toskamesh-infra.svc.cluster.local"
+    port: 6379
+
+# Option B: AWS Managed Services (uncomment and configure for production)
+# externalServices:
+#   consul:
+#     address: "http://consul-eks.yourdomain.com:8500"
+#   postgres:
+#     host: "toskamesh-db.xxxxxx.us-east-1.rds.amazonaws.com"
+#     port: 5432
+#     database: "toksa_mesh"
+#     username: "toksa_mesh"
+#     password: "USE-AWS-SECRETS-MANAGER"  # Reference secret from AWS Secrets Manager
+#   rabbitmq:
+#     host: "b-xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.mq.us-east-1.amazonaws.com"
+#     port: 5672
+#     username: "admin"
+#     password: "USE-AWS-SECRETS-MANAGER"
+#   redis:
+#     host: "toskamesh-redis.xxxxxx.ng.0001.use1.cache.amazonaws.com"
+#     port: 6379
+
+# Global secrets
+# TODO: Replace with AWS Secrets Manager or Kubernetes secrets
+global:
+  meshServiceAuthSecret: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-SUPER-SECRET-KEY"
+
+# Service Account configuration
+# Enable IRSA (IAM Roles for Service Accounts) for AWS service access
+serviceAccount:
+  create: true
+  annotations:
+    # Add IRSA role ARN here if needed for AWS service access
+    # eks.amazonaws.com/role-arn: "arn:aws:iam::215958754319:role/toskamesh-eks-service-role"
+  name: "toskamesh"
+
+# Service mesh integration (optional - for Istio/Linkerd)
+mesh:
+  enabled: false
+  annotations:
+    sidecar.istio.io/inject: "false"
