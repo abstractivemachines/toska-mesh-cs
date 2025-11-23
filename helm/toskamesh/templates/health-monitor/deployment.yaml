@@ -1,0 +1,51 @@
+{{- if .Values.healthMonitor.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-health-monitor
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: health-monitor
+spec:
+  replicas: {{ .Values.healthMonitor.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: health-monitor
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: health-monitor
+    spec:
+      containers:
+      - name: health-monitor
+        image: "{{ .Values.healthMonitor.image.repository }}:{{ .Values.healthMonitor.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.healthMonitor.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          value: {{ include "toskamesh.consul.address" . | quote }}
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          value: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+        resources:
+          {{- toYaml .Values.healthMonitor.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+{{- end }}

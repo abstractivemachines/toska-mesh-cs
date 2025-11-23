@@ -1,0 +1,67 @@
+{{- if .Values.discovery.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-discovery
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: discovery
+spec:
+  replicas: {{ .Values.discovery.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: discovery
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: discovery
+    spec:
+      containers:
+      - name: discovery
+        image: "{{ .Values.discovery.image.repository }}:{{ .Values.discovery.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.discovery.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          value: {{ include "toskamesh.consul.address" . | quote }}
+        - name: Messaging__RabbitMqHost
+          value: {{ include "toskamesh.rabbitmq.host" . | quote }}
+        - name: Messaging__RabbitMqUsername
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-discovery-secrets
+              key: rabbitmq_username
+        - name: Messaging__RabbitMqPassword
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-discovery-secrets
+              key: rabbitmq_password
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-discovery-secrets
+              key: mesh_service_auth_secret
+        resources:
+          {{- toYaml .Values.discovery.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+{{- end }}

@@ -1,0 +1,34 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+ToskaMesh Service Mesh Components:
+  - Gateway: {{ .Values.gateway.enabled }}
+  - Discovery: {{ .Values.discovery.enabled }}
+  - Auth Service: {{ .Values.authService.enabled }}
+  - Config Service: {{ .Values.configService.enabled }}
+  - Metrics Service: {{ .Values.metricsService.enabled }}
+  - Tracing Service: {{ .Values.tracingService.enabled }}
+  - Core (Orleans): {{ .Values.core.enabled }}
+  - Health Monitor: {{ .Values.healthMonitor.enabled }}
+
+{{- if .Values.gateway.enabled }}
+
+Gateway is accessible via:
+{{- if eq .Values.gateway.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  You can watch the status by running:
+    kubectl get svc {{ include "toskamesh.fullname" . }}-gateway -w
+{{- else if eq .Values.gateway.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get svc {{ include "toskamesh.fullname" . }}-gateway -o jsonpath='{.spec.ports[0].nodePort}')
+  export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+  echo http://$NODE_IP:$NODE_PORT
+{{- end }}
+{{- end }}
+
+For more information, visit: https://github.com/abstractivemachines-com/toska-mesh-cs

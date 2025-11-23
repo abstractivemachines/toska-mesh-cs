@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: toskamesh-tracing-service-config
+data:
+  consul_address: "http://consul:8500"
+  discovery_grpc_address: "http://toskamesh-discovery:80"

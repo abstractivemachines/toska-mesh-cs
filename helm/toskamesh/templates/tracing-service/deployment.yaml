@@ -1,0 +1,55 @@
+{{- if .Values.tracingService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-tracing-service
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tracing-service
+spec:
+  replicas: {{ .Values.tracingService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: tracing-service
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: tracing-service
+    spec:
+      containers:
+      - name: tracing-service
+        image: "{{ .Values.tracingService.image.repository }}:{{ .Values.tracingService.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.tracingService.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          value: {{ include "toskamesh.consul.address" . | quote }}
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          value: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host={{ .Values.externalServices.postgres.host }};Database={{ .Values.externalServices.postgres.database }};Username={{ .Values.externalServices.postgres.username }};Password={{ .Values.externalServices.postgres.password }}"
+        - name: Mesh__ServiceAuth__Secret
+          value: {{ .Values.global.meshServiceAuthSecret | quote }}
+        resources:
+          {{- toYaml .Values.tracingService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

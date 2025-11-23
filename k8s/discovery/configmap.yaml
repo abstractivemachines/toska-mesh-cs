@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: toskamesh-discovery-config
+data:
+  consul_address: "http://consul:8500"
+  rabbitmq_host: "rabbitmq"

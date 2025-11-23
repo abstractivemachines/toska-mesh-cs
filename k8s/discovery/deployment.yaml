@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toskamesh-discovery
+  labels:
+    app: toskamesh-discovery
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toskamesh-discovery
+  template:
+    metadata:
+      labels:
+        app: toskamesh-discovery
+        component: core
+    spec:
+      containers:
+      - name: discovery
+        image: toskamesh-discovery:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-discovery-config
+              key: consul_address
+        - name: Messaging__RabbitMqHost
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-discovery-config
+              key: rabbitmq_host
+        - name: Messaging__RabbitMqUsername
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: rabbitmq_username
+        - name: Messaging__RabbitMqPassword
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: rabbitmq_password
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: mesh_service_auth_secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

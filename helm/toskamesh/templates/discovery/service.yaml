@@ -1,0 +1,19 @@
+{{- if .Values.discovery.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-discovery
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: discovery
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "toskamesh.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: discovery
+{{- end }}

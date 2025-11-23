@@ -55,6 +55,19 @@ services:
     networks:
       - toksa-mesh
 
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - toksa-mesh
+
   # Core Services
   gateway:
     build:
@@ -65,8 +78,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
     depends_on:
       - consul
+      - discovery
       - prometheus
     networks:
       - toksa-mesh
@@ -80,7 +96,48 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - Messaging__RabbitMqHost=rabbitmq
+      - Consul__Address=http://consul:8500
     depends_on:
+      - consul
+      - rabbitmq
+    networks:
+      - toksa-mesh
+
+  core:
+    build:
+      context: ../
+      dockerfile: deployments/Dockerfile.Core
+    ports:
+      - "8080:80"
+      - "11111:11111"
+      - "30000:30000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - Orleans__Clustering__ServiceName=ToskaMesh
+      - Orleans__Clustering__ClusterId=dev
+      - Consul__Address=http://consul:8500
+      - ConnectionStrings__OrleansStorage=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+    depends_on:
+      - postgres
+      - consul
+    networks:
+      - toksa-mesh
+
+  health-monitor:
+    build:
+      context: ../
+      dockerfile: deployments/Dockerfile.HealthMonitor
+    ports:
+      - "5005:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Consul__Address=http://consul:8500
+    depends_on:
+      - discovery
       - consul
     networks:
       - toksa-mesh
@@ -96,9 +153,12 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
     depends_on:
       - postgres
       - consul
+      - discovery
     networks:
       - toksa-mesh
 
@@ -112,9 +172,12 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
     depends_on:
       - postgres
       - consul
+      - discovery
     networks:
       - toksa-mesh
 
@@ -127,9 +190,33 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
     depends_on:
+      - postgres
       - prometheus
       - consul
+      - discovery
+    networks:
+      - toksa-mesh
+
+  tracing-service:
+    build:
+      context: ../
+      dockerfile: deployments/Dockerfile.TracingService
+    ports:
+      - "5004:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+    depends_on:
+      - postgres
+      - consul
+      - discovery
     networks:
       - toksa-mesh
 
@@ -141,3 +228,4 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  rabbitmq_data:
