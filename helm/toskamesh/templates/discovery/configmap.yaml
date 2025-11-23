@@ -1,0 +1,12 @@
+{{- if .Values.discovery.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-discovery-config
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: discovery
+data:
+  consul_address: {{ include "toskamesh.consul.address" . | quote }}
+  rabbitmq_host: {{ include "toskamesh.rabbitmq.host" . | quote }}
+{{- end }}

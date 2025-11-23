@@ -1,0 +1,11 @@
+{{- if .Values.core.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-core-config
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+data:
+  consul_address: {{ include "toskamesh.consul.address" . | quote }}
+{{- end }}

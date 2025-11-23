@@ -17,6 +17,12 @@ spec:
       labels:
         {{- include "toskamesh.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: gateway
+      {{- if .Values.mesh.enabled }}
+      annotations:
+        {{- with .Values.mesh.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
     spec:
       containers:
       - name: gateway
@@ -32,9 +38,15 @@ spec:
         - name: ASPNETCORE_URLS
           value: "http://+:80"
         - name: Consul__Address
-          value: {{ include "toskamesh.consul.address" . | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: consul_address
         - name: Mesh__ServiceDiscovery__Grpc__Address
-          value: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: discovery_grpc_address
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:

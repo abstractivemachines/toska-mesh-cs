@@ -1,0 +1,12 @@
+{{- if .Values.tracingService.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tracing-service
+data:
+  consul_address: {{ include "toskamesh.consul.address" . | quote }}
+  discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+{{- end }}

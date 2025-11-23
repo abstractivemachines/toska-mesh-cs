@@ -21,6 +21,11 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "80"
         prometheus.io/path: "/metrics"
+        {{- if .Values.mesh.enabled }}
+        {{- with .Values.mesh.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
     spec:
       containers:
       - name: metrics-service
@@ -35,13 +40,25 @@ spec:
         - name: ASPNETCORE_URLS
           value: "http://+:80"
         - name: Consul__Address
-          value: {{ include "toskamesh.consul.address" . | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-metrics-service-config
+              key: consul_address
         - name: Mesh__ServiceDiscovery__Grpc__Address
-          value: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-metrics-service-config
+              key: discovery_grpc_address
         - name: ConnectionStrings__DefaultConnection
-          value: "Host={{ .Values.externalServices.postgres.host }};Database={{ .Values.externalServices.postgres.database }};Username={{ .Values.externalServices.postgres.username }};Password={{ .Values.externalServices.postgres.password }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-metrics-service-secrets
+              key: db_connection_string
         - name: Mesh__ServiceAuth__Secret
-          value: {{ .Values.global.meshServiceAuthSecret | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-metrics-service-secrets
+              key: mesh_service_auth_secret
         resources:
           {{- toYaml .Values.metricsService.resources | nindent 10 }}
         livenessProbe:

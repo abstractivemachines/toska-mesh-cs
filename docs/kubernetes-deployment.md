@@ -71,7 +71,35 @@ kubectl get pods -l app.kubernetes.io/name=toskamesh
 kubectl get svc -l app.kubernetes.io/name=toskamesh
 
 # View logs
-kubectl logs -l app.kubernetes.io/component=gateway --tail=100
+  kubectl logs -l app.kubernetes.io/component=gateway --tail=100
+```
+
+### 4. Enable Ingress and Autoscaling (optional)
+
+```bash
+# Enable gateway ingress + HPA via Helm values
+helm upgrade toskamesh ./helm/toskamesh \
+  --reuse-values \
+  --set gateway.ingress.enabled=true \
+  --set gateway.ingress.hosts[0].host=toskamesh.local \
+  --set gateway.hpa.enabled=true
+
+# Check ingress and HPA resources
+kubectl get ingress toskamesh-gateway
+kubectl get hpa
+```
+
+### 5. Service Mesh Integration (optional)
+
+Set `mesh.enabled=true` to inject a service-mesh sidecar (e.g., Istio/Linkerd) and apply common mesh annotations to all pods.
+
+```bash
+helm upgrade toskamesh ./helm/toskamesh \
+  --reuse-values \
+  --set mesh.enabled=true
+
+# Verify pods include the sidecar
+kubectl get pods -l app.kubernetes.io/name=toskamesh -o yaml | grep sidecar.istio.io/inject
 ```
 
 ## Local Development Deployment

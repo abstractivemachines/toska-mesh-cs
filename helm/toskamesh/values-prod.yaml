@@ -3,6 +3,14 @@
 # Global configuration
 environment: Production
 
+# Service mesh integration (optional)
+mesh:
+  enabled: true
+  annotations:
+    sidecar.istio.io/inject: "true"
+    traffic.sidecar.istio.io/includeInboundPorts: "*"
+    security.istio.io/tlsMode: "istio"
+
 # Global secrets (MUST be changed in production!)
 global:
   meshServiceAuthSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
@@ -37,6 +45,18 @@ gateway:
   service:
     type: LoadBalancer
     port: 443
+  ingress:
+    enabled: true
+    className: ""
+    hosts:
+      - host: "gateway.example.com"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: toskamesh-gateway-tls
+        hosts:
+          - "gateway.example.com"
   resources:
     requests:
       cpu: 500m
@@ -46,6 +66,12 @@ gateway:
       memory: 2Gi
   secrets:
     jwtSecretKey: "CHANGE-ME-USE-STRONG-JWT-SECRET-MIN-64-CHARS"
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Discovery service configuration
 discovery:
@@ -62,6 +88,12 @@ discovery:
     limits:
       cpu: 2000m
       memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Auth service configuration
 authService:
@@ -78,6 +110,12 @@ authService:
     limits:
       cpu: 2000m
       memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Config service configuration
 configService:
@@ -94,6 +132,12 @@ configService:
     limits:
       cpu: 2000m
       memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Metrics service configuration
 metricsService:
@@ -110,6 +154,12 @@ metricsService:
     limits:
       cpu: 2000m
       memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Tracing service configuration
 tracingService:
@@ -126,6 +176,12 @@ tracingService:
     limits:
       cpu: 2000m
       memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
 
 # Core (Orleans) configuration
 core:
@@ -145,6 +201,12 @@ core:
     limits:
       cpu: 4000m
       memory: 4Gi
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 7
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
 
 # Health Monitor configuration
 healthMonitor:
@@ -161,3 +223,9 @@ healthMonitor:
     limits:
       cpu: 1000m
       memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
