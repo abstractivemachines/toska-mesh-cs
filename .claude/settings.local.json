@@ -20,7 +20,9 @@
       "Bash(docker build:*)",
       "Bash(dotnet restore:*)",
       "Bash(kubectl cluster-info:*)",
-      "Bash(kubectl get:*)"
+      "Bash(kubectl get:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
