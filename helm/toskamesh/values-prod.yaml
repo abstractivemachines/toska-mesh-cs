@@ -1,0 +1,163 @@
+# Production values for toskamesh
+
+# Global configuration
+environment: Production
+
+# Global secrets (MUST be changed in production!)
+global:
+  meshServiceAuthSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
+
+# External services configuration (use managed cloud services in production)
+externalServices:
+  consul:
+    address: "https://consul.production.example.com:8500"
+  postgres:
+    host: "postgres.production.example.com"
+    port: 5432
+    database: "toskamesh_prod"
+    username: "toskamesh_prod"
+    password: "CHANGE-ME-USE-SECRETS-MANAGER"
+  rabbitmq:
+    host: "rabbitmq.production.example.com"
+    port: 5672
+    username: "toskamesh"
+    password: "CHANGE-ME-USE-SECRETS-MANAGER"
+  redis:
+    host: "redis.production.example.com"
+    port: 6379
+
+# Gateway configuration
+gateway:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-gateway
+    tag: "1.0.0"
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 443
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  secrets:
+    jwtSecretKey: "CHANGE-ME-USE-STRONG-JWT-SECRET-MIN-64-CHARS"
+
+# Discovery service configuration
+discovery:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-discovery
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Auth service configuration
+authService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-auth-service
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Config service configuration
+configService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-config-service
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Metrics service configuration
+metricsService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-metrics-service
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Tracing service configuration
+tracingService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-tracing-service
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Core (Orleans) configuration
+core:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: your-registry.example.com/toskamesh-core
+    tag: "1.0.0"
+    pullPolicy: Always
+  orleans:
+    serviceName: "ToskaMesh"
+    clusterId: "prod"
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+
+# Health Monitor configuration
+healthMonitor:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: your-registry.example.com/toskamesh-health-monitor
+    tag: "1.0.0"
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi

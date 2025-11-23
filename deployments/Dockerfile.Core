@@ -1,6 +1,8 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
+EXPOSE 11111
+EXPOSE 30000
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -10,10 +12,10 @@ WORKDIR /src
 COPY . .
 
 # Restore and publish in one go
-WORKDIR /src/src/Core/ToskaMesh.Gateway
+WORKDIR /src/src/Core/ToskaMesh.Core
 RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "ToskaMesh.Gateway.dll"]
+ENTRYPOINT ["dotnet", "ToskaMesh.Core.dll"]

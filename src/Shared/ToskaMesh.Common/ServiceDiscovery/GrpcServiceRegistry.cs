@@ -143,7 +143,7 @@ public class GrpcServiceRegistry : IServiceRegistry
 /// </summary>
 public class ServiceDiscoveryGrpcOptions
 {
-    public string Address { get; set; } = "http://localhost:5001";
+    public string Address { get; set; } = "http://localhost:5010";
 }
 
 public static class GrpcServiceRegistryExtensions

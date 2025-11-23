@@ -10,10 +10,10 @@ WORKDIR /src
 COPY . .
 
 # Restore and publish in one go
-WORKDIR /src/src/Core/ToskaMesh.Gateway
+WORKDIR /src/src/Services/ToskaMesh.AuthService
 RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "ToskaMesh.Gateway.dll"]
+ENTRYPOINT ["dotnet", "ToskaMesh.AuthService.dll"]

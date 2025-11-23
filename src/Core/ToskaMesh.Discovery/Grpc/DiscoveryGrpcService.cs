@@ -81,9 +81,9 @@ public class DiscoveryGrpcService : DiscoveryRegistry.DiscoveryRegistryBase
     {
         var status = request.Status switch
         {
-            HealthStatus.Healthy => ToskaMesh.Protocols.HealthStatus.Healthy,
-            HealthStatus.Unhealthy => ToskaMesh.Protocols.HealthStatus.Unhealthy,
-            HealthStatus.Degraded => ToskaMesh.Protocols.HealthStatus.Degraded,
+            ToskaMesh.Grpc.Discovery.HealthStatus.Healthy => ToskaMesh.Protocols.HealthStatus.Healthy,
+            ToskaMesh.Grpc.Discovery.HealthStatus.Unhealthy => ToskaMesh.Protocols.HealthStatus.Unhealthy,
+            ToskaMesh.Grpc.Discovery.HealthStatus.Degraded => ToskaMesh.Protocols.HealthStatus.Degraded,
             _ => ToskaMesh.Protocols.HealthStatus.Unknown
         };
 
@@ -94,7 +94,7 @@ public class DiscoveryGrpcService : DiscoveryRegistry.DiscoveryRegistryBase
 
 internal static class DiscoveryGrpcMappingExtensions
 {
-    public static ToskaMesh.Grpc.Discovery.ServiceInstance ToGrpc(this ServiceInstance instance)
+    public static ToskaMesh.Grpc.Discovery.ServiceInstance ToGrpc(this ToskaMesh.Protocols.ServiceInstance instance)
     {
         var grpcInstance = new ToskaMesh.Grpc.Discovery.ServiceInstance
         {
@@ -104,10 +104,10 @@ internal static class DiscoveryGrpcMappingExtensions
             Port = instance.Port,
             Status = instance.Status switch
             {
-                ToskaMesh.Protocols.HealthStatus.Healthy => HealthStatus.Healthy,
-                ToskaMesh.Protocols.HealthStatus.Unhealthy => HealthStatus.Unhealthy,
-                ToskaMesh.Protocols.HealthStatus.Degraded => HealthStatus.Degraded,
-                _ => HealthStatus.Unknown
+                ToskaMesh.Protocols.HealthStatus.Healthy => ToskaMesh.Grpc.Discovery.HealthStatus.Healthy,
+                ToskaMesh.Protocols.HealthStatus.Unhealthy => ToskaMesh.Grpc.Discovery.HealthStatus.Unhealthy,
+                ToskaMesh.Protocols.HealthStatus.Degraded => ToskaMesh.Grpc.Discovery.HealthStatus.Degraded,
+                _ => ToskaMesh.Grpc.Discovery.HealthStatus.Unknown
             },
             RegisteredAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.SpecifyKind(instance.RegisteredAt, DateTimeKind.Utc)),
             LastHealthCheck = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.SpecifyKind(instance.LastHealthCheck, DateTimeKind.Utc))

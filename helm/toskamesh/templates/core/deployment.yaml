@@ -1,0 +1,59 @@
+{{- if .Values.core.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-core
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  replicas: {{ .Values.core.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: core
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: core
+    spec:
+      containers:
+      - name: core
+        image: "{{ .Values.core.image.repository }}:{{ .Values.core.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 11111
+          name: silo
+        - containerPort: 30000
+          name: gateway
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Orleans__Clustering__ServiceName
+          value: {{ .Values.core.orleans.serviceName | quote }}
+        - name: Orleans__Clustering__ClusterId
+          value: {{ .Values.core.orleans.clusterId | quote }}
+        - name: Consul__Address
+          value: {{ include "toskamesh.consul.address" . | quote }}
+        - name: ConnectionStrings__OrleansStorage
+          value: "Host={{ .Values.externalServices.postgres.host }};Database={{ .Values.externalServices.postgres.database }};Username={{ .Values.externalServices.postgres.username }};Password={{ .Values.externalServices.postgres.password }}"
+        resources:
+          {{- toYaml .Values.core.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 20
+          periodSeconds: 5
+{{- end }}

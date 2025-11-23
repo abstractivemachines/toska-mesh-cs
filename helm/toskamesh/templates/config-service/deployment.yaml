@@ -1,0 +1,55 @@
+{{- if .Values.configService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-config-service
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: config-service
+spec:
+  replicas: {{ .Values.configService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: config-service
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: config-service
+    spec:
+      containers:
+      - name: config-service
+        image: "{{ .Values.configService.image.repository }}:{{ .Values.configService.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.configService.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          value: {{ include "toskamesh.consul.address" . | quote }}
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          value: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host={{ .Values.externalServices.postgres.host }};Database={{ .Values.externalServices.postgres.database }};Username={{ .Values.externalServices.postgres.username }};Password={{ .Values.externalServices.postgres.password }}"
+        - name: Mesh__ServiceAuth__Secret
+          value: {{ .Values.global.meshServiceAuthSecret | quote }}
+        resources:
+          {{- toYaml .Values.configService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

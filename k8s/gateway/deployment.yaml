@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toskamesh-gateway
+  labels:
+    app: toskamesh-gateway
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toskamesh-gateway
+  template:
+    metadata:
+      labels:
+        app: toskamesh-gateway
+        component: core
+    spec:
+      containers:
+      - name: gateway
+        image: toskamesh-gateway:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-gateway-config
+              key: consul_address
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-gateway-config
+              key: discovery_grpc_address
+        - name: Jwt__SecretKey
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-gateway-secrets
+              key: jwt_secret_key
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

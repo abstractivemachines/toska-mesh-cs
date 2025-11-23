@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toskamesh-health-monitor
+  labels:
+    app: toskamesh-health-monitor
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toskamesh-health-monitor
+  template:
+    metadata:
+      labels:
+        app: toskamesh-health-monitor
+        component: core
+    spec:
+      containers:
+      - name: health-monitor
+        image: toskamesh-health-monitor:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-health-monitor-config
+              key: consul_address
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-health-monitor-config
+              key: discovery_grpc_address
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

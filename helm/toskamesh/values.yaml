@@ -1,0 +1,171 @@
+# Default values for toskamesh (Development environment)
+
+# Global configuration
+environment: Development
+nameOverride: ""
+fullnameOverride: ""
+
+# Global secrets
+global:
+  meshServiceAuthSecret: "super-secret-mesh-key-change-me"
+
+# External services configuration
+externalServices:
+  consul:
+    address: "http://consul:8500"
+  postgres:
+    host: "postgres"
+    port: 5432
+    database: "toksa_mesh"
+    username: "toksa_mesh"
+    password: "toksa_mesh_password"
+  rabbitmq:
+    host: "rabbitmq"
+    port: 5672
+    username: "guest"
+    password: "guest"
+  redis:
+    host: "redis"
+    port: 6379
+
+# Gateway configuration
+gateway:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  secrets:
+    jwtSecretKey: "your-secret-key-min-32-chars-long-change-in-production"
+
+# Discovery service configuration
+discovery:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-discovery
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Auth service configuration
+authService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-auth-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Config service configuration
+configService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-config-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Metrics service configuration
+metricsService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-metrics-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Tracing service configuration
+tracingService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-tracing-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Core (Orleans) configuration
+core:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-core
+    tag: latest
+    pullPolicy: IfNotPresent
+  orleans:
+    serviceName: "ToskaMesh"
+    clusterId: "dev"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# Health Monitor configuration
+healthMonitor:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-health-monitor
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""

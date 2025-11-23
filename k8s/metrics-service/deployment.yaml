@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toskamesh-metrics-service
+  labels:
+    app: toskamesh-metrics-service
+    component: business
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toskamesh-metrics-service
+  template:
+    metadata:
+      labels:
+        app: toskamesh-metrics-service
+        component: business
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: metrics-service
+        image: toskamesh-metrics-service:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-metrics-service-config
+              key: consul_address
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-metrics-service-config
+              key: discovery_grpc_address
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-metrics-service-secrets
+              key: db_connection_string
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-metrics-service-secrets
+              key: mesh_service_auth_secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5

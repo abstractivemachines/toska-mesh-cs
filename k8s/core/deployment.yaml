@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toskamesh-core
+  labels:
+    app: toskamesh-core
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toskamesh-core
+  template:
+    metadata:
+      labels:
+        app: toskamesh-core
+        component: core
+    spec:
+      containers:
+      - name: core
+        image: toskamesh-core:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 11111
+          name: silo
+          protocol: TCP
+        - containerPort: 30000
+          name: gateway
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Orleans__Clustering__ServiceName
+          value: "ToskaMesh"
+        - name: Orleans__Clustering__ClusterId
+          value: "dev"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: toskamesh-core-config
+              key: consul_address
+        - name: ConnectionStrings__OrleansStorage
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-core-secrets
+              key: orleans_storage_connection
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 80
+          initialDelaySeconds: 20
+          periodSeconds: 5

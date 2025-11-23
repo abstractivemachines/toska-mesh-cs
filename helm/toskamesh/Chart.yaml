@@ -1,0 +1,13 @@
+apiVersion: v2
+name: toskamesh
+description: A Helm chart for ToskaMesh Service Mesh Control Plane
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - service-mesh
+  - control-plane
+  - microservices
+  - orleans
+maintainers:
+  - name: ToskaMesh Team

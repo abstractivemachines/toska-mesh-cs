@@ -1,0 +1,27 @@
+{{- if .Values.core.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-core
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  - port: 11111
+    targetPort: 11111
+    protocol: TCP
+    name: silo
+  - port: 30000
+    targetPort: 30000
+    protocol: TCP
+    name: gateway
+  selector:
+    {{- include "toskamesh.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+{{- end }}
