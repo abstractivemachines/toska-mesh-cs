@@ -15,6 +15,10 @@ spec:
       labels:
         app: toskamesh-tracing-service
         component: business
+      annotations:
+        sidecar.istio.io/inject: "true"
+        traffic.sidecar.istio.io/includeInboundPorts: "*"
+        security.istio.io/tlsMode: "istio"
     spec:
       containers:
       - name: tracing-service

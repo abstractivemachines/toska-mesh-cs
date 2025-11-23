@@ -19,6 +19,9 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "80"
         prometheus.io/path: "/metrics"
+        sidecar.istio.io/inject: "true"
+        traffic.sidecar.istio.io/includeInboundPorts: "*"
+        security.istio.io/tlsMode: "istio"
     spec:
       containers:
       - name: metrics-service

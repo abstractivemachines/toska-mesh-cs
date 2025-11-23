@@ -9,6 +9,8 @@
 
 Implemented comprehensive Kubernetes and Helm deployment infrastructure for ToskaMesh Service Mesh Control Plane, enabling deployment to both development and production Kubernetes environments with dev-to-prod parity.
 
+Extended the rollout with ingress, autoscaling (HPA), service-mesh annotations, and Helm ConfigMap/Secret parity across all services to satisfy deployment readiness criteria.
+
 ## Changes Made
 
 ### 1. Docker Foundation
@@ -165,6 +167,12 @@ Created `docs/kubernetes-deployment.md` with:
 - **Troubleshooting**: Common issues and solutions
 - **Upgrading**: Helm upgrade and rollback procedures
 
+### 6. Autoscaling, Ingress, and Service Mesh Integration
+- Added gateway Ingress manifest (raw K8s) and Helm ingress template with host/TLS settings.
+- Added HPAs for all services (raw manifests) and optional HPAs per service in Helm values/templates.
+- Added global mesh annotations (sidecar injection, TLS hints) toggleable via Helm values and baked into raw manifests for mesh-ready clusters.
+- Brought Helm parity with raw manifests by adding per-service ConfigMaps/Secrets for addresses and connection strings instead of inline env values.
+
 ## Architecture Decisions
 
 ### 1. External Infrastructure Services
@@ -183,13 +191,13 @@ Created `docs/kubernetes-deployment.md` with:
 - StatefulSets can be added later if stable network identity is needed
 - Aligns with "start simple, add later" approach
 
-### 3. No Advanced Features Initially
-**Decision**: No Ingress, HPA, NetworkPolicies in initial implementation
+### 3. Progressive Enablement for Advanced Features
+**Decision**: Provide Ingress, HPA, and mesh hooks as opt-in features (enabled in manifests, toggleable in Helm)
 **Rationale**:
-- User explicitly selected "Start simple, add later"
-- Reduces initial complexity
-- Allows for iterative improvement
-- Gateway LoadBalancer provides basic external access
+- Keeps defaults simple while meeting deployment-readiness requirements
+- Allows teams to flip features on/off per environment through values
+- Prepares for mesh/mTLS adoption without forcing it in dev
+- Gateway LoadBalancer still offers basic access when ingress is off
 
 ### 4. Secrets in Helm Values
 **Decision**: Secrets defined in values files for dev, placeholders for prod
@@ -205,6 +213,8 @@ Created `docs/kubernetes-deployment.md` with:
 - ✅ Docker Compose configuration completeness
 - ✅ Kubernetes manifest YAML validity
 - ✅ Helm chart structure and template syntax
+- ✅ HPAs and ingress definitions added
+- ✅ Helm ConfigMaps/Secrets align with raw manifests (no inline secrets)
 
 ### Not Verified (User Testing Required)
 - ⏸️ End-to-end Helm installation on local cluster
@@ -336,6 +346,7 @@ If issues are encountered:
 - ✅ Helm chart structure complete with templates
 - ✅ Dev and prod values files created
 - ✅ Deployment documentation comprehensive
+- ✅ Optional ingress, HPAs, and mesh annotations available
 - ⏸️ Helm chart installs successfully (user verification pending)
 - ⏸️ All pods reach Ready state (user verification pending)
 

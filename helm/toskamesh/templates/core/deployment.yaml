@@ -17,6 +17,12 @@ spec:
       labels:
         {{- include "toskamesh.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: core
+      {{- if .Values.mesh.enabled }}
+      annotations:
+        {{- with .Values.mesh.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
     spec:
       containers:
       - name: core
@@ -39,9 +45,15 @@ spec:
         - name: Orleans__Clustering__ClusterId
           value: {{ .Values.core.orleans.clusterId | quote }}
         - name: Consul__Address
-          value: {{ include "toskamesh.consul.address" . | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-core-config
+              key: consul_address
         - name: ConnectionStrings__OrleansStorage
-          value: "Host={{ .Values.externalServices.postgres.host }};Database={{ .Values.externalServices.postgres.database }};Username={{ .Values.externalServices.postgres.username }};Password={{ .Values.externalServices.postgres.password }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-core-secrets
+              key: orleans_storage_connection
         resources:
           {{- toYaml .Values.core.resources | nindent 10 }}
         livenessProbe:

@@ -17,6 +17,12 @@ spec:
       labels:
         {{- include "toskamesh.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: discovery
+      {{- if .Values.mesh.enabled }}
+      annotations:
+        {{- with .Values.mesh.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
     spec:
       containers:
       - name: discovery
@@ -32,9 +38,15 @@ spec:
         - name: ASPNETCORE_URLS
           value: "http://+:80"
         - name: Consul__Address
-          value: {{ include "toskamesh.consul.address" . | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-discovery-config
+              key: consul_address
         - name: Messaging__RabbitMqHost
-          value: {{ include "toskamesh.rabbitmq.host" . | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-discovery-config
+              key: rabbitmq_host
         - name: Messaging__RabbitMqUsername
           valueFrom:
             secretKeyRef:

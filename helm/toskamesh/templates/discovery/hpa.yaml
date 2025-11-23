@@ -1,0 +1,29 @@
+{{- if and .Values.discovery.enabled .Values.discovery.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-discovery
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: discovery
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "toskamesh.fullname" . }}-discovery
+  minReplicas: {{ .Values.discovery.hpa.minReplicas }}
+  maxReplicas: {{ .Values.discovery.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.discovery.hpa.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.discovery.hpa.targetMemoryUtilizationPercentage }}
+{{- end }}
