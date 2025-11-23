@@ -94,6 +94,10 @@ module "eks" {
   create_cloudwatch_log_group            = true
   cloudwatch_log_group_retention_in_days = var.cloudwatch_log_retention_days
 
+  # EKS Access Entry Configuration
+  enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
+  access_entries                           = var.access_entries
+
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     disk_size      = var.node_disk_size
