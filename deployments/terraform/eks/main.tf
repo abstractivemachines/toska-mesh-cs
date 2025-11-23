@@ -89,6 +89,7 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   enable_irsa                            = true
+  bootstrap_self_managed_addons          = false
   cluster_enabled_log_types              = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   create_cloudwatch_log_group            = true
   cloudwatch_log_group_retention_in_days = var.cloudwatch_log_retention_days
@@ -119,7 +120,7 @@ module "eks" {
     vpc-cni = {
       most_recent = true
       configuration_values = jsonencode({
-        enableNetworkPolicy = true
+        enableNetworkPolicy = "true"
       })
     }
   }
