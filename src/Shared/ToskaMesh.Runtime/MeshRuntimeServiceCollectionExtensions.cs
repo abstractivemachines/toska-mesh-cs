@@ -29,6 +29,7 @@ public static class MeshRuntimeServiceCollectionExtensions
         options.EnsureDefaults();
 
         services.AddSingleton(options);
+        services.AddSingleton<MeshRegistrationState>();
 
         var hasRegistry = services.Any(d => d.ServiceType == typeof(IServiceRegistry));
 
@@ -58,6 +59,10 @@ public static class MeshRuntimeServiceCollectionExtensions
 
         services.AddMeshHealthChecks();
         services.AddHostedService<MeshAutoRegistrar>();
+        if (options.HeartbeatEnabled)
+        {
+            services.AddHostedService<MeshHeartbeatService>();
+        }
 
         return services;
     }
