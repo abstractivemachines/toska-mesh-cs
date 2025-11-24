@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Primitives;
+using ToskaMesh.Gateway.Configuration;
 using ToskaMesh.Protocols;
 using Yarp.ReverseProxy.Configuration;
 
