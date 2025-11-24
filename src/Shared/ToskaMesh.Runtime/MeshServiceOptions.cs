@@ -21,7 +21,7 @@ public class MeshServiceOptions
     public bool EnableTelemetry { get; set; } = true;
     public bool EnableAuth { get; set; } = true;
     public bool RegisterAutomatically { get; set; } = true;
-    public bool AllowNoopServiceRegistry { get; set; } = true;
+    public bool AllowNoopServiceRegistry { get; set; } = false;
     public ServiceRegistryProvider ServiceRegistryProvider { get; set; } = ServiceRegistryProvider.Grpc;
     public Dictionary<string, string> Metadata { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 

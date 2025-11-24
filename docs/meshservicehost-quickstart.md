@@ -66,11 +66,11 @@ await MeshServiceHost.RunStatefulAsync(
 | `HeartbeatEnabled` | Toggle TTL renewal via `MeshHeartbeatService`. |
 | `EnableTelemetry` / `EnableAuth` | Toggle mesh telemetry and auth defaults (set to false to disable). |
 | `RegisterAutomatically` | Controls auto-registration on startup. |
-| `AllowNoopServiceRegistry` | When true and no `IServiceRegistry` is registered, a no-op registry is used (tests/dev). Set false to fail fast. |
+| `AllowNoopServiceRegistry` | Defaults to false. When true and no `IServiceRegistry` is registered, a no-op registry is used (tests/dev). In non-development environments, noop is rejected unless explicitly allowed. |
 | `Metadata` | Routing hints (e.g., `scheme`, `health_check_endpoint`, `weight`, `lb_strategy`). |
 
 ## Notes
-- If you don’t register an `IServiceRegistry`, the host will insert a no-op registry. For real deployments, set `AllowNoopServiceRegistry = false` or supply a registry.
+- If you don’t register an `IServiceRegistry`, the host will insert a no-op registry only when explicitly allowed (or in Development). For real deployments, leave `AllowNoopServiceRegistry` as false and supply a registry.
 - Middleware hook is available via `MeshServiceApp.Use(Func<HttpContext, Func<Task>, Task>)`.
 - Stateful path currently assumes Orleans; the abstraction hides silo config behind `MeshStatefulOptions`.
 - Telemetry/auth are enabled by default. To opt out (e.g., lightweight internal jobs), set `EnableTelemetry = false` and/or `EnableAuth = false` in `MeshServiceOptions`.
