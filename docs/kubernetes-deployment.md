@@ -462,7 +462,7 @@ kubectl delete namespace toskamesh-prod
 
 - [Configure Ingress with TLS](ingress-setup.md) (future)
 - [Setup Horizontal Pod Autoscaling](hpa-setup.md) (future)
-- [Configure Monitoring & Alerting](monitoring-setup.md) (future)
+- [Configure Monitoring & Alerting](monitoring-setup.md)
 - [Network Policies](network-policies.md) (future)
 
 ## Support

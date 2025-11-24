@@ -309,11 +309,22 @@ Key environment variables for configuration:
 - Gateway: http://localhost:5000/metrics
 - Auth Service: http://localhost:5001/metrics
 - Config Service: http://localhost:5002/metrics
+- Tracing Service: http://localhost:5004/metrics
+- Metrics Service: http://localhost:5003/metrics
+- Health Monitor: http://localhost:5005/metrics
 
 ### Dashboards
 - Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+- Grafana: http://localhost:3000 (admin/admin). Dashboards auto-provisioned from `deployments/grafana/dashboards`:
+  - RED metrics (`toska-red`)
+  - Service resources (`toska-resources`)
+  - Messaging & cache (`toska-messaging`)
 - Consul UI: http://localhost:8500
+
+### Alert Rules
+- Prometheus alerting/recording rules live in `deployments/prometheus.rules.yml` (RED, resource usage, queue depth, cache hit ratio).
+- RabbitMQ and Redis exporters are included in `deployments/docker-compose.yml` and scraped by Prometheus by default.
+- For setup details see `docs/monitoring-setup.md`.
 
 ### Health Checks
 - Gateway: http://localhost:5000/health

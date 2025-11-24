@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: ToskaMesh
+    orgId: 1
+    folder: ToskaMesh
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards

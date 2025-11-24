@@ -1,0 +1,90 @@
+groups:
+  - name: toskamesh-red
+    rules:
+      - record: service:http_request_rate:requests_per_second
+        expr: sum by (service_name) (rate(http_server_request_duration_seconds_count[5m]))
+      - record: service:http_error_rate:ratio
+        expr: |
+          sum by (service_name) (rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m]))
+            /
+          clamp_min(sum by (service_name) (rate(http_server_request_duration_seconds_count[5m])), 1)
+      - record: service:http_request_duration:p95
+        expr: histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket[5m])))
+      - record: service:http_active_requests
+        expr: sum by (service_name) (http_server_active_requests)
+
+  - name: toskamesh-resources
+    rules:
+      - record: service:cpu_usage:percent
+        expr: rate(process_cpu_seconds_total[5m]) * 100
+      - record: service:memory_working_set:bytes
+        expr: avg by (service_name) (process_working_set_bytes)
+
+  - name: toskamesh-queue-cache
+    rules:
+      - record: queue:messages_ready:sum
+        expr: sum by (queue) (rabbitmq_queue_messages_ready)
+      - record: queue:publish_rate:per_second
+        expr: sum by (queue) (rate(rabbitmq_queue_messages_published_total[5m]))
+      - record: redis:cache_hit_ratio:percent
+        expr: |
+          100 *
+          sum(rate(redis_keyspace_hits_total[5m]))
+            /
+          clamp_min(sum(rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m])), 1)
+
+  - name: toskamesh-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: service:http_error_rate:ratio > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High error rate on {{ $labels.service_name }}
+          description: Error rate is above 5% over the last 5 minutes.
+
+      - alert: HighLatencyP95
+        expr: service:http_request_duration:p95 > 0.25
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High latency p95 on {{ $labels.service_name }}
+          description: p95 latency is above 250ms over the last 5 minutes.
+
+      - alert: CpuSaturation
+        expr: service:cpu_usage:percent > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: CPU saturation on {{ $labels.service_name }}
+          description: CPU utilization is above 80% for 10m.
+
+      - alert: MemoryPressure
+        expr: service:memory_working_set:bytes > 800000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Memory pressure on {{ $labels.service_name }}
+          description: Working set memory above 800MB for 10m.
+
+      - alert: QueueDepthHigh
+        expr: queue:messages_ready:sum > 1000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: RabbitMQ queue depth high ({{ $labels.queue }})
+          description: Queue depth exceeded 1,000 messages for 5m.
+
+      - alert: CacheHitRatioLow
+        expr: redis:cache_hit_ratio:percent < 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Low Redis cache hit ratio
+          description: Cache hit ratio is below 80% over the last 10 minutes.
