@@ -30,6 +30,8 @@ public static class MeshRuntimeServiceCollectionExtensions
 
         services.AddSingleton(options);
 
+        var hasRegistry = services.Any(d => d.ServiceType == typeof(IServiceRegistry));
+
         services.AddMeshInfrastructure(
             configuration,
             opt =>
@@ -38,6 +40,10 @@ public static class MeshRuntimeServiceCollectionExtensions
                 opt.EnableRedisCache = false;
                 opt.ServiceRegistryProvider = options.ServiceRegistryProvider;
                 opt.EnableHealthChecks = false; // add once below
+                if (hasRegistry)
+                {
+                    opt.EnableConsulServiceRegistry = false;
+                }
             });
 
         if (options.EnableTelemetry)
