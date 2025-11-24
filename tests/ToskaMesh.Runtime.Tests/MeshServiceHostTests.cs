@@ -58,6 +58,32 @@ public class MeshServiceHostTests
         Assert.Equal("RoundRobin", opts.Metadata["lb_strategy"]);
     }
 
+    [Fact]
+    public async Task Custom_middleware_runs_before_route()
+    {
+        await using var handle = await MeshServiceHost.StartAsync(
+            app =>
+            {
+                app.Use(async (ctx, next) =>
+                {
+                    ctx.Response.Headers.Add("x-mesh-middleware", "yes");
+                    await next();
+                });
+                app.MapGet("/hello", () => "hi");
+            },
+            options =>
+            {
+                options.ServiceName = "middleware-api";
+                options.Port = 0;
+            });
+
+        var response = await handle.Client.GetAsync("/hello");
+        var header = response.Headers.GetValues("x-mesh-middleware").FirstOrDefault();
+
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal("yes", header);
+    }
+
     private sealed class RecordingServiceRegistry : IServiceRegistry
     {
         public List<ServiceRegistration> Registrations { get; } = new();

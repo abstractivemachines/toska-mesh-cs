@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ToskaMesh.Protocols;
@@ -102,6 +103,14 @@ public sealed class MeshServiceApp
     public void Map(string pattern, Delegate handler, string method = "GET")
     {
         _app.MapMethods(pattern, new[] { method }, handler);
+    }
+
+    /// <summary>
+    /// Register a custom middleware in the request pipeline without exposing the underlying WebApplication.
+    /// </summary>
+    public void Use(Func<HttpContext, Func<Task>, Task> middleware)
+    {
+        _app.Use(async (context, next) => await middleware(context, next));
     }
 }
 
