@@ -37,6 +37,8 @@ public class MeshHeartbeatService : BackgroundService
             ? TimeSpan.FromSeconds(30)
             : _options.HealthInterval;
 
+        var timer = new PeriodicTimer(delay);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -52,14 +54,22 @@ public class MeshHeartbeatService : BackgroundService
                 _logger.LogWarning(ex, "Failed to renew heartbeat for service {ServiceName}", _options.ServiceName);
             }
 
-            try
+            if (!await SafeWaitAsync(timer, stoppingToken))
             {
-                await Task.Delay(delay, stoppingToken);
+                break;
             }
-            catch (TaskCanceledException)
-            {
-                // ignore
-            }
+        }
+    }
+
+    private static async Task<bool> SafeWaitAsync(PeriodicTimer timer, CancellationToken token)
+    {
+        try
+        {
+            return await timer.WaitForNextTickAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
         }
     }
 }
