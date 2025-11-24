@@ -13,7 +13,7 @@ public class MeshServiceHostTests
     {
         var registry = new RecordingServiceRegistry();
 
-        await using var handle = await MeshServiceHost.StartInMemoryAsync(
+        await using var handle = await MeshServiceHost.StartAsync(
             app =>
             {
                 app.MapGet("/hello", () => Results.Ok(new { message = "hi" }));
@@ -21,7 +21,7 @@ public class MeshServiceHostTests
             options =>
             {
                 options.ServiceName = "hello-api";
-                options.Port = 0; // unused with TestServer
+                options.Port = 0; // use ephemeral port
             },
             services =>
             {
@@ -40,7 +40,7 @@ public class MeshServiceHostTests
     [Fact]
     public async Task Options_are_applied_when_running_in_memory()
     {
-        await using var handle = await MeshServiceHost.StartInMemoryAsync(
+        await using var handle = await MeshServiceHost.StartAsync(
             app =>
             {
                 app.MapGet("/ping", () => "pong");

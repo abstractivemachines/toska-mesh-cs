@@ -1,6 +1,7 @@
+using System.Linq;
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ToskaMesh.Protocols;
@@ -21,38 +22,27 @@ public static class MeshServiceHost
         Action<IServiceCollection>? configureServices = null,
         CancellationToken cancellationToken = default)
     {
-        await using var handle = await StartInternalAsync(configureApp, configureOptions, configureServices, useTestServer: false, cancellationToken);
-        await handle.App.RunAsync(cancellationToken);
+        await using var handle = await StartAsync(configureApp, configureOptions, configureServices, cancellationToken);
+        await handle.App.WaitForShutdownAsync(cancellationToken);
     }
 
     /// <summary>
-    /// Start a stateless mesh service in-memory for testing and return a handle with client/services access.
+    /// Start a stateless mesh service and return a handle with client/services access (useful for tests and embedding).
     /// </summary>
-    public static Task<MeshServiceHostHandle> StartInMemoryAsync(
+    public static async Task<MeshServiceHostHandle> StartAsync(
         Action<MeshServiceApp> configureApp,
         Action<MeshServiceOptions>? configureOptions = null,
         Action<IServiceCollection>? configureServices = null,
         CancellationToken cancellationToken = default)
     {
-        return StartInternalAsync(configureApp, configureOptions, configureServices, useTestServer: true, cancellationToken);
-    }
-
-    private static async Task<MeshServiceHostHandle> StartInternalAsync(
-        Action<MeshServiceApp> configureApp,
-        Action<MeshServiceOptions>? configureOptions,
-        Action<IServiceCollection>? configureServices,
-        bool useTestServer,
-        CancellationToken cancellationToken)
-    {
         var builder = WebApplication.CreateBuilder();
-        if (useTestServer)
-        {
-            builder.WebHost.UseTestServer();
-        }
 
         var options = MeshServiceOptions.FromConfiguration(builder.Configuration);
         configureOptions?.Invoke(options);
         options.EnsureDefaults();
+
+        // Allow dynamic port selection (e.g., tests) by setting Port=0.
+        builder.WebHost.UseUrls($"http://{options.Address}:{options.Port}");
 
         builder.Services.AddSingleton(options);
         configureServices?.Invoke(builder.Services);
@@ -82,16 +72,13 @@ public static class MeshServiceHost
         configureApp(meshApp);
         app.UseMeshDefaults();
 
-        if (useTestServer)
-        {
-            await app.StartAsync(cancellationToken);
-            var client = app.GetTestClient();
-            return new MeshServiceHostHandle(app, client);
-        }
-
-        // When not using test server, start and return handle without a client.
         await app.StartAsync(cancellationToken);
-        return new MeshServiceHostHandle(app, null);
+
+        // Use the bound address (handles dynamic port if Port=0).
+        var baseAddress = app.Urls.FirstOrDefault() ?? $"http://{options.Address}:{options.Port}";
+        var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+
+        return new MeshServiceHostHandle(app, client);
     }
 }
 
@@ -119,24 +106,25 @@ public sealed class MeshServiceApp
 }
 
 /// <summary>
-/// Handle for an in-memory host (primarily for testing).
+/// Handle for a running host (supports HTTP client + DI access).
 /// </summary>
 public sealed class MeshServiceHostHandle : IAsyncDisposable
 {
-    internal MeshServiceHostHandle(WebApplication app, HttpClient? client)
+    internal MeshServiceHostHandle(WebApplication app, HttpClient client)
     {
         App = app;
         Client = client;
     }
 
     internal WebApplication App { get; }
-    public HttpClient? Client { get; }
+    public HttpClient Client { get; }
     public IServiceProvider Services => App.Services;
 
     public async ValueTask DisposeAsync()
     {
         await App.StopAsync();
         await App.DisposeAsync();
+        Client.Dispose();
     }
 }
 
