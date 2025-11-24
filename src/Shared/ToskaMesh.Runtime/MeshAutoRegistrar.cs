@@ -12,15 +12,18 @@ public class MeshAutoRegistrar : IHostedService
     private readonly IServiceRegistry _serviceRegistry;
     private readonly MeshServiceOptions _options;
     private readonly ILogger<MeshAutoRegistrar> _logger;
+    private readonly MeshRegistrationState _state;
     private string? _registeredServiceId;
 
     public MeshAutoRegistrar(
         IServiceRegistry serviceRegistry,
         MeshServiceOptions options,
+        MeshRegistrationState state,
         ILogger<MeshAutoRegistrar> logger)
     {
         _serviceRegistry = serviceRegistry;
         _options = options;
+        _state = state;
         _logger = logger;
     }
 
@@ -51,6 +54,7 @@ public class MeshAutoRegistrar : IHostedService
         }
 
         _registeredServiceId = result.ServiceId;
+        _state.ServiceId = _registeredServiceId;
         _logger.LogInformation("Service registered with ID {ServiceId}", _registeredServiceId);
     }
 
@@ -69,6 +73,10 @@ public class MeshAutoRegistrar : IHostedService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to deregister service {ServiceId}", _registeredServiceId);
+        }
+        finally
+        {
+            _state.ServiceId = null;
         }
     }
 }

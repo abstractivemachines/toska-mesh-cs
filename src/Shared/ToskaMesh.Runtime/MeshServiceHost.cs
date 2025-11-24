@@ -49,7 +49,7 @@ public static class MeshServiceHost
         configureServices?.Invoke(builder.Services);
 
         // If the caller didn't register a service registry, use a no-op stub so tests can run without infrastructure.
-        builder.Services.TryAddMeshServiceRegistryStub();
+        builder.Services.TryAddMeshServiceRegistryStub(options);
 
         builder.Services.AddMeshService(builder.Configuration, opt =>
         {
@@ -139,12 +139,17 @@ public sealed class MeshServiceHostHandle : IAsyncDisposable
 
 internal static class MeshServiceHostServiceCollectionExtensions
 {
-    public static void TryAddMeshServiceRegistryStub(this IServiceCollection services)
+    public static void TryAddMeshServiceRegistryStub(this IServiceCollection services, MeshServiceOptions options)
     {
         var hasRegistry = services.Any(d => d.ServiceType == typeof(IServiceRegistry));
         if (!hasRegistry)
         {
             services.AddSingleton<IServiceRegistry, NoopServiceRegistry>();
+            if (!options.AllowNoopServiceRegistry)
+            {
+                throw new InvalidOperationException("No IServiceRegistry registered and AllowNoopServiceRegistry is false.");
+            }
+            Console.WriteLine($"[MeshServiceHost] WARNING: No IServiceRegistry registered; using noop registry for service '{options.ServiceName}'.");
         }
     }
 
