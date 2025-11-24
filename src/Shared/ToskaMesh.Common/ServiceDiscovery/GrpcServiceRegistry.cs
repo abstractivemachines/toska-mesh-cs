@@ -1,7 +1,9 @@
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Grpc.Core;
 using ToskaMesh.Grpc.Discovery;
 using ToskaMesh.Protocols;
 using ToskaMesh.Security;
@@ -146,6 +148,30 @@ public class ServiceDiscoveryGrpcOptions
     public string Address { get; set; } = "http://localhost:5010";
 }
 
+/// <summary>
+/// Provides call credentials for discovery gRPC calls (e.g., tokens).
+/// </summary>
+public interface IServiceDiscoveryCredentialsProvider
+{
+    Task PopulateAsync(Metadata metadata, CancellationToken cancellationToken);
+}
+
+internal sealed class JwtServiceDiscoveryCredentialsProvider : IServiceDiscoveryCredentialsProvider
+{
+    private readonly IMeshServiceTokenProvider _tokenProvider;
+
+    public JwtServiceDiscoveryCredentialsProvider(IMeshServiceTokenProvider tokenProvider)
+    {
+        _tokenProvider = tokenProvider;
+    }
+
+    public async Task PopulateAsync(Metadata metadata, CancellationToken cancellationToken)
+    {
+        var token = await _tokenProvider.GetTokenAsync(cancellationToken);
+        metadata.Add("Authorization", $"Bearer {token}");
+    }
+}
+
 public static class GrpcServiceRegistryExtensions
 {
     public static IServiceCollection AddGrpcServiceRegistry(this IServiceCollection services, IConfiguration configuration)
@@ -154,15 +180,18 @@ public static class GrpcServiceRegistryExtensions
             ?? new ServiceDiscoveryGrpcOptions();
 
         services.AddMeshServiceIdentity(configuration);
+        services.TryAddSingleton<IServiceDiscoveryCredentialsProvider, JwtServiceDiscoveryCredentialsProvider>();
 
         services.AddGrpcClient<DiscoveryRegistry.DiscoveryRegistryClient>((provider, options) =>
         {
             options.Address = new Uri(grpcOptions.Address);
         }).AddCallCredentials(async (context, metadata, provider) =>
         {
-            var tokenProvider = provider.GetRequiredService<IMeshServiceTokenProvider>();
-            var token = await tokenProvider.GetTokenAsync(context.CancellationToken);
-            metadata.Add("Authorization", $"Bearer {token}");
+            var credProvider = provider.GetService<IServiceDiscoveryCredentialsProvider>();
+            if (credProvider != null)
+            {
+                await credProvider.PopulateAsync(metadata, context.CancellationToken);
+            }
         }).ConfigureChannel(options =>
         {
             options.UnsafeUseInsecureChannelCallCredentials = true;
