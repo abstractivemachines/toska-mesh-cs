@@ -32,13 +32,15 @@ builder.Services.AddMeshInfrastructure(
     {
         health.AddConsul(options =>
         {
-            options.HostName = "localhost";
+            options.HostName = "consul";
             options.Port = 8500;
         });
     });
 
+builder.Services.AddHttpClient();
+
 // Add discovery service manager
-builder.Services.AddSingleton<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddHostedService<ServiceDiscoveryBackgroundService>();
 
 // Add telemetry

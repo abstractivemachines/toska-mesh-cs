@@ -21,9 +21,11 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableConsulServiceRegistry = false;
     options.EnableMassTransit = false;
     options.EnableRedisCache = false;
+    options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<AuthDbContext>(configuration);
 });
 builder.Services.AddMeshTelemetry("AuthService");
+builder.Services.AddMeshHealthChecks();
 
 builder.Services.AddIdentity<MeshUser, IdentityRole>(options =>
     {
