@@ -1,0 +1,42 @@
+name: Runtime Packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "runtime-*"
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore solution
+        run: dotnet restore ToskaMesh.sln
+
+      - name: Pack runtime packages
+        run: |
+          dotnet pack src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Release -o ./artifacts/nuget
+          dotnet pack src/Shared/ToskaMesh.Runtime.Orleans/ToskaMesh.Runtime.Orleans.csproj -c Release -o ./artifacts/nuget
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-nugets
+          path: artifacts/nuget/*.nupkg
+
+      - name: Publish to NuGet (tagged builds only)
+        if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'runtime-') && secrets.NUGET_API_KEY != '' }}
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push artifacts/nuget/*.nupkg \
+            -k "$NUGET_API_KEY" \
+            -s https://api.nuget.org/v3/index.json \
+            --skip-duplicate
