@@ -13,6 +13,8 @@ public class MeshHeartbeatService : BackgroundService
     private readonly MeshServiceOptions _options;
     private readonly MeshRegistrationState _state;
     private readonly ILogger<MeshHeartbeatService> _logger;
+    private readonly TimeSpan _backoff;
+    private readonly int _maxRetries = 3;
 
     public MeshHeartbeatService(
         IServiceRegistry serviceRegistry,
@@ -24,6 +26,9 @@ public class MeshHeartbeatService : BackgroundService
         _options = options;
         _state = state;
         _logger = logger;
+        _backoff = options.HealthInterval > TimeSpan.Zero
+            ? TimeSpan.FromMilliseconds(Math.Max(50, options.HealthInterval.TotalMilliseconds))
+            : TimeSpan.FromSeconds(1);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,7 +51,7 @@ public class MeshHeartbeatService : BackgroundService
                 var id = _state.ServiceId;
                 if (!string.IsNullOrWhiteSpace(id))
                 {
-                    await _serviceRegistry.UpdateHealthStatusAsync(id, HealthStatus.Healthy, stoppingToken);
+                    await RenewWithRetryAsync(id, stoppingToken);
                 }
             }
             catch (Exception ex)
@@ -57,6 +62,19 @@ public class MeshHeartbeatService : BackgroundService
             if (!await SafeWaitAsync(timer, stoppingToken))
             {
                 break;
+            }
+        }
+
+        // Attempt deregistration health update on shutdown
+        if (!string.IsNullOrWhiteSpace(_state.ServiceId))
+        {
+            try
+            {
+                await _serviceRegistry.UpdateHealthStatusAsync(_state.ServiceId, HealthStatus.Degraded, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to mark service {ServiceId} degraded on shutdown", _state.ServiceId);
             }
         }
     }
@@ -70,6 +88,41 @@ public class MeshHeartbeatService : BackgroundService
         catch (OperationCanceledException)
         {
             return false;
+        }
+    }
+
+    private async Task RenewWithRetryAsync(string serviceId, CancellationToken token)
+    {
+        var attempt = 0;
+        while (attempt < _maxRetries && !token.IsCancellationRequested)
+        {
+            try
+            {
+                await _serviceRegistry.UpdateHealthStatusAsync(serviceId, HealthStatus.Healthy, token);
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                attempt++;
+                _logger.LogWarning(ex, "Heartbeat renew attempt {Attempt}/{Max} failed for {ServiceId}", attempt, _maxRetries, serviceId);
+                if (attempt >= _maxRetries)
+                {
+                    _logger.LogError("Heartbeat renew failed after {Max} attempts for {ServiceId}", _maxRetries, serviceId);
+                    return;
+                }
+                try
+                {
+                    await Task.Delay(_backoff, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+            }
         }
     }
 }
