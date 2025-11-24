@@ -11,3 +11,7 @@
 
 ### Stateful hosting
 - `MeshServiceHost.RunStatefulAsync(...)` wraps Orleans hosting without exposing silo configuration. Uses `MeshStatefulOptions` for cluster settings and `MeshServiceOptions` for registration/telemetry/auth/heartbeat.
+
+### Auth/Telemetry defaults
+- Defaults: telemetry and auth are enabled. Set `EnableTelemetry = false` and/or `EnableAuth = false` in `MeshServiceOptions` to opt out for lightweight services.
+- For stateful hosts, the same options flow through `RunStatefulAsync` and are applied to the underlying host.
