@@ -14,9 +14,9 @@ public class MeshStatefulHostTests
             configureSilo: silo =>
             {
                 silo.ServiceName = "stateful-test";
-                silo.SiloPort = 21111;
-                silo.GatewayPort = 21000;
-                silo.ClusteringMode = "localhost";
+                silo.PrimaryPort = 21111;
+                silo.ClientPort = 21000;
+                silo.ClusterProvider = StatefulClusterProvider.Local;
             },
             configureOptions: options =>
             {

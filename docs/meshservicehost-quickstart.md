@@ -47,9 +47,9 @@ await MeshServiceHost.RunStatefulAsync(
     configureOptions: options =>
     {
         options.ServiceName = "inventory-stateful";
-        options.Metadata["scheme"] = "http";
-        options.Metadata["health_check_endpoint"] = "/health";
-    });
+    options.Metadata["scheme"] = "http";
+    options.Metadata["health_check_endpoint"] = "/health";
+  });
 ```
 
 **What you get:**
