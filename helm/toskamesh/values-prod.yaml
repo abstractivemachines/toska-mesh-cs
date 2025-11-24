@@ -3,6 +3,21 @@
 # Global configuration
 environment: Production
 
+# Secret management (use managed secrets in production)
+secrets:
+  meshServiceAuth:
+    existingSecret: ""     # e.g., mesh-auth-secret from vault/external-secrets
+    key: mesh_service_auth_secret
+  defaultConnection:
+    existingSecret: ""     # e.g., app-db-conn from cloud secret manager
+    key: db_connection_string
+  gatewayJwt:
+    existingSecret: ""     # e.g., gateway-jwt-secret from cloud secret manager
+    key: jwt_secret_key
+
+networkPolicy:
+  enabled: true
+
 # Service mesh integration (optional)
 mesh:
   enabled: true

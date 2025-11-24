@@ -265,25 +265,33 @@ gateway:
 # ... (configure all other services)
 ```
 
-### 3. Create Kubernetes Secrets
+### 3. Secrets (use managed sources)
+
+- Use cloud secret manager + ExternalSecrets (or pre-created K8s secrets) instead of embedding secrets in values.
+- Configure the chart to point at existing secrets:
 
 ```bash
-# Create namespace
-kubectl create namespace toskamesh-prod
+cat <<'EOF' > values-custom-prod.yaml
+secrets:
+  meshServiceAuth:
+    existingSecret: mesh-auth-secret
+    key: mesh_service_auth_secret
+  defaultConnection:
+    existingSecret: app-db-conn
+    key: db_connection_string
+  gatewayJwt:
+    existingSecret: gateway-jwt-secret
+    key: jwt_secret_key
 
-# Create secrets for sensitive data
-kubectl create secret generic toskamesh-db-credentials \
-  --from-literal=password='YOUR_DB_PASSWORD' \
-  -n toskamesh-prod
-
-kubectl create secret generic toskamesh-rabbitmq-credentials \
-  --from-literal=password='YOUR_RABBITMQ_PASSWORD' \
-  -n toskamesh-prod
-
-kubectl create secret generic toskamesh-jwt-secret \
-  --from-literal=key='YOUR_STRONG_JWT_SECRET' \
-  -n toskamesh-prod
+gateway:
+  ingress:
+    tls:
+      - secretName: toskamesh-gateway-tls   # create via cert-manager or upload cert/key
+        hosts: ["gateway.example.com"]
+EOF
 ```
+
+Create the referenced secrets using your preferred mechanism (e.g., ExternalSecrets, `kubectl create secret generic`, or cert-manager for TLS).
 
 ### 4. Deploy to Production
 
@@ -317,7 +325,9 @@ The following environment variables can be configured via Helm values:
 #### Global Settings
 
 - `environment`: ASP.NET Core environment (Development, Staging, Production)
-- `global.meshServiceAuthSecret`: Shared secret for inter-service authentication
+- `secrets.meshServiceAuth.existingSecret/key`: External secret for inter-service auth (falls back to `global.meshServiceAuthSecret` when unset)
+- `secrets.defaultConnection.existingSecret/key`: External secret for DB connection strings
+- `secrets.gatewayJwt.existingSecret/key`: External secret for gateway JWT signing key
 
 #### External Services
 
@@ -334,6 +344,8 @@ Each service supports:
 - `image.tag`: Docker image tag
 - `image.pullPolicy`: Image pull policy (IfNotPresent, Always, Never)
 - `resources`: CPU and memory requests/limits
+- `networkPolicy.enabled`: Enable namespace-scoped ingress/egress policies (enabled in prod values)
+- `mesh.enabled`: When true, Istio/mesh sidecar annotations are injected on all workloads
 
 ### Scaling
 

@@ -60,8 +60,8 @@ spec:
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-discovery-secrets
-              key: mesh_service_auth_secret
+              name: {{ default (printf "%s-discovery-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
         resources:
           {{- toYaml .Values.discovery.resources | nindent 10 }}
         livenessProbe:

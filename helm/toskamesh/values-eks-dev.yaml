@@ -4,6 +4,21 @@
 
 environment: Development
 
+# Secret management (use AWS Secrets Manager/External Secrets for shared dev)
+secrets:
+  meshServiceAuth:
+    existingSecret: ""     # e.g., mesh-auth-dev
+    key: mesh_service_auth_secret
+  defaultConnection:
+    existingSecret: ""     # e.g., app-db-conn-dev
+    key: db_connection_string
+  gatewayJwt:
+    existingSecret: ""     # e.g., gateway-jwt-dev
+    key: jwt_secret_key
+
+networkPolicy:
+  enabled: true
+
 # Use ECR images
 gateway:
   enabled: true

@@ -5,6 +5,21 @@ environment: Development
 nameOverride: ""
 fullnameOverride: ""
 
+# Secret management (override with existing Kubernetes secrets in real envs)
+secrets:
+  meshServiceAuth:
+    existingSecret: ""     # If set, use this secret for Mesh__ServiceAuth__Secret
+    key: mesh_service_auth_secret
+  defaultConnection:
+    existingSecret: ""     # If set, use this secret/key for DB connection strings
+    key: db_connection_string
+  gatewayJwt:
+    existingSecret: ""     # If set, use this secret/key for gateway JWT signing key
+    key: jwt_secret_key
+
+networkPolicy:
+  enabled: false
+
 # Service mesh integration (optional)
 mesh:
   enabled: false

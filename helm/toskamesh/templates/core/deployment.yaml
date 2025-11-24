@@ -52,8 +52,8 @@ spec:
         - name: ConnectionStrings__OrleansStorage
           valueFrom:
             secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-core-secrets
-              key: orleans_storage_connection
+              name: {{ default (printf "%s-core-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
+              key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
         resources:
           {{- toYaml .Values.core.resources | nindent 10 }}
         livenessProbe:
