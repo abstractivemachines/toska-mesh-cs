@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +21,6 @@
     <ProjectReference Include="..\..\Shared\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Security\ToskaMesh.Security.csproj" />
     <ProjectReference Include="..\..\Shared\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
-    <ProjectReference Include="..\ToskaMesh.Discovery\ToskaMesh.Discovery.csproj" Private="false" />
   </ItemGroup>
 
 </Project>

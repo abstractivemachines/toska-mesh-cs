@@ -1,77 +1,252 @@
 services:
-  # Service Discovery
+  # Infrastructure Services
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: toksa_mesh
+      POSTGRES_PASSWORD: toksa_mesh_password
+      POSTGRES_DB: toksa_mesh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - toksa-mesh
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - toksa-mesh
+
   consul:
     image: consul:1.15
-    container_name: toskamesh-consul
     ports:
       - "8500:8500"
-      - "8600:8600/udp"
+      - "8600:8600"
     command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
-    environment:
-      - CONSUL_BIND_INTERFACE=eth0
     networks:
-      - toskamesh
-    healthcheck:
-      test: ["CMD", "consul", "info"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - toksa-mesh
 
-  # Message Bus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - toksa-mesh
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - toksa-mesh
+
   rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: toskamesh-rabbitmq
+    image: rabbitmq:3.12-management-alpine
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-    networks:
-      - toskamesh
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Database
-  postgres:
-    image: postgres:15
-    container_name: toskamesh-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=toskamesh
-      - POSTGRES_PASSWORD=toskamesh
-      - POSTGRES_DB=toskamesh
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - toskamesh
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U toskamesh"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - toksa-mesh
 
-  # Cache
-  redis:
-    image: redis:7-alpine
-    container_name: toskamesh-redis
+  # Core Services
+  gateway:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.Gateway
     ports:
-      - "6379:6379"
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://+:80
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - consul
+      - discovery
+      - prometheus
     networks:
-      - toskamesh
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - toksa-mesh
+
+  discovery:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.Discovery
+    ports:
+      - "5010:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - Messaging__RabbitMqHost=rabbitmq
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - consul
+      - rabbitmq
+    networks:
+      - toksa-mesh
+
+  core:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.Core
+    ports:
+      - "8080:80"
+      - "11111:11111"
+      - "30000:30000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - Orleans__ClusteringMode=localhost
+      - Orleans__ServiceId=ToskaMesh
+      - Orleans__ClusterId=dev
+      - Consul__Address=http://consul:8500
+      - ConnectionStrings__OrleansStorage=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - postgres
+      - consul
+    networks:
+      - toksa-mesh
+
+  health-monitor:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.HealthMonitor
+    ports:
+      - "5005:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Consul__Address=http://consul:8500
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - discovery
+      - consul
+    networks:
+      - toksa-mesh
+
+  # Business Services
+  auth-service:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.AuthService
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - postgres
+      - consul
+      - discovery
+    networks:
+      - toksa-mesh
+
+  config-service:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.ConfigService
+    ports:
+      - "5002:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - postgres
+      - consul
+      - discovery
+    networks:
+      - toksa-mesh
+
+  metrics-service:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.MetricsService
+    ports:
+      - "5003:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - postgres
+      - prometheus
+      - consul
+      - discovery
+    networks:
+      - toksa-mesh
+
+  tracing-service:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.TracingService
+    ports:
+      - "5004:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - URLS=http://0.0.0.0:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Consul__Address=http://consul:8500
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+    depends_on:
+      - postgres
+      - consul
+      - discovery
+    networks:
+      - toksa-mesh
 
 networks:
-  toskamesh:
+  toksa-mesh:
     driver: bridge
 
 volumes:
-  postgres-data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+  rabbitmq_data:

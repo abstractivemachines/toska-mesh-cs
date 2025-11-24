@@ -5,16 +5,16 @@ namespace ToskaMesh.Discovery.Services;
 /// </summary>
 public class ServiceDiscoveryBackgroundService : BackgroundService
 {
-    private readonly IServiceManager _serviceManager;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ServiceDiscoveryBackgroundService> _logger;
     private readonly TimeSpan _healthCheckInterval;
 
     public ServiceDiscoveryBackgroundService(
-        IServiceManager serviceManager,
+        IServiceScopeFactory scopeFactory,
         ILogger<ServiceDiscoveryBackgroundService> logger,
         IConfiguration configuration)
     {
-        _serviceManager = serviceManager;
+        _scopeFactory = scopeFactory;
         _logger = logger;
         _healthCheckInterval = TimeSpan.FromSeconds(
             configuration.GetValue<int>("HealthCheck:IntervalSeconds", 30));
@@ -29,7 +29,9 @@ public class ServiceDiscoveryBackgroundService : BackgroundService
         {
             try
             {
-                await _serviceManager.PerformHealthChecksAsync(stoppingToken);
+                using var scope = _scopeFactory.CreateScope();
+                var serviceManager = scope.ServiceProvider.GetRequiredService<IServiceManager>();
+                await serviceManager.PerformHealthChecksAsync(stoppingToken);
             }
             catch (Exception ex)
             {

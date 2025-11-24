@@ -60,7 +60,7 @@ builder.Services.AddMeshInfrastructure(
     {
         health.AddConsul(options =>
         {
-            options.HostName = "localhost";
+            options.HostName = "consul";
             options.Port = 8500;
         });
     });

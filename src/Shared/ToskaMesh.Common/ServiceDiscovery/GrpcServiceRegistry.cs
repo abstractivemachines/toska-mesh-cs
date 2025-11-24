@@ -163,6 +163,9 @@ public static class GrpcServiceRegistryExtensions
             var tokenProvider = provider.GetRequiredService<IMeshServiceTokenProvider>();
             var token = await tokenProvider.GetTokenAsync(context.CancellationToken);
             metadata.Add("Authorization", $"Bearer {token}");
+        }).ConfigureChannel(options =>
+        {
+            options.UnsafeUseInsecureChannelCallCredentials = true;
         });
 
         services.AddSingleton<IServiceRegistry, GrpcServiceRegistry>();

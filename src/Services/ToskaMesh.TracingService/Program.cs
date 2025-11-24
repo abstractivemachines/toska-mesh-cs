@@ -23,6 +23,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableConsulServiceRegistry = false;
     options.EnableMassTransit = false;
     options.EnableRedisCache = false;
+    options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<TracingDbContext>(configuration);
 });
 builder.Services.AddMeshTelemetry("TracingService");

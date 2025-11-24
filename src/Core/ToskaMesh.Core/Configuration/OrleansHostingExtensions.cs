@@ -4,6 +4,7 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using OrleansDashboard;
+using System.Net;
 
 namespace ToskaMesh.Core.Configuration;
 
@@ -36,7 +37,7 @@ public static class OrleansHostingExtensions
             siloBuilder.ConfigureEndpoints(
                 siloPort: config.SiloPort,
                 gatewayPort: config.GatewayPort,
-                advertisedIP: null,
+                advertisedIP: IPAddress.Loopback,
                 listenOnAnyHostAddress: true);
 
             // Configure clustering

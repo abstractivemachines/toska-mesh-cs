@@ -21,6 +21,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableConsulServiceRegistry = false;
     options.EnableMassTransit = false;
     options.EnableRedisCache = false;
+    options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<MetricsDbContext>(configuration);
 });
 builder.Services.AddMeshTelemetry("MetricsService");
@@ -30,7 +31,6 @@ builder.Services.AddScoped<IMetricHistoryService, MetricHistoryService>();
 builder.Services.AddScoped<ICustomMetricService, CustomMetricService>();
 builder.Services.AddScoped<IAlertRuleService, AlertRuleService>();
 builder.Services.AddScoped<IGrafanaProvisioningService, GrafanaProvisioningService>();
-builder.Services.AddHostedService<MetricDefinitionWarmupService>();
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtTokenOptions>() ?? new JwtTokenOptions();
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret));
