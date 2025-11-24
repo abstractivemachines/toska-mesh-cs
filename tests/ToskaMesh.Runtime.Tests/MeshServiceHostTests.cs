@@ -50,6 +50,7 @@ public class MeshServiceHostTests
                 options.ServiceName = "orders-api";
                 options.Port = 6001;
                 options.Metadata["lb_strategy"] = "RoundRobin";
+                options.AllowNoopServiceRegistry = true;
             });
 
         var opts = handle.Services.GetRequiredService<MeshServiceOptions>();
@@ -75,6 +76,7 @@ public class MeshServiceHostTests
             {
                 options.ServiceName = "middleware-api";
                 options.Port = 0;
+                options.AllowNoopServiceRegistry = true;
             });
 
         var response = await handle.Client.GetAsync("/hello");

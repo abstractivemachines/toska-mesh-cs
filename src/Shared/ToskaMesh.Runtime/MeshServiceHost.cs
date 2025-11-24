@@ -49,8 +49,8 @@ public static class MeshServiceHost
         builder.Services.AddSingleton(options);
         configureServices?.Invoke(builder.Services);
 
-        // If the caller didn't register a service registry, use a no-op stub so tests can run without infrastructure.
-        builder.Services.TryAddMeshServiceRegistryStub(options);
+        // If the caller didn't register a service registry, use a no-op stub only if explicitly allowed.
+        builder.Services.TryAddMeshServiceRegistryStub(options, builder.Environment);
 
         builder.Services.AddMeshService(builder.Configuration, opt =>
         {
@@ -185,17 +185,18 @@ public sealed class MeshServiceHostHandle : IAsyncDisposable
 
 internal static class MeshServiceHostServiceCollectionExtensions
 {
-    public static void TryAddMeshServiceRegistryStub(this IServiceCollection services, MeshServiceOptions options)
+    public static void TryAddMeshServiceRegistryStub(this IServiceCollection services, MeshServiceOptions options, IHostEnvironment env)
     {
         var hasRegistry = services.Any(d => d.ServiceType == typeof(IServiceRegistry));
         if (!hasRegistry)
         {
             services.AddSingleton<IServiceRegistry, NoopServiceRegistry>();
-            if (!options.AllowNoopServiceRegistry)
+            var allowNoop = options.AllowNoopServiceRegistry || string.Equals(env.EnvironmentName, "Development", StringComparison.OrdinalIgnoreCase);
+            if (!allowNoop)
             {
-                throw new InvalidOperationException("No IServiceRegistry registered and AllowNoopServiceRegistry is false.");
+                throw new InvalidOperationException("No IServiceRegistry registered and AllowNoopServiceRegistry is false. Register a registry or explicitly allow noop for tests/dev.");
             }
-            Console.WriteLine($"[MeshServiceHost] WARNING: No IServiceRegistry registered; using noop registry for service '{options.ServiceName}'.");
+            Console.WriteLine($"[MeshServiceHost] WARNING: No IServiceRegistry registered; using noop registry for service '{options.ServiceName}' in {env.EnvironmentName}.");
         }
     }
 
