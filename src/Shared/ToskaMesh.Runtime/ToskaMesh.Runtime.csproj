@@ -8,5 +8,6 @@
     <ProjectReference Include="..\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
     <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
     <ProjectReference Include="..\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Runtime.Orleans\ToskaMesh.Runtime.Orleans.csproj" />
   </ItemGroup>
 </Project>

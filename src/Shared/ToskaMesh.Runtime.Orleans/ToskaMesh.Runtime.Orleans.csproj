@@ -4,8 +4,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ToskaMesh.Runtime\ToskaMesh.Runtime.csproj" />
-    <ProjectReference Include="..\ToskaMesh.Core\ToskaMesh.Core.csproj" />
+    <ProjectReference Include="..\..\Core\ToskaMesh.Core\ToskaMesh.Core.csproj" />
     <ProjectReference Include="..\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
     <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
   </ItemGroup>
