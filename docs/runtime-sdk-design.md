@@ -10,4 +10,4 @@
 - If no `IServiceRegistry` is registered, a noop registry is added. This is intended for tests/dev only; set `AllowNoopServiceRegistry = false` to fail fast when discovery is misconfigured.
 
 ### Stateful hosting
-- `MeshServiceHost.RunStatefulAsync(...)` wraps Orleans hosting without exposing silo configuration. Uses `MeshSiloOptions` for silo/cluster settings and `MeshServiceOptions` for registration/telemetry/auth/heartbeat.
+- `MeshServiceHost.RunStatefulAsync(...)` wraps Orleans hosting without exposing silo configuration. Uses `MeshStatefulOptions` for cluster settings and `MeshServiceOptions` for registration/telemetry/auth/heartbeat.

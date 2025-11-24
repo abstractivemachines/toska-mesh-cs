@@ -87,7 +87,7 @@ public static class MeshServiceHost
     /// Run a stateful (Orleans-backed) mesh service without exposing silo configuration.
     /// </summary>
     public static async Task RunStatefulAsync(
-        Action<MeshSiloOptions>? configureSilo = null,
+        Action<MeshStatefulOptions>? configureSilo = null,
         Action<MeshServiceOptions>? configureOptions = null,
         Action<IServiceCollection>? configureServices = null,
         CancellationToken cancellationToken = default)
@@ -101,7 +101,7 @@ public static class MeshServiceHost
     /// Start a stateful (Orleans-backed) mesh service and return the host (useful for tests/embedding).
     /// </summary>
     public static IHost StartStateful(
-        Action<MeshSiloOptions>? configureSilo = null,
+        Action<MeshStatefulOptions>? configureSilo = null,
         Action<MeshServiceOptions>? configureOptions = null,
         Action<IServiceCollection>? configureServices = null)
     {
@@ -111,7 +111,7 @@ public static class MeshServiceHost
     }
 
     private static IHost CreateStatefulHost(
-        Action<MeshSiloOptions>? configureSilo,
+        Action<MeshStatefulOptions>? configureSilo,
         Action<MeshServiceOptions>? configureOptions,
         Action<IServiceCollection>? configureServices)
     {

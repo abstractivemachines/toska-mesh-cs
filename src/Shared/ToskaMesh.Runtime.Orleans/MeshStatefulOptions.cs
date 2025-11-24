@@ -1,11 +1,11 @@
 namespace ToskaMesh.Runtime.Orleans;
 
 /// <summary>
-/// Options for hosting an Orleans silo with Toska Mesh defaults.
+/// Options for hosting a stateful mesh service (Orleans-backed) without exposing silo terminology.
 /// </summary>
-public class MeshSiloOptions
+public class MeshStatefulOptions
 {
-    public string ServiceName { get; set; } = "mesh-silo";
+    public string ServiceName { get; set; } = "mesh-stateful-service";
     public string? ServiceId { get; set; }
     public string ClusterId { get; set; } = "toska-mesh";
     public int SiloPort { get; set; } = 11111;
