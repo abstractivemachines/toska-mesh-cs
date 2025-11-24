@@ -81,6 +81,18 @@ public static class MeshServiceHost
 
         return new MeshServiceHostHandle(app, client);
     }
+
+    /// <summary>
+    /// Placeholder for stateful hosting (Orleans-backed) that will hide silo configuration from callers.
+    /// TODO: Implement Orleans-based RunStatefulAsync abstraction.
+    /// </summary>
+    public static Task RunStatefulAsync(
+        Action configureGrains,
+        Action<MeshServiceOptions>? configureOptions = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("RunStatefulAsync is not yet implemented. It will host Orleans stateful workloads with the same MeshServiceHost abstraction.");
+    }
 }
 
 /// <summary>
