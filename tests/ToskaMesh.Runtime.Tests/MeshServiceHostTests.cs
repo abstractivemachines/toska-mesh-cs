@@ -84,6 +84,22 @@ public class MeshServiceHostTests
         Assert.Equal("yes", header);
     }
 
+    [Fact]
+    public async Task Fails_fast_when_no_registry_and_noop_not_allowed()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await MeshServiceHost.StartAsync(
+                app => { app.MapGet("/hello", () => "hi"); },
+                options =>
+                {
+                    options.ServiceName = "no-registry";
+                    options.Port = 0;
+                    options.AllowNoopServiceRegistry = false;
+                });
+        });
+    }
+
     private sealed class RecordingServiceRegistry : IServiceRegistry
     {
         public List<ServiceRegistration> Registrations { get; } = new();
