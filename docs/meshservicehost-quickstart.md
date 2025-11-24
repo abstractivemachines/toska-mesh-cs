@@ -20,7 +20,8 @@ await MeshServiceHost.RunAsync(
     {
         options.ServiceName = "hello-api";
         options.Port = 8080;
-        options.Metadata["lb_strategy"] = "RoundRobin";
+        options.Routing.Strategy = LoadBalancingStrategy.RoundRobin;
+        options.Routing.Weight = 1;
     });
 ```
 
@@ -41,15 +42,15 @@ await MeshServiceHost.RunStatefulAsync(
     {
         silo.ServiceName = "inventory-stateful";
         silo.ClusterId = "prod-cluster";
-        silo.ClusteringMode = "consul";
+        silo.ClusterProvider = StatefulClusterProvider.Consul;
         silo.ConsulAddress = "http://consul:8500";
     },
     configureOptions: options =>
     {
         options.ServiceName = "inventory-stateful";
-    options.Metadata["scheme"] = "http";
-    options.Metadata["health_check_endpoint"] = "/health";
-  });
+        options.Routing.Scheme = "http";
+        options.Routing.HealthCheckEndpoint = "/health";
+    });
 ```
 
 **What you get:**
