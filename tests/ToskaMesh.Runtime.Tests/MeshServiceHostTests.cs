@@ -66,7 +66,7 @@ public class MeshServiceHostTests
             {
                 app.Use(async (ctx, next) =>
                 {
-                    ctx.Response.Headers.Add("x-mesh-middleware", "yes");
+                    ctx.Response.Headers.Append("x-mesh-middleware", "yes");
                     await next();
                 });
                 app.MapGet("/hello", () => "hi");
