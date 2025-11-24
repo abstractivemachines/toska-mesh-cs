@@ -393,3 +393,4 @@ MIT License - See LICENSE file for details
 - [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
 - [Polly Documentation](https://github.com/App-vNext/Polly)
+- `MeshServiceHost` quickstart: `docs/meshservicehost-quickstart.md`
