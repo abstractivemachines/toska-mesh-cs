@@ -24,6 +24,8 @@ var rateLimitConfig = builder.Configuration.GetSection(RateLimitConfiguration.Se
     ?? new RateLimitConfiguration();
 var corsConfig = builder.Configuration.GetSection(CorsConfiguration.SectionName).Get<CorsConfiguration>()
     ?? new CorsConfiguration();
+var routingConfig = builder.Configuration.GetSection(GatewayRoutingOptions.SectionName).Get<GatewayRoutingOptions>()
+    ?? new GatewayRoutingOptions();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -123,6 +125,8 @@ builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<
 builder.Services.AddReverseProxy()
     .LoadFromMemory(Array.Empty<Yarp.ReverseProxy.Configuration.RouteConfig>(),
                     Array.Empty<Yarp.ReverseProxy.Configuration.ClusterConfig>());
+
+builder.Services.AddSingleton(routingConfig);
 
 // Add CORS
 builder.Services.AddCors(options =>

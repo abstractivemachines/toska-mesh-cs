@@ -11,15 +11,18 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
 {
     private readonly IServiceRegistry _serviceRegistry;
     private readonly ILogger<ConsulProxyConfigProvider> _logger;
+    private readonly GatewayRoutingOptions _routingOptions;
     private volatile ConsulProxyConfig _config;
     private CancellationTokenSource _changeToken;
     private bool _disposed;
 
     public ConsulProxyConfigProvider(
         IServiceRegistry serviceRegistry,
+        GatewayRoutingOptions routingOptions,
         ILogger<ConsulProxyConfigProvider> logger)
     {
         _serviceRegistry = serviceRegistry;
+        _routingOptions = routingOptions;
         _logger = logger;
         _config = new ConsulProxyConfig(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>());
         _changeToken = new CancellationTokenSource();
@@ -77,13 +80,15 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
             var routeId = $"{serviceName}-route";
             var clusterId = $"{serviceName}-cluster";
 
+            var routePrefix = NormalizePrefix(_routingOptions.RoutePrefix);
+
             routes.Add(new RouteConfig
             {
                 RouteId = routeId,
                 ClusterId = clusterId,
                 Match = new RouteMatch
                 {
-                    Path = $"/api/{serviceName}/{{**catch-all}}"
+                    Path = $"{routePrefix}{serviceName}/{{**catch-all}}"
                 },
                 Transforms = new[]
                 {
@@ -140,6 +145,22 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
     {
         _disposed = true;
         _changeToken?.Dispose();
+    }
+
+    private static string NormalizePrefix(string prefix)
+    {
+        if (string.IsNullOrWhiteSpace(prefix))
+        {
+            return "/";
+        }
+
+        var normalized = prefix.StartsWith("/") ? prefix : $"/{prefix}";
+        if (!normalized.EndsWith("/"))
+        {
+            normalized += "/";
+        }
+
+        return normalized;
     }
 
     private class ConsulProxyConfig : IProxyConfig
