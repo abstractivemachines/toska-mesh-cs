@@ -2,6 +2,16 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>ToskaMesh.Runtime</PackageId>
+    <Title>ToskaMesh Runtime</Title>
+    <Description>Stateless runtime host for Toska Mesh services, wiring registration, telemetry, auth, and health.</Description>
+    <Authors>Toska Mesh</Authors>
+    <RepositoryUrl>https://github.com/abstractivemachines-com/toska-mesh-cs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>toska-mesh;runtime;service-host;mesh</PackageTags>
+    <Version>0.1.0-preview</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ToskaMesh.Common\ToskaMesh.Common.csproj" />
