@@ -49,13 +49,13 @@ spec:
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-config-service-secrets
-              key: db_connection_string
+              name: {{ default (printf "%s-config-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
+              key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-config-service-secrets
-              key: mesh_service_auth_secret
+              name: {{ default (printf "%s-config-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
         resources:
           {{- toYaml .Values.configService.resources | nindent 10 }}
         livenessProbe:

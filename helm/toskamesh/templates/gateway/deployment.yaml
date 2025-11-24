@@ -50,8 +50,8 @@ spec:
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-secrets
-              key: jwt_secret_key
+              name: {{ default (printf "%s-gateway-secrets" (include "toskamesh.fullname" .)) .Values.secrets.gatewayJwt.existingSecret }}
+              key: {{ default "jwt_secret_key" .Values.secrets.gatewayJwt.key }}
         resources:
           {{- toYaml .Values.gateway.resources | nindent 10 }}
         livenessProbe:

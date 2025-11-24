@@ -3,6 +3,21 @@
 
 environment: Production
 
+# Secret management (use AWS Secrets Manager/External Secrets)
+secrets:
+  meshServiceAuth:
+    existingSecret: ""     # e.g., mesh-auth (synced from AWS Secrets Manager)
+    key: mesh_service_auth_secret
+  defaultConnection:
+    existingSecret: ""     # e.g., app-db-conn (synced from AWS Secrets Manager)
+    key: db_connection_string
+  gatewayJwt:
+    existingSecret: ""     # e.g., gateway-jwt (synced from AWS Secrets Manager)
+    key: jwt_secret_key
+
+networkPolicy:
+  enabled: true
+
 # Use ECR images with auto-pull policy
 gateway:
   enabled: true

@@ -1,0 +1,52 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $nsSelector := dict "matchLabels" (dict "kubernetes.io/metadata.name" .Release.Namespace) }}
+{{- range $name, $enabled := dict "gateway" .Values.gateway.enabled "discovery" .Values.discovery.enabled "auth-service" .Values.authService.enabled "config-service" .Values.configService.enabled "metrics-service" .Values.metricsService.enabled "tracing-service" .Values.tracingService.enabled "core" .Values.core.enabled "health-monitor" .Values.healthMonitor.enabled }}
+{{- if $enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "toskamesh.fullname" $ }}-{{ $name }}-np
+  labels:
+    {{- include "toskamesh.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {{- toYaml $nsSelector | nindent 10 }}
+      ports:
+        - port: 80
+          protocol: TCP
+    {{- if eq $name "gateway" }}
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 80
+          protocol: TCP
+        - port: 443
+          protocol: TCP
+    {{- else }}
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "toskamesh.selectorLabels" $ | nindent 14 }}
+              app.kubernetes.io/component: gateway
+      ports:
+        - port: 80
+          protocol: TCP
+    {{- end }}
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+{{- end }}
+---
+{{- end }}
+{{- end }}
