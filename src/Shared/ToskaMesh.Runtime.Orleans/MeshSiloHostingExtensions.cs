@@ -14,9 +14,9 @@ public static class MeshSiloHostingExtensions
     public static IHostBuilder UseMeshSilo(
         this IHostBuilder builder,
         string serviceName,
-        Action<MeshSiloOptions>? configure = null)
+        Action<MeshStatefulOptions>? configure = null)
     {
-        var options = new MeshSiloOptions
+        var options = new MeshStatefulOptions
         {
             ServiceName = serviceName,
             ServiceId = serviceName
