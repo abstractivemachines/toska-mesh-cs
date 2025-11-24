@@ -37,6 +37,7 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -52,6 +53,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - toksa-mesh
 
@@ -65,6 +68,30 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - toksa-mesh
+
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    ports:
+      - "9419:9419"
+    environment:
+      - RABBIT_URL=http://rabbitmq:15672
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    depends_on:
+      - rabbitmq
+    networks:
+      - toksa-mesh
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      - redis
     networks:
       - toksa-mesh
 
