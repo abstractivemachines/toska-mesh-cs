@@ -28,7 +28,7 @@ public class MeshStatefulHostTests
 
         var statefulOptions = host.Services.GetRequiredService<MeshStatefulOptions>();
         Assert.Equal("stateful-test", statefulOptions.ServiceName);
-        Assert.Equal(21111, statefulOptions.SiloPort);
+        Assert.Equal(21111, statefulOptions.PrimaryPort);
 
         await host.StopAsync();
     }

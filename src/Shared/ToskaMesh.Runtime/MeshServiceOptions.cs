@@ -23,6 +23,7 @@ public class MeshServiceOptions
     public bool RegisterAutomatically { get; set; } = true;
     public bool AllowNoopServiceRegistry { get; set; } = false;
     public ServiceRegistryProvider ServiceRegistryProvider { get; set; } = ServiceRegistryProvider.Grpc;
+    public MeshRoutingOptions Routing { get; set; } = new();
     public Dictionary<string, string> Metadata { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public void EnsureDefaults()
@@ -30,16 +31,6 @@ public class MeshServiceOptions
         if (string.IsNullOrWhiteSpace(ServiceId))
         {
             ServiceId = $"{ServiceName}-{Guid.NewGuid():N}";
-        }
-
-        if (!Metadata.ContainsKey("health_check_endpoint"))
-        {
-            Metadata["health_check_endpoint"] = HealthEndpoint;
-        }
-
-        if (!Metadata.ContainsKey("scheme"))
-        {
-            Metadata["scheme"] = "http";
         }
 
         if (Port <= 0)
@@ -58,12 +49,25 @@ public class MeshServiceOptions
             ServiceId!,
             Address,
             Port,
-            new Dictionary<string, string>(Metadata, StringComparer.OrdinalIgnoreCase),
+            BuildMetadata(),
             new HealthCheckConfiguration(
-                HealthEndpoint,
+                Routing.HealthCheckEndpoint,
                 HealthInterval <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : HealthInterval,
                 HealthTimeout <= TimeSpan.Zero ? TimeSpan.FromSeconds(5) : HealthTimeout,
                 UnhealthyThreshold <= 0 ? 3 : UnhealthyThreshold));
+    }
+
+    private Dictionary<string, string> BuildMetadata()
+    {
+        var meta = new Dictionary<string, string>(Metadata, StringComparer.OrdinalIgnoreCase);
+        meta["scheme"] = Routing.Scheme;
+        meta["health_check_endpoint"] = Routing.HealthCheckEndpoint;
+        meta["lb_strategy"] = Routing.Strategy.ToString();
+        if (Routing.Weight > 0)
+        {
+            meta["weight"] = Routing.Weight.ToString();
+        }
+        return meta;
     }
 
     public void Validate()
