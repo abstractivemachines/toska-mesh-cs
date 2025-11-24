@@ -16,9 +16,9 @@ public class MeshStatefulEndToEndTests
             configureSilo: silo =>
             {
                 silo.ServiceName = "stateful-e2e";
-                silo.SiloPort = 21112;
-                silo.GatewayPort = 21001;
-                silo.ClusteringMode = "localhost";
+                silo.PrimaryPort = 21112;
+                silo.ClientPort = 21001;
+                silo.ClusterProvider = StatefulClusterProvider.Local;
             },
             configureOptions: options =>
             {

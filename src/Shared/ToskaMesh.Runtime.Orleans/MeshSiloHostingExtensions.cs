@@ -27,9 +27,16 @@ public static class MeshSiloHostingExtensions
         {
             config.ServiceId = options.ServiceId ?? serviceName;
             config.ClusterId = options.ClusterId;
-            config.SiloPort = options.SiloPort;
-            config.GatewayPort = options.GatewayPort;
-            config.ClusteringMode = options.ClusteringMode;
+            config.SiloPort = options.PrimaryPort;
+            config.GatewayPort = options.ClientPort;
+            config.ClusteringMode = options.ClusterProvider switch
+            {
+                StatefulClusterProvider.Local => "localhost",
+                StatefulClusterProvider.Consul => "consul",
+                StatefulClusterProvider.AzureTable => "azuretable",
+                StatefulClusterProvider.AdoNet => "adonet",
+                _ => "localhost"
+            };
             config.ConsulAddress = options.ConsulAddress;
             config.ConsulToken = options.ConsulToken;
             config.DatabaseConnectionString = options.DatabaseConnectionString;
