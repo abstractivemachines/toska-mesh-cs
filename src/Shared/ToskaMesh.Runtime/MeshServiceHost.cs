@@ -158,6 +158,14 @@ public sealed class MeshServiceApp
     {
         _app.Use(async (context, next) => await middleware(context, next));
     }
+
+    /// <summary>
+    /// Register a custom middleware using a lightweight request context abstraction.
+    /// </summary>
+    public void Use(Func<MeshRequestContext, Func<Task>, Task> middleware)
+    {
+        _app.Use(async (context, next) => await middleware(new MeshRequestContext(context), next));
+    }
 }
 
 /// <summary>
