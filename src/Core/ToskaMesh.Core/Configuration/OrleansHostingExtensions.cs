@@ -41,13 +41,13 @@ public static class OrleansHostingExtensions
                 listenOnAnyHostAddress: true);
 
             // Configure clustering
-            switch (config.ClusteringMode.ToLowerInvariant())
+            switch (config.ClusterProvider)
             {
-                case "localhost":
+                case OrleansClusterProvider.Localhost:
                     siloBuilder.UseLocalhostClustering();
                     break;
 
-                case "consul":
+                case OrleansClusterProvider.Consul:
                     siloBuilder.UseConsulSiloClustering(options =>
                     {
                         options.KvRootFolder = $"orleans/{config.ClusterId}";
@@ -55,7 +55,7 @@ public static class OrleansHostingExtensions
                     });
                     break;
 
-                case "azuretable":
+                case OrleansClusterProvider.AzureTable:
 #pragma warning disable CS0618
                     siloBuilder.UseAzureStorageClustering(options =>
                     {
@@ -64,7 +64,7 @@ public static class OrleansHostingExtensions
 #pragma warning restore CS0618
                     break;
 
-                case "adonet":
+                case OrleansClusterProvider.AdoNet:
                     siloBuilder.UseAdoNetClustering(options =>
                     {
                         options.Invariant = config.DatabaseInvariant ?? "Npgsql";
@@ -74,7 +74,7 @@ public static class OrleansHostingExtensions
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
+                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusterProvider}");
             }
 
             // Configure grain storage
@@ -137,13 +137,13 @@ public static class OrleansHostingExtensions
             });
 
             // Configure clustering
-            switch (config.ClusteringMode.ToLowerInvariant())
+            switch (config.ClusterProvider)
             {
-                case "localhost":
+                case OrleansClusterProvider.Localhost:
                     clientBuilder.UseLocalhostClustering();
                     break;
 
-                case "consul":
+                case OrleansClusterProvider.Consul:
                     clientBuilder.UseConsulClientClustering(options =>
                     {
                         options.KvRootFolder = $"orleans/{config.ClusterId}";
@@ -151,7 +151,7 @@ public static class OrleansHostingExtensions
                     });
                     break;
 
-                case "azuretable":
+                case OrleansClusterProvider.AzureTable:
 #pragma warning disable CS0618
                     clientBuilder.UseAzureStorageClustering(options =>
                     {
@@ -160,7 +160,7 @@ public static class OrleansHostingExtensions
 #pragma warning restore CS0618
                     break;
 
-                case "adonet":
+                case OrleansClusterProvider.AdoNet:
                     clientBuilder.UseAdoNetClustering(options =>
                     {
                         options.Invariant = config.DatabaseInvariant ?? "Npgsql";
@@ -170,7 +170,7 @@ public static class OrleansHostingExtensions
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusteringMode}");
+                    throw new InvalidOperationException($"Unknown clustering mode: {config.ClusterProvider}");
             }
         });
 

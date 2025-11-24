@@ -26,9 +26,25 @@ public class OrleansClusterConfig
     public int GatewayPort { get; set; } = 30000;
 
     /// <summary>
-    /// The clustering mode: "localhost", "consul", "azuretable", or "adonet".
+    /// The clustering provider.
     /// </summary>
-    public string ClusteringMode { get; set; } = "localhost";
+    public OrleansClusterProvider ClusterProvider { get; set; } = OrleansClusterProvider.Localhost;
+
+    /// <summary>
+    /// Legacy string clustering mode. Prefer ClusterProvider.
+    /// </summary>
+    [Obsolete("Use ClusterProvider instead.")]
+    public string ClusteringMode
+    {
+        get => ClusterProvider.ToString().ToLowerInvariant();
+        set
+        {
+            if (Enum.TryParse<OrleansClusterProvider>(value, true, out var parsed))
+            {
+                ClusterProvider = parsed;
+            }
+        }
+    }
 
     /// <summary>
     /// Consul address for service discovery (when using Consul clustering).
@@ -64,4 +80,12 @@ public class OrleansClusterConfig
     /// Dashboard port (if enabled).
     /// </summary>
     public int DashboardPort { get; set; } = 8080;
+}
+
+public enum OrleansClusterProvider
+{
+    Localhost,
+    Consul,
+    AzureTable,
+    AdoNet
 }
