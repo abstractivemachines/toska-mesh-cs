@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ToskaMesh.Common\ToskaMesh.Common.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
+  </ItemGroup>
+</Project>
