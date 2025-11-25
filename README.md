@@ -131,6 +131,28 @@ This will start:
 - Config Service (port 5002)
 - Metrics Service (port 5003)
 
+To avoid HS256 key length errors (IDX10720) during gateway route refresh, set a 32+ character mesh service secret and keep issuer/audience aligned:
+
+```bash
+export MESH_SERVICE_AUTH_SECRET="local-dev-mesh-service-secret-32chars"
+export MESH_SERVICE_AUTH_ISSUER="ToskaMesh.Services"
+export MESH_SERVICE_AUTH_AUDIENCE="ToskaMesh.Services"
+docker-compose up -d gateway discovery
+```
+
+Ports can be remapped via environment overrides (or a `.env` file) before running Compose, e.g.:
+
+```bash
+export GATEWAY_PORT=15000
+export DISCOVERY_PORT=15010
+export CONSUL_HTTP_PORT=18500
+export POSTGRES_PORT=55432
+export RABBITMQ_PORT=5673
+export REDIS_PORT=6380
+```
+
+Other services have similar `*_PORT` overrides in `deployments/docker-compose.yml`.
+
 ### Running Locally
 
 1. **Start infrastructure services**

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: toksa_mesh_password
       POSTGRES_DB: toksa_mesh
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-55432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -18,15 +18,15 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6380}:6379"
     networks:
       - toksa-mesh
 
   consul:
     image: hashicorp/consul:1.16
     ports:
-      - "8500:8500"
-      - "8600:8600"
+      - "${CONSUL_HTTP_PORT:-18500}:8500"
+      - "${CONSUL_DNS_PORT:-18600}:8600"
     command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
     networks:
       - toksa-mesh
@@ -34,7 +34,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-19090}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml
@@ -48,7 +48,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT:-13000}:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
@@ -61,8 +61,8 @@ services:
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT:-5673}:5672"
+      - "${RABBITMQ_UI_PORT:-15673}:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
@@ -101,12 +101,15 @@ services:
       context: ../
       dockerfile: deployments/Dockerfile.Gateway
     ports:
-      - "5000:80"
+      - "${GATEWAY_PORT:-15000}:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - Consul__Address=http://consul:8500
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
     depends_on:
       - consul
       - discovery
@@ -119,12 +122,15 @@ services:
       context: ../
       dockerfile: deployments/Dockerfile.Discovery
     ports:
-      - "5010:80"
+      - "${DISCOVERY_PORT:-15010}:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - Messaging__RabbitMqHost=rabbitmq
       - Consul__Address=http://consul:8500
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
     depends_on:
       - consul
       - rabbitmq
