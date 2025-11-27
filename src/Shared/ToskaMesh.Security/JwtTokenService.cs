@@ -15,8 +15,22 @@ public class JwtTokenService
     private readonly JwtTokenOptions _options;
     private readonly ILogger<JwtTokenService> _logger;
 
+    private const int MinimumSecretLength = 32;
+
     public JwtTokenService(JwtTokenOptions options, ILogger<JwtTokenService>? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (string.IsNullOrWhiteSpace(options.Secret))
+        {
+            throw new ArgumentException("JWT secret must be configured. Set a secret key of at least 32 characters.", nameof(options));
+        }
+
+        if (options.Secret.Length < MinimumSecretLength)
+        {
+            throw new ArgumentException($"JWT secret must be at least {MinimumSecretLength} characters for security. Current length: {options.Secret.Length}", nameof(options));
+        }
+
         _options = options;
         _logger = logger ?? NullLogger<JwtTokenService>.Instance;
     }
