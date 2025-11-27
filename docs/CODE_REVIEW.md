@@ -26,62 +26,37 @@ Several items are marked incomplete:
 | ConfigService | Change notifications, validation schemas, unit tests |
 | Phase 4 | Message queue integration, saga pattern, K8s manifests, Helm charts |
 
-**`ICircuitBreaker`** - Interface defined but **no implementation found**. The plan mentions "Circuit breaker with Polly" but there's no `PollyCircuitBreaker` class. This is a gap.
+~~**`ICircuitBreaker`** - Interface defined but **no implementation found**.~~ ✅ **FIXED** - `PollyCircuitBreaker` implemented in `ToskaMesh.Common.Resilience`
 
 ---
 
 ## 3. Concrete Improvement Opportunities
 
-### A. Thread Safety Issue in `LoadBalancerService`
-`src/Core/ToskaMesh.Router/Services/LoadBalancerService.cs:223`
+### A. Thread Safety Issue in `LoadBalancerService` ✅ FIXED
+~~`src/Core/ToskaMesh.Router/Services/LoadBalancerService.cs:223`~~
 
-```csharp
-_totalResponseTicks += result.ResponseTime.Ticks;  // NOT thread-safe
-```
+Now uses `Interlocked.Add(ref _totalResponseTicks, result.ResponseTime.Ticks);`
 
-Should use `Interlocked.Add`:
-```csharp
-Interlocked.Add(ref _totalResponseTicks, result.ResponseTime.Ticks);
-```
+### B. Swallowed Exception in `JwtTokenService` ✅ FIXED
+~~`src/Shared/ToskaMesh.Security/JwtTokenService.cs:75-79`~~
 
-### B. Swallowed Exception in `JwtTokenService`
-`src/Shared/ToskaMesh.Security/JwtTokenService.cs:75-79`
+Now logs exceptions at appropriate levels (Debug for expired, Warning for invalid signature, Error for unexpected).
 
-```csharp
-catch
-{
-    return null;  // Silently swallows all exceptions
-}
-```
+### C. Hardcoded Values ✅ FIXED
+~~`src/Core/ToskaMesh.Gateway/Program.cs:65-66`~~
 
-At minimum, log the exception for debugging failed token validations.
+Extracted to `ConsulHealthCheckOptions` configuration class. Configurable via `HealthChecks:Consul` section in appsettings.json.
 
-### C. Hardcoded Values
-`src/Core/ToskaMesh.Gateway/Program.cs:65-66`
+### D. `ConsulServiceRegistry` - Inaccurate Timestamps ✅ FIXED
+~~`src/Shared/ToskaMesh.Common/ServiceDiscovery/ConsulServiceRegistry.cs:104-105`~~
 
-```csharp
-options.HostName = "consul";
-options.Port = 8500;
-```
+Now tracks registration times locally using `ConcurrentDictionary`. Uses `DateTime.MinValue` as sentinel for unknown timestamps.
 
-These should come from configuration, not be hardcoded in the health check setup.
-
-### D. `ConsulServiceRegistry` - Inaccurate Timestamps
-`src/Shared/ToskaMesh.Common/ServiceDiscovery/ConsulServiceRegistry.cs:104-105`
-
-```csharp
-RegisteredAt: DateTime.UtcNow,  // Consul doesn't track registration time
-LastHealthCheck: DateTime.UtcNow  // Using current time as approximation
-```
-
-These misleading values could cause issues in monitoring. Consider storing registration time locally or using a sentinel value.
-
-### E. Missing DI Registration for `ICircuitBreaker`
-The interface exists but there's no implementation or registration. Consider adding a Polly-based implementation:
-
-```csharp
-public class PollyCircuitBreaker : ICircuitBreaker { ... }
-```
+### E. Missing DI Registration for `ICircuitBreaker` ✅ FIXED
+Implemented `PollyCircuitBreaker` with:
+- `CircuitBreakerOptions` configuration class
+- `AddCircuitBreaker()` and `AddCircuitBreakerFactory()` DI extensions
+- `ICircuitBreakerFactory` for creating named circuit breakers
 
 ### F. No Interface for `JwtTokenService`
 `JwtTokenService` is a concrete class with no interface, making it harder to mock in tests. Consider extracting `IJwtTokenService`.
@@ -105,57 +80,65 @@ Creating `HttpClient` directly (when factory is null) bypasses the HTTP client f
 
 ## 4. Configuration/Security Considerations
 
-### Weak Default JWT Secret
-`src/Shared/ToskaMesh.Security/JwtTokenService.cs:85`
+### Weak Default JWT Secret ✅ FIXED
+~~`src/Shared/ToskaMesh.Security/JwtTokenService.cs:85`~~
 
-```csharp
-public string Secret { get; set; } = string.Empty;
-```
+Constructor now validates secret is present and at least 32 characters. Throws `ArgumentException` at startup if misconfigured.
 
-Empty default could lead to runtime failures. Consider validating this is set.
+### Rate Limiter Bypass ✅ FIXED
+~~`src/Core/ToskaMesh.Gateway/Program.cs:100`~~
 
-### Rate Limiter Bypass
-`src/Core/ToskaMesh.Gateway/Program.cs:100`
-
-```csharp
-var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-```
-
-All requests behind a proxy without `X-Forwarded-For` handling would share the same rate limit bucket.
+Now uses `GetClientIpAddress()` helper that respects `X-Forwarded-For` header for proxied requests.
 
 ---
 
 ## 5. Minor Code Quality Items
 
-| Location | Issue |
-|----------|-------|
-| `LoadBalancerService.cs:155` | `string.GetHashCode()` is not deterministic across runs (affects IPHash strategy consistency) |
-| `ServiceManager.cs` | Nested `ServiceInstanceTrackingInfo` class is 60 lines - could be a separate file |
-| Multiple files | Using `System.Linq` but it's often already in global usings |
+| Location | Issue | Status |
+|----------|-------|--------|
+| `LoadBalancerService.cs:155` | `string.GetHashCode()` is not deterministic across runs | ✅ FIXED - Uses FNV-1a stable hash |
+| `ServiceManager.cs` | Nested `ServiceInstanceTrackingInfo` class is 60 lines | Minor - not addressed |
+| Multiple files | Using `System.Linq` but it's often already in global usings | Minor - not addressed |
 
 ---
 
 ## 6. Documentation Gaps
 
 - No API documentation beyond XML comments
-- `README.md` exists but detailed deployment guides are incomplete
-- No architecture decision records (ADRs) explaining design choices
+- ~~`README.md` exists but detailed deployment guides are incomplete~~ - K8s guide exists at `docs/kubernetes-deployment.md`
+- ~~No architecture decision records (ADRs) explaining design choices~~ ✅ FIXED - ADRs added at `docs/adr/`
 
 ---
 
-## Summary of Priority Improvements
+## Summary of Completed Improvements
 
-### High Priority
-- Fix thread safety in `LoadBalancerService._totalResponseTicks`
-- Implement `ICircuitBreaker` with Polly
-- Add logging to silent exception catches
+### High Priority ✅ ALL FIXED
+- ✅ Fix thread safety in `LoadBalancerService._totalResponseTicks`
+- ✅ Implement `ICircuitBreaker` with Polly
+- ✅ Add logging to silent exception catches
 
 ### Medium Priority
-- Extract configuration for hardcoded Consul settings
-- Require `IHttpClientFactory` in `ServiceManager`
-- Add unit tests for core services
+- ✅ Extract configuration for hardcoded Consul settings
+- ⬜ Require `IHttpClientFactory` in `ServiceManager`
+- ⬜ Add unit tests for core services
 
 ### Low Priority
-- Use stable hash for IPHash strategy
-- Extract interfaces for testability
-- Complete missing Phase 4 items per implementation plan
+- ✅ Use stable hash for IPHash strategy
+- ⬜ Extract interfaces for testability
+- ⬜ Complete missing Phase 4 items per implementation plan
+
+---
+
+## Change Log
+
+| Date | Change | Files |
+|------|--------|-------|
+| 2025-11-27 | Thread safety fix | `LoadBalancerService.cs` |
+| 2025-11-27 | JWT exception logging | `JwtTokenService.cs` |
+| 2025-11-27 | Consul health check config | `ConsulHealthCheckOptions.cs`, `Program.cs` |
+| 2025-11-27 | Timestamp tracking | `ConsulServiceRegistry.cs` |
+| 2025-11-27 | Circuit breaker implementation | `PollyCircuitBreaker.cs`, `CircuitBreakerExtensions.cs` |
+| 2025-11-27 | JWT secret validation | `JwtTokenService.cs` |
+| 2025-11-27 | Rate limiter X-Forwarded-For | `Program.cs` |
+| 2025-11-27 | Stable hash for IPHash | `LoadBalancerService.cs` |
+| 2025-11-27 | ADR documentation | `docs/adr/*` |
