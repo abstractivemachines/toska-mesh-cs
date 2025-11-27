@@ -98,8 +98,8 @@ if (rateLimitConfig.EnableRateLimiting)
     {
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         {
-            // Rate limit by IP address
-            var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            // Rate limit by IP address, respecting X-Forwarded-For for proxied requests
+            var ipAddress = GetClientIpAddress(context);
 
             return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ =>
                 new FixedWindowRateLimiterOptions
@@ -206,3 +206,27 @@ app.MapControllers();
 app.MapReverseProxy();
 
 app.Run();
+
+/// <summary>
+/// Gets the client IP address, respecting X-Forwarded-For header for proxied requests.
+/// </summary>
+static string GetClientIpAddress(HttpContext context)
+{
+    // Check X-Forwarded-For header first (set by reverse proxies/load balancers)
+    var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+    if (!string.IsNullOrEmpty(forwardedFor))
+    {
+        // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
+        // The first IP is the original client
+        var clientIp = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(clientIp))
+        {
+            return clientIp;
+        }
+    }
+
+    // Fall back to direct connection IP
+    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+}
