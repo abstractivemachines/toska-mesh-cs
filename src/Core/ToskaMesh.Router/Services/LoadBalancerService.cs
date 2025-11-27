@@ -152,8 +152,30 @@ public class LoadBalancerService : ILoadBalancer
     private ServiceInstance SelectIpHash(string serviceName, IReadOnlyList<ServiceInstance> instances, LoadBalancingContext context)
     {
         var key = context.SessionId ?? GetHeader(context, "X-Correlation-ID") ?? Guid.NewGuid().ToString();
-        var hash = Math.Abs(key.GetHashCode());
+        var hash = GetStableHash(key);
         return instances[hash % instances.Count];
+    }
+
+    /// <summary>
+    /// Computes a deterministic hash that is stable across process restarts.
+    /// Uses FNV-1a algorithm which provides good distribution for strings.
+    /// </summary>
+    private static int GetStableHash(string value)
+    {
+        unchecked
+        {
+            const int fnvOffsetBasis = unchecked((int)2166136261);
+            const int fnvPrime = 16777619;
+
+            var hash = fnvOffsetBasis;
+            foreach (var c in value)
+            {
+                hash ^= c;
+                hash *= fnvPrime;
+            }
+
+            return Math.Abs(hash);
+        }
     }
 
     private void RecordRequest(string serviceName, ServiceInstance instance, LoadBalancingContext context)
