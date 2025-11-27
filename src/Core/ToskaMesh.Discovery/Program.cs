@@ -12,6 +12,9 @@ using ToskaMesh.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var consulHealthConfig = builder.Configuration.GetSection(ConsulHealthCheckOptions.SectionName).Get<ConsulHealthCheckOptions>()
+    ?? new ConsulHealthCheckOptions();
+
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
@@ -32,8 +35,8 @@ builder.Services.AddMeshInfrastructure(
     {
         health.AddConsul(options =>
         {
-            options.HostName = "consul";
-            options.Port = 8500;
+            options.HostName = consulHealthConfig.HostName;
+            options.Port = consulHealthConfig.Port;
         });
     });
 

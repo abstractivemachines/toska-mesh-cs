@@ -26,6 +26,8 @@ var corsConfig = builder.Configuration.GetSection(CorsConfiguration.SectionName)
     ?? new CorsConfiguration();
 var routingConfig = builder.Configuration.GetSection(GatewayRoutingOptions.SectionName).Get<GatewayRoutingOptions>()
     ?? new GatewayRoutingOptions();
+var consulHealthConfig = builder.Configuration.GetSection(ConsulHealthCheckOptions.SectionName).Get<ConsulHealthCheckOptions>()
+    ?? new ConsulHealthCheckOptions();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -62,8 +64,8 @@ builder.Services.AddMeshInfrastructure(
     {
         health.AddConsul(options =>
         {
-            options.HostName = "consul";
-            options.Port = 8500;
+            options.HostName = consulHealthConfig.HostName;
+            options.Port = consulHealthConfig.Port;
         });
     });
 
