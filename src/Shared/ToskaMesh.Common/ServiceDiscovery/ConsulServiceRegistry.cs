@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Consul;
 using Microsoft.Extensions.Logging;
 using ToskaMesh.Protocols;
@@ -13,6 +14,7 @@ public class ConsulServiceRegistry : IServiceRegistry
 {
     private readonly IConsulClient _consulClient;
     private readonly ILogger<ConsulServiceRegistry> _logger;
+    private readonly ConcurrentDictionary<string, DateTime> _registrationTimes = new(StringComparer.OrdinalIgnoreCase);
 
     public ConsulServiceRegistry(
         IConsulClient consulClient,
@@ -61,6 +63,9 @@ public class ConsulServiceRegistry : IServiceRegistry
             // Mark the TTL check as passing so the service starts healthy until the first update.
             await _consulClient.Agent.PassTTL(ttlCheckId, "Service registered", cancellationToken);
 
+            // Track registration time locally since Consul doesn't store it
+            _registrationTimes[registration.ServiceId] = DateTime.UtcNow;
+
             _logger.LogInformation("Service registered: {ServiceName} ({ServiceId}) at {Address}:{Port}",
                 registration.ServiceName, registration.ServiceId, registration.Address, registration.Port);
 
@@ -78,6 +83,7 @@ public class ConsulServiceRegistry : IServiceRegistry
         try
         {
             await _consulClient.Agent.ServiceDeregister(serviceId, cancellationToken);
+            _registrationTimes.TryRemove(serviceId, out _);
             _logger.LogInformation("Service deregistered: {ServiceId}", serviceId);
             return true;
         }
@@ -101,8 +107,8 @@ public class ConsulServiceRegistry : IServiceRegistry
                 Port: entry.Service.Port,
                 Status: MapHealthStatus(entry.Checks),
                 Metadata: entry.Service.Meta?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>(),
-                RegisteredAt: DateTime.UtcNow, // Consul doesn't track registration time, using current time
-                LastHealthCheck: DateTime.UtcNow // Using current time as approximation
+                RegisteredAt: _registrationTimes.GetValueOrDefault(entry.Service.ID, DateTime.MinValue),
+                LastHealthCheck: DateTime.MinValue // Consul doesn't expose last check time
             )).ToList();
         }
         catch (Exception ex)
@@ -132,8 +138,8 @@ public class ConsulServiceRegistry : IServiceRegistry
                 Port: service.Port,
                 Status: MapHealthStatus(checks.Response),
                 Metadata: service.Meta?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>(),
-                RegisteredAt: DateTime.UtcNow,
-                LastHealthCheck: DateTime.UtcNow
+                RegisteredAt: _registrationTimes.GetValueOrDefault(service.ID, DateTime.MinValue),
+                LastHealthCheck: DateTime.MinValue // Consul doesn't expose last check time
             );
         }
         catch (Exception ex)
