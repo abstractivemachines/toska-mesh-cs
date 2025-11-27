@@ -220,7 +220,7 @@ public class LoadBalancerService : ILoadBalancer
                 Interlocked.Increment(ref _failedRequests);
             }
 
-            _totalResponseTicks += result.ResponseTime.Ticks;
+            Interlocked.Add(ref _totalResponseTicks, result.ResponseTime.Ticks);
         }
 
         public ServiceSummary Snapshot()
