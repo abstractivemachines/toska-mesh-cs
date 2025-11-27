@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,10 +13,12 @@ namespace ToskaMesh.Security;
 public class JwtTokenService
 {
     private readonly JwtTokenOptions _options;
+    private readonly ILogger<JwtTokenService> _logger;
 
-    public JwtTokenService(JwtTokenOptions options)
+    public JwtTokenService(JwtTokenOptions options, ILogger<JwtTokenService>? logger = null)
     {
         _options = options;
+        _logger = logger ?? NullLogger<JwtTokenService>.Instance;
     }
 
     /// <summary>
@@ -73,8 +77,24 @@ public class JwtTokenService
 
             return principal;
         }
-        catch
+        catch (SecurityTokenExpiredException ex)
         {
+            _logger.LogDebug(ex, "Token validation failed: token has expired");
+            return null;
+        }
+        catch (SecurityTokenInvalidSignatureException ex)
+        {
+            _logger.LogWarning(ex, "Token validation failed: invalid signature");
+            return null;
+        }
+        catch (SecurityTokenException ex)
+        {
+            _logger.LogWarning(ex, "Token validation failed: {Message}", ex.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during token validation");
             return null;
         }
     }
