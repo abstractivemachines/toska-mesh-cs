@@ -1,34 +1,46 @@
+# MeshServiceHost runtime flow
+
 ```mermaid
 flowchart TD
     subgraph Developer
-        D1["Service code\n(map routes, handlers)"]
-        D2["MeshServiceOptions\n(name, id, port, metadata, auth/telemetry flags)"]
+        D1["Define routes via MeshServiceApp\n(MapGet/MapPost/Map...)"]
+        D2["Configure MeshServiceOptions\n(name/id, address:port, metadata,\nauth/telemetry/heartbeat toggles)"]
+        D3["Optional IServiceRegistry implementation\n(Consul or gRPC client)"]
     end
 
-    subgraph "MeshServiceHost (SDK)"
-        H1["MeshServiceHost.RunAsync / StartAsync"]
-        H2["MeshServiceApp DSL\n(MapGet/MapPost/Map...)"]
-        H3["Options binding\nMeshServiceOptions.FromConfiguration + overrides"]
-        H4["AddMeshService (infra wiring)\n- MeshTelemetry\n- MeshAuthorizationPolicies\n- Health checks\n- IServiceRegistry (stub if none)\n- Auto-registrar"]
-        H5["MeshAutoRegistrar\nregister/deregister via IServiceRegistry"]
+    subgraph "Stateless host"
+        S1["MeshServiceHost.RunAsync / StartAsync"]
+        S2["Options binding\nMeshServiceOptions.FromConfiguration + EnsureDefaults"]
+        S3["TryAddMeshServiceRegistryStub\n(no-op registry only when allowed/dev)"]
+        S4["AddMeshService\n- telemetry/auth wiring\n- health checks\n- MeshAutoRegistrar\n- MeshHeartbeatService (optional)"]
+        S5["WebApplication pipeline\nUseMeshDefaults (health + Prometheus)\nmap handlers"]
     end
 
-    subgraph HostRuntime
-        R1["ASP.NET Core WebApplication\n(Kestrel, middleware pipeline)"]
-        R2["Health endpoints\n/health, /health/ready, /health/live"]
-        R3["Prometheus endpoint\n(OpenTelemetry)"]
+    subgraph "Stateful host (Orleans)"
+        T1["MeshServiceHost.RunStatefulAsync / StartStateful"]
+        T2["UseMeshSilo\n(cluster provider, Consul/AzureTable/AdoNet, ports, dashboard)"]
+        T3["AddMeshService for registration/telemetry/auth/heartbeat"]
     end
 
-    subgraph Discovery/Registry
-        S1["IServiceRegistry\n(Consul or gRPC)"]
+    subgraph "Runtime surfaces"
+        R1["HTTP endpoints"]
+        R2["/health, /health/ready, /health/live"]
+        R3["/metrics (Prometheus scrape)"]
     end
 
-    Developer -->|define routes via MeshServiceApp| H1
-    D2 -->|options passed| H3 --> H4
-    H1 -->|build & start| R1
-    H2 -->|map handlers| R1
-    H4 -->|register hosted services| R1
-    H5 -->|RegisterAsync/DeregisterAsync| S1
-    R1 -->|expose| R2
-    R1 -->|expose| R3
+    subgraph "Discovery/Registry"
+        Reg["IServiceRegistry\n(Consul or gRPC)"]
+    end
+
+    D1 --> S1
+    D2 --> S2
+    D2 --> T1
+    D3 --> Reg
+    S1 --> S2 --> S3 --> S4 --> S5 --> R1
+    T1 --> T2 --> T3
+    R1 --> R2
+    R1 --> R3
+    S4 -->|register/deregister| Reg
+    S4 -->|heartbeat| Reg
+    T3 --> Reg
 ```
