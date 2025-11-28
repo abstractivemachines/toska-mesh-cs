@@ -1,3 +1,5 @@
+See also: [MeshServiceHost quickstart](meshservicehost-quickstart.md) for usage examples.
+
 ### Middleware hook
 - `MeshServiceApp.Use(Func<HttpContext, Func<Task>, Task>)` allows adding custom middleware without exposing ASP.NET types directly.
 - Use for cross-cutting concerns (headers, auth shims) before mapped routes.

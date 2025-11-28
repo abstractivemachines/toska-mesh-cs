@@ -15,7 +15,7 @@ The codebase follows good practices:
 
 ---
 
-## 2. Missing Implementations (per `docs/IMPLEMENTATION_PLAN.md`)
+## 2. Missing Implementations (per [implementation plan](IMPLEMENTATION_PLAN.md))
 
 Several items are marked incomplete:
 

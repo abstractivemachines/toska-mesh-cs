@@ -1,5 +1,7 @@
 # MeshServiceHost Quickstart
 
+Related docs: [MeshServiceHost diagram](meshservicehost-diagram.md), [runtime SDK design notes](runtime-sdk-design.md).
+
 ## Stateless service (Lambda-style)
 
 ```csharp

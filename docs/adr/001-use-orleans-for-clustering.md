@@ -5,10 +5,10 @@ Accepted
 
 ## Context
 
-The original Elixir implementation uses BEAM/OTP for distributed computing with lightweight processes and supervision trees. When porting to C#/.NET, we needed a clustering solution that could provide similar capabilities:
+The mesh needs a clustering solution that provides:
 
 - Distributed state management
-- Virtual actor model (similar to Erlang processes)
+- Virtual actor model
 - Automatic cluster membership and failure detection
 - Persistence and reminders
 
@@ -22,7 +22,7 @@ Options considered:
 
 We chose **Microsoft Orleans** for the following reasons:
 
-1. **Virtual Actor Model**: Orleans grains are virtual actors that are automatically activated on demand and deactivated when idle, similar to Erlang processes
+1. **Virtual Actor Model**: Orleans grains are virtual actors that are automatically activated on demand and deactivated when idle
 2. **Microsoft Support**: First-party support, active development, and integration with Azure
 3. **Maturity**: Battle-tested in production at scale (Halo, Azure PlayFab)
 4. **Clustering Providers**: Built-in support for Consul, Azure Storage, ADO.NET, and more

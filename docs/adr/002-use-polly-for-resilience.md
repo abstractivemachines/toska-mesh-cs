@@ -5,7 +5,7 @@ Accepted
 
 ## Context
 
-Distributed systems need resilience patterns to handle transient failures, network issues, and downstream service degradation. The original Elixir implementation used OTP supervision trees for fault tolerance.
+Distributed systems need resilience patterns to handle transient failures, network issues, and downstream service degradation.
 
 We needed a resilience library that provides:
 - Circuit breakers

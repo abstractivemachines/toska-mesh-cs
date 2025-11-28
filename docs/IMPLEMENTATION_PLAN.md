@@ -1,34 +1,36 @@
-# Toska Mesh C# Implementation Plan
+# Toska Mesh Implementation Plan
 
 ## Executive Summary
 
-This document outlines the detailed implementation plan for porting Toska Mesh from Elixir to C#/.NET 8. The plan is divided into four phases over an estimated 12-week timeline.
+This document outlines the detailed implementation plan for Toska Mesh on .NET 8, including phased delivery and the remaining work to reach production readiness.
+
+Related docs: [MeshServiceHost quickstart](meshservicehost-quickstart.md), [Kubernetes deployment guide](kubernetes-deployment.md), [ADR index](adr/README.md), [runtime SDK design notes](runtime-sdk-design.md).
 
 ## Architecture Overview
 
 ### Design Principles
 
-1. **Maintain Original Architecture**: Preserve the hybrid umbrella/poncho structure
+1. **Maintain Existing Architecture**: Preserve the current modular layout across shared libraries and services
 2. **Leverage .NET Ecosystem**: Use mature .NET libraries and patterns
 3. **Cloud-Native**: Design for containers, Kubernetes, and cloud platforms
 4. **Observability-First**: Built-in telemetry, metrics, and tracing
 5. **Resilience**: Circuit breakers, retry policies, and fault tolerance
 
-### Technology Mapping
+### Stack Selection
 
-| Component | Elixir | C#/.NET | Rationale |
-|-----------|--------|---------|-----------|
-| Runtime | BEAM/OTP | .NET 8 CLR | Modern, high-performance runtime |
-| Clustering | libcluster | Orleans | Virtual actor model, closest to Erlang processes |
-| Message Bus | Phoenix.PubSub | MassTransit | Enterprise-grade messaging |
-| Web Framework | Phoenix | ASP.NET Core | Industry-standard web framework |
-| Reverse Proxy | Plug | YARP | High-performance, Microsoft-supported |
-| Service Discovery | Custom | Consul + Steeltoe | Cloud-native service registry |
-| Resilience | Supervision Trees | Polly | Comprehensive resilience policies |
-| Database ORM | Ecto | Entity Framework Core | Feature-rich, well-supported |
-| Authentication | Guardian | ASP.NET Identity + JWT | Built-in, secure, extensible |
-| Metrics | Telemetry | OpenTelemetry | Industry standard for observability |
-| Logging | Logger | Serilog | Structured logging |
+| Component | Choice | Rationale |
+|-----------|--------|-----------|
+| Runtime | .NET 8 CLR | Modern, high-performance runtime |
+| Clustering | Orleans | Virtual actor model with strong tooling and providers |
+| Message Bus | MassTransit | Enterprise-grade messaging |
+| Web Framework | ASP.NET Core | Industry-standard web framework |
+| Reverse Proxy | YARP | High-performance, Microsoft-supported |
+| Service Discovery | Consul + Steeltoe | Cloud-native service registry |
+| Resilience | Polly | Comprehensive resilience policies |
+| Database ORM | Entity Framework Core | Feature-rich, well-supported |
+| Authentication | ASP.NET Identity + JWT | Built-in, secure, extensible |
+| Metrics | OpenTelemetry | Industry standard for observability |
+| Logging | Serilog | Structured logging |
 
 ## Implementation Phases
 
@@ -220,7 +222,7 @@ This document outlines the detailed implementation plan for porting Toska Mesh f
 - [ ] Troubleshooting guide
 - [ ] Performance tuning guide
 - [ ] Security best practices
-- [ ] Migration guide from Elixir version
+- [ ] Upgrade/migration guide between releases
 - [ ] Video tutorials
 - [ ] Blog posts
 
@@ -348,7 +350,7 @@ dotnet run --project src/Core/ToskaMesh.Gateway
 
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
-| Performance doesn't match Elixir | High | Medium | Early benchmarking, optimization |
+| Performance targets missed | High | Medium | Early benchmarking, optimization |
 | Orleans complexity | Medium | Medium | POC early, consider simpler alternatives |
 | Third-party library issues | Medium | Low | Evaluate maturity, have fallbacks |
 | Team .NET knowledge | Medium | Medium | Training, documentation, pair programming |
@@ -357,12 +359,12 @@ dotnet run --project src/Core/ToskaMesh.Gateway
 ## Success Criteria
 
 ### Functional
-- [ ] All Elixir features implemented
+- [ ] Feature set delivered per plan
 - [ ] API compatibility maintained
-- [ ] No data loss during migration
+- [ ] No data loss during upgrades
 
 ### Non-Functional
-- [ ] Performance within 10% of Elixir version
+- [ ] Meets target throughput and latency
 - [ ] 99.9% uptime
 - [ ] < 100ms p95 latency
 - [ ] 80%+ code coverage
@@ -404,6 +406,6 @@ dotnet run --project src/Core/ToskaMesh.Gateway
 
 ## Conclusion
 
-This implementation plan provides a structured approach to porting Toska Mesh to C#/.NET 8. By following this plan, the team can deliver a production-ready, cloud-native service mesh that maintains feature parity with the Elixir version while leveraging the strengths of the .NET ecosystem.
+This implementation plan provides a structured approach to delivering Toska Mesh on C#/.NET 8. By following this plan, the team can deliver a production-ready, cloud-native service mesh that leverages the strengths of the .NET ecosystem.
 
 The phased approach allows for incremental delivery, continuous testing, and risk mitigation. Regular reviews and adjustments will ensure the project stays on track and meets all success criteria.

@@ -265,6 +265,5 @@ Recommended tests:
 
 ## Related Documentation
 
-- See `docs/PROGRESS_SUMMARY.md` for overall progress
-- See `docs/IMPLEMENTATION_PLAN.md` for original plan
+- See `docs/IMPLEMENTATION_PLAN.md` for the overall roadmap
 - See `changes/001_phase1_foundation_implementation.md` for foundation work
