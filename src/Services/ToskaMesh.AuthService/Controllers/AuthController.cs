@@ -89,7 +89,7 @@ public class AuthController : ControllerBase
         await _emailSender.SendAsync(user.Email!, "Verify your email", $"Token: {token}");
         await _auditService.RecordAsync(user.Id, "register", new { user.Email }, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
 
-        return Accepted(new { Message = "Registration successful. Please verify your email.", VerificationToken = token });
+        return Accepted(new { Message = "Registration successful. Please verify your email." });
     }
 
     [HttpPost("login")]
@@ -304,6 +304,7 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = _jwtTokenService.GenerateToken(user.Id, user.Email!, roles);
         var refreshToken = await _refreshTokenService.IssueAsync(user, clientId, ipAddress, cancellationToken);
-        return new AuthResponse(accessToken, refreshToken.Token, DateTime.UtcNow.AddHours(1), user.Id, user.Email!, roles);
+        var refreshTokenValue = refreshToken.PlaintextToken ?? throw new InvalidOperationException("Failed to generate refresh token value.");
+        return new AuthResponse(accessToken, refreshTokenValue, DateTime.UtcNow.AddHours(1), user.Id, user.Email!, roles);
     }
 }

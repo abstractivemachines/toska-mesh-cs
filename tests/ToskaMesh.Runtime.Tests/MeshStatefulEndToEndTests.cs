@@ -1,8 +1,10 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using ToskaMesh.Runtime;
 using ToskaMesh.Runtime.Orleans;
 using ToskaMesh.Runtime.Tests.StatefulSample;
+using ToskaMesh.Security;
 using Xunit;
 
 namespace ToskaMesh.Runtime.Tests;
@@ -12,6 +14,8 @@ public class MeshStatefulEndToEndTests
     [Fact]
     public async Task RunStatefulAsync_hosts_grain_and_serves_requests()
     {
+        Environment.SetEnvironmentVariable("Mesh:ServiceAuth:Secret", new string('s', MeshServiceAuthOptions.MinimumSecretLength));
+
         using var host = MeshServiceHost.StartStateful(
             configureSilo: silo =>
             {

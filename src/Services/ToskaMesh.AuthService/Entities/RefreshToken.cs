@@ -1,9 +1,23 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
 namespace ToskaMesh.AuthService.Entities;
 
 public class RefreshToken
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Token { get; set; } = Guid.NewGuid().ToString("N");
+    /// <summary>
+    /// Hashed refresh token value (stored in DB).
+    /// </summary>
+    [Column("Token")]
+    public string TokenHash { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Raw token value to return to the caller; not persisted.
+    /// </summary>
+    [NotMapped]
+    [JsonIgnore]
+    public string? PlaintextToken { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime ExpiresAt { get; set; }
     public bool Revoked { get; set; }

@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using ToskaMesh.AuthService.Data;
 using ToskaMesh.AuthService.Entities;
@@ -22,12 +25,15 @@ public class RefreshTokenService : IRefreshTokenService
 
     public async Task<RefreshToken> IssueAsync(MeshUser user, string? clientId, string? ipAddress, CancellationToken cancellationToken = default)
     {
+        var rawToken = GenerateTokenValue();
         var token = new RefreshToken
         {
             UserId = user.Id,
             ClientId = clientId,
             IpAddress = ipAddress,
-            ExpiresAt = DateTime.UtcNow.AddDays(14)
+            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            TokenHash = HashToken(rawToken),
+            PlaintextToken = rawToken
         };
 
         _dbContext.RefreshTokens.Add(token);
@@ -37,9 +43,10 @@ public class RefreshTokenService : IRefreshTokenService
 
     public async Task<RefreshToken?> ValidateAsync(string token, CancellationToken cancellationToken = default)
     {
+        var tokenHash = HashToken(token);
         var refreshToken = await _dbContext.RefreshTokens
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.Token == token && !t.Revoked, cancellationToken);
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && !t.Revoked, cancellationToken);
 
         if (refreshToken == null)
         {
@@ -60,5 +67,18 @@ public class RefreshTokenService : IRefreshTokenService
     {
         token.Revoked = true;
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static string GenerateTokenValue()
+    {
+        Span<byte> buffer = stackalloc byte[32];
+        RandomNumberGenerator.Fill(buffer);
+        return WebEncoders.Base64UrlEncode(buffer);
+    }
+
+    private static string HashToken(string token)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hash);
     }
 }
