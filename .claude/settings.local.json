@@ -1,28 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh repo create:*)",
-      "Bash(git push:*)",
-      "Bash(gh repo view:*)",
-      "Bash(git remote:*)",
-      "Bash(git branch:*)",
-      "Bash(gh auth refresh:*)",
-      "Bash(gh project field-list:*)",
-      "Bash(gh project item-create:*)",
-      "Bash(gh project item-list:*)",
-      "Bash(gh project item-edit:*)",
-      "Bash(chmod:*)",
-      "Bash(/tmp/add_todos_to_project.sh)",
-      "Bash(gh api:*)",
-      "Bash(/tmp/update_statuses.sh)",
-      "Bash(gh project list:*)",
-      "Bash(gh project view:*)",
-      "Bash(docker build:*)",
-      "Bash(dotnet restore:*)",
-      "Bash(kubectl cluster-info:*)",
-      "Bash(kubectl get:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "*",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
