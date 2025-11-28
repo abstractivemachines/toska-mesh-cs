@@ -25,8 +25,8 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
         _serviceRegistry = serviceRegistry;
         _routingOptions = routingOptions;
         _logger = logger;
-        _config = new ConsulProxyConfig(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>());
         _changeToken = new CancellationTokenSource();
+        _config = new ConsulProxyConfig(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>(), _changeToken.Token);
 
         // Start background refresh
         _ = RefreshConfigAsync();
@@ -131,11 +131,12 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
         }
 
         var oldConfig = _config;
-        _config = new ConsulProxyConfig(routes, clusters);
+        var newChangeSource = new CancellationTokenSource();
+        _config = new ConsulProxyConfig(routes, clusters, newChangeSource.Token);
 
         // Signal configuration change
         var oldChangeToken = _changeToken;
-        _changeToken = new CancellationTokenSource();
+        _changeToken = newChangeSource;
         oldChangeToken.Cancel();
 
         _logger.LogInformation("Updated proxy configuration: {RouteCount} routes, {ClusterCount} clusters",
@@ -168,11 +169,14 @@ public class ConsulProxyConfigProvider : IProxyConfigProvider
     {
         private readonly CancellationChangeToken _changeToken;
 
-        public ConsulProxyConfig(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
+        public ConsulProxyConfig(
+            IReadOnlyList<RouteConfig> routes,
+            IReadOnlyList<ClusterConfig> clusters,
+            CancellationToken changeToken)
         {
             Routes = routes;
             Clusters = clusters;
-            _changeToken = new CancellationChangeToken(new CancellationToken());
+            _changeToken = new CancellationChangeToken(changeToken);
         }
 
         public IReadOnlyList<RouteConfig> Routes { get; }

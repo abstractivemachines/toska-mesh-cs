@@ -1,3 +1,4 @@
+using System;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -145,7 +146,8 @@ public class GrpcServiceRegistry : IServiceRegistry
 /// </summary>
 public class ServiceDiscoveryGrpcOptions
 {
-    public string Address { get; set; } = "http://localhost:5010";
+    public string Address { get; set; } = "https://localhost:5010";
+    public bool AllowInsecureTransport { get; set; }
 }
 
 /// <summary>
@@ -178,13 +180,19 @@ public static class GrpcServiceRegistryExtensions
     {
         var grpcOptions = configuration.GetSection("Mesh:ServiceDiscovery:Grpc").Get<ServiceDiscoveryGrpcOptions>()
             ?? new ServiceDiscoveryGrpcOptions();
+        var address = new Uri(grpcOptions.Address);
+        var usesHttps = address.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        if (!usesHttps && !grpcOptions.AllowInsecureTransport)
+        {
+            throw new InvalidOperationException("Mesh:ServiceDiscovery:Grpc must use https when sending credentials. Set AllowInsecureTransport=true only for local dev.");
+        }
 
         services.AddMeshServiceIdentity(configuration);
         services.TryAddSingleton<IServiceDiscoveryCredentialsProvider, JwtServiceDiscoveryCredentialsProvider>();
 
         services.AddGrpcClient<DiscoveryRegistry.DiscoveryRegistryClient>((provider, options) =>
         {
-            options.Address = new Uri(grpcOptions.Address);
+            options.Address = address;
         }).AddCallCredentials(async (context, metadata, provider) =>
         {
             var credProvider = provider.GetService<IServiceDiscoveryCredentialsProvider>();
@@ -194,7 +202,7 @@ public static class GrpcServiceRegistryExtensions
             }
         }).ConfigureChannel(options =>
         {
-            options.UnsafeUseInsecureChannelCallCredentials = true;
+            options.UnsafeUseInsecureChannelCallCredentials = !usesHttps && grpcOptions.AllowInsecureTransport;
         });
 
         services.AddSingleton<IServiceRegistry, GrpcServiceRegistry>();

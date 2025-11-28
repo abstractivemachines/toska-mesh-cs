@@ -1,4 +1,5 @@
 using System.Text;
+using System.Net;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -212,21 +213,35 @@ app.Run();
 /// </summary>
 static string GetClientIpAddress(HttpContext context)
 {
-    // Check X-Forwarded-For header first (set by reverse proxies/load balancers)
-    var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-    if (!string.IsNullOrEmpty(forwardedFor))
-    {
-        // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
-        // The first IP is the original client
-        var clientIp = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault();
+    var remoteIp = context.Connection.RemoteIpAddress;
 
-        if (!string.IsNullOrEmpty(clientIp))
+    // Only honor forwarded headers when the immediate sender is trusted (e.g., local proxy)
+    if (IsTrustedProxy(remoteIp))
+    {
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
         {
-            return clientIp;
+            var clientIp = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(clientIp))
+            {
+                return clientIp;
+            }
         }
     }
 
     // Fall back to direct connection IP
-    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    return remoteIp?.ToString() ?? "unknown";
+}
+
+static bool IsTrustedProxy(IPAddress? remoteIp)
+{
+    if (remoteIp == null)
+    {
+        return false;
+    }
+
+    var ip = remoteIp.IsIPv4MappedToIPv6 ? remoteIp.MapToIPv4() : remoteIp;
+    return IPAddress.IsLoopback(ip);
 }

@@ -80,7 +80,9 @@ public class MeshServiceTokenProvider : IMeshServiceTokenProvider
 
 public class MeshServiceAuthOptions
 {
-    public string Secret { get; set; } = "change-me";
+    public const int MinimumSecretLength = 32;
+
+    public string Secret { get; set; } = string.Empty;
     public string Issuer { get; set; } = "ToskaMesh.Services";
     public string Audience { get; set; } = "ToskaMesh.Services";
     public int TokenLifetimeMinutes { get; set; } = 10;
@@ -99,9 +101,11 @@ public static class MeshServiceAuthenticationExtensions
         if (!services.Any(sd => sd.ServiceType == typeof(MeshServiceAuthOptions)))
         {
             var authOptions = configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
-            if (string.IsNullOrWhiteSpace(authOptions.Secret))
+            if (string.IsNullOrWhiteSpace(authOptions.Secret) ||
+                authOptions.Secret.Equals("change-me", StringComparison.OrdinalIgnoreCase) ||
+                authOptions.Secret.Length < MeshServiceAuthOptions.MinimumSecretLength)
             {
-                throw new InvalidOperationException("Mesh:ServiceAuth:Secret must be configured for service-to-service authentication.");
+                throw new InvalidOperationException($"Mesh:ServiceAuth:Secret must be configured, unique per environment, and at least {MeshServiceAuthOptions.MinimumSecretLength} characters for service-to-service authentication.");
             }
 
             services.AddSingleton(authOptions);
