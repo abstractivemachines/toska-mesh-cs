@@ -25,7 +25,7 @@ public class AuthDbContext : IdentityDbContext<MeshUser>
 
         builder.Entity<RefreshToken>(entity =>
         {
-            entity.HasIndex(token => token.Token).IsUnique();
+            entity.HasIndex(token => token.TokenHash).IsUnique();
             entity.HasOne(token => token.User)
                 .WithMany(user => user.RefreshTokens)
                 .HasForeignKey(token => token.UserId);

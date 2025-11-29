@@ -1,0 +1,96 @@
+# Talos / single-node on-prem values (local registry + NodePort gateway)
+
+environment: Development
+
+# Global secrets (replace with strong values)
+global:
+  meshServiceAuthSecret: "CHANGE-ME-32-CHARS-MINIMUM"
+
+externalServices:
+  consul:
+    address: "http://consul-server.toskamesh-infra.svc.cluster.local:8500"
+  postgres:
+    host: "postgres-postgresql.toskamesh-infra.svc.cluster.local"
+    port: 5432
+    database: "toksa_mesh"
+    username: "toksa_mesh"
+    password: "toksa_mesh_password"
+  rabbitmq:
+    host: "rabbitmq.toskamesh-infra.svc.cluster.local"
+    port: 5672
+    username: "guest"
+    password: "guest"
+  redis:
+    host: "redis-master.toskamesh-infra.svc.cluster.local"
+    port: 6379
+
+# Point all services at the local registry on the laptop (adjust if your host IP changes)
+registry: "192.168.50.73:5000"
+tag: "local"
+
+gateway:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-gateway"
+    tag: "local"
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+  ingress:
+    enabled: false
+  secrets:
+    jwtSecretKey: "CHANGE-ME-32-CHARS-MINIMUM"
+
+discovery:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-discovery"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+authService:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-auth-service"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+configService:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-config-service"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+metricsService:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-metrics-service"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+tracingService:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-tracing-service"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+core:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-core"
+    tag: "local"
+    pullPolicy: IfNotPresent
+  orleans:
+    serviceName: "ToskaMesh-Local"
+    clusterId: "talos-local"
+
+healthMonitor:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-health-monitor"
+    tag: "local"
+    pullPolicy: IfNotPresent
