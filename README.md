@@ -416,4 +416,5 @@ MIT License - See LICENSE file for details
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
 - [Polly Documentation](https://github.com/App-vNext/Polly)
 - `MeshServiceHost` quickstart: `docs/meshservicehost-quickstart.md`
+- Runnable example service (NuGet consumer): `examples/hello-mesh-service`
 - Runtime packaging: `docs/runtime-packaging.md`

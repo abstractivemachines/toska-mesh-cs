@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  hello-mesh-service:
+    image: hello-mesh-service:local
+    build:
+      context: ../..
+      dockerfile: examples/hello-mesh-service/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mesh__Service__Address=0.0.0.0
+      - Mesh__Service__Port=8080
+      - Mesh__Service__Routing__HealthCheckEndpoint=/health
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport=true
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Identity__ServiceName=hello-mesh-service
+    depends_on:
+      - discovery
+    networks:
+      - toksa-mesh
+    ports:
+      - "18080:8080"
