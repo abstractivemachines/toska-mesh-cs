@@ -143,3 +143,23 @@ curl http://192.168.50.229:30080/health
   ```
 - Logs: `kubectl logs -n toskamesh -l app.kubernetes.io/instance=toskamesh --tail=100 -f`
 - Cleanup: `helm uninstall toskamesh -n toskamesh && kubectl delete ns toskamesh`
+
+## 9) Optional: Install monitoring (Grafana via NodePort)
+
+Expose Grafana directly on the Talos node (no ingress required):
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+kubectl create namespace monitoring
+
+helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  -f deployments/monitoring-values-talos.yaml
+```
+
+- Access: `http://192.168.50.229:30300` (adjust if your Talos node IP changes).
+- Password: `kubectl -n monitoring get secret prometheus-grafana -o jsonpath='{.data.admin-password}' | base64 -d; echo`
+- Dashboards: import JSON files from `deployments/grafana/dashboards/` into Grafana.
+- Note: `deployments/monitoring-values-talos.yaml` disables `nodeExporter` to satisfy Talos PodSecurity (restricted). If you want host metrics, relax the policy and re-enable it.

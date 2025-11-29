@@ -1,0 +1,13 @@
+# kube-prometheus-stack overrides for Talos single-node
+# Exposes Grafana via NodePort so it's always reachable from the Talos node IP.
+grafana:
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30300
+  # Optional: set your own password; otherwise the chart generates one in a secret.
+  adminPassword: "CHANGE_ME_STRONG"
+
+# Talos enforces restricted PodSecurity; disable nodeExporter (needs host access).
+nodeExporter:
+  enabled: false
