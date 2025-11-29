@@ -61,7 +61,7 @@ variable "single_nat_gateway" {
 variable "node_instance_types" {
   description = "EKS worker node instance types"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.nano"]
 }
 
 variable "node_capacity_type" {
@@ -73,25 +73,25 @@ variable "node_capacity_type" {
 variable "node_min_size" {
   description = "Minimum nodes in the default node group"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "node_max_size" {
   description = "Maximum nodes in the default node group"
   type        = number
-  default     = 5
+  default     = 1
 }
 
 variable "node_desired_size" {
   description = "Desired nodes in the default node group"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "node_disk_size" {
   description = "Worker node root volume size (GiB)"
   type        = number
-  default     = 50
+  default     = 20
 }
 
 variable "cloudwatch_log_retention_days" {

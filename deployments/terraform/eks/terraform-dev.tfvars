@@ -14,13 +14,13 @@ vpc_cidr           = "10.0.0.0/16"
 az_count           = 3
 single_nat_gateway = true # Cost savings: single NAT vs 3 NATs
 
-# Node Group Configuration - COST OPTIMIZED
-node_instance_types = ["t3.small"] # Reduced from t3.medium (saves ~$25/month for 2 nodes)
-node_capacity_type  = "SPOT"       # Spot instances (saves ~70% on compute)
-node_min_size       = 1            # Reduced from 2 (saves ~$30/month in base cost)
-node_desired_size   = 1            # Start with 1, autoscale as needed
-node_max_size       = 3            # Reduced from 5 (development workload)
-node_disk_size      = 20           # Reduced from 50 GB (saves ~$2.40/month)
+# Node Group Configuration - MINIMUM COST / SCALE-TO-ZERO READY
+node_instance_types = ["t3.nano"] # Smallest supported x86 instance for EKS managed node groups
+node_capacity_type  = "SPOT"      # Spot instances (saves ~70% on compute)
+node_min_size       = 0            # Allow scaling to zero when idle
+node_desired_size   = 0            # Start from zero; rely on Cluster Autoscaler to scale up on demand
+node_max_size       = 2            # Keep low ceiling for dev workloads
+node_disk_size      = 20           # Smaller root volume for cost
 
 # CloudWatch Configuration
 cloudwatch_log_retention_days = 7 # Reduced from 30 days (saves ~$3-5/month)

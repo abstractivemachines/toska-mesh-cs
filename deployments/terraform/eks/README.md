@@ -50,6 +50,18 @@ terraform apply \
 ## Notes and next steps
 - Remote state: S3 backend is preconfigured to use bucket `abstractive-machines-terraform-state` and key `toska-mesh/eks/terraform.tfstate`. Run `terraform init` (or `terraform init -migrate-state`) after AWS SSO login so Terraform can access the bucket.
 - For production, consider multiple NAT gateways (`single_nat_gateway=false`) and custom CIDRs.
-- Deploy the AWS Load Balancer Controller and Cluster Autoscaler via Helm after kubeconfig is set.
+- Scale-to-zero when idle: defaults now use `t3.nano` nodes with `node_min_size=0`/`node_desired_size=0`. Install Cluster Autoscaler after `terraform apply` to scale nodes up/down automatically:
+  ```bash
+  helm repo add autoscaler https://kubernetes.github.io/autoscaler
+  helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
+    --namespace kube-system \
+    --set autoDiscovery.clusterName=toskamesh-eks \
+    --set awsRegion=us-east-1 \
+    --set extraArgs.scale-down-unneeded-time=10m \
+    --set extraArgs.scale-down-unready-time=10m \
+    --set extraArgs.scan-interval=30s
+  ```
+  Ensure the Cluster Autoscaler service account has the standard EKS IAM policy attached (IRSA) so it can modify the managed node group. Control plane billing continues even when nodes scale to zero.
+- Deploy the AWS Load Balancer Controller via Helm after kubeconfig is set.
 - Use the created ECR repo (`ecr_repository_url` output) for ToskaMesh service images and reference from Helm values.
 - Use the KMS key (`kms_key_arn` output) for Secrets encryption or parameter stores if desired.
