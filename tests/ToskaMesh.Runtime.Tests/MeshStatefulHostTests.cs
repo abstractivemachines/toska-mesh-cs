@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using ToskaMesh.Runtime;
-using ToskaMesh.Runtime.Orleans;
+using ToskaMesh.Runtime.Stateful;
 using ToskaMesh.Security;
 using Xunit;
 
@@ -14,25 +13,25 @@ public class MeshStatefulHostTests
     {
         Environment.SetEnvironmentVariable("Mesh:ServiceAuth:Secret", new string('s', MeshServiceAuthOptions.MinimumSecretLength));
 
-        using var host = MeshServiceHost.StartStateful(
-            configureSilo: silo =>
-            {
-                silo.ServiceName = "stateful-test";
-                silo.PrimaryPort = 21111;
-                silo.ClientPort = 21000;
-                silo.ClusterProvider = StatefulClusterProvider.Local;
-            },
-            configureOptions: options =>
+        using var host = StatefulMeshHost.Start(
+            configureStateful: options =>
             {
                 options.ServiceName = "stateful-test";
+                options.ServiceId = "stateful-test";
+                options.Orleans.PrimaryPort = 21111;
+                options.Orleans.ClientPort = 21000;
+                options.Orleans.ClusterProvider = StatefulClusterProvider.Local;
+            },
+            configureService: options =>
+            {
                 options.RegisterAutomatically = false;
                 options.HeartbeatEnabled = false;
                 options.AllowNoopServiceRegistry = true;
             });
 
-        var statefulOptions = host.Services.GetRequiredService<MeshStatefulOptions>();
+        var statefulOptions = host.Services.GetRequiredService<StatefulHostOptions>();
         Assert.Equal("stateful-test", statefulOptions.ServiceName);
-        Assert.Equal(21111, statefulOptions.PrimaryPort);
+        Assert.Equal(21111, statefulOptions.Orleans.PrimaryPort);
 
         await host.StopAsync();
     }

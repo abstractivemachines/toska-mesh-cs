@@ -33,21 +33,21 @@ await MeshServiceHost.RunAsync(
 - Auto-registration + heartbeat (Consul/gRPC via `IServiceRegistry`).
 - Custom middleware via `app.Use(...)` without exposing `WebApplication`.
 
-## Stateful service (Orleans-backed)
+## Stateful service (Orleans-backed, provider-agnostic surface)
 
 ```csharp
 using ToskaMesh.Runtime;
-using ToskaMesh.Runtime.Orleans;
+using ToskaMesh.Runtime.Stateful;
 
-await MeshServiceHost.RunStatefulAsync(
-    configureSilo: silo =>
+await StatefulMeshHost.RunAsync(
+    configureStateful: stateful =>
     {
-        silo.ServiceName = "inventory-stateful";
-        silo.ClusterId = "prod-cluster";
-        silo.ClusterProvider = StatefulClusterProvider.Consul;
-        silo.ConsulAddress = "http://consul:8500";
+        stateful.ServiceName = "inventory-stateful";
+        stateful.Orleans.ClusterId = "prod-cluster";
+        stateful.Orleans.ClusterProvider = StatefulClusterProvider.Consul;
+        stateful.Orleans.ConsulAddress = "http://consul:8500";
     },
-    configureOptions: options =>
+    configureService: options =>
     {
         options.ServiceName = "inventory-stateful";
         options.Routing.Scheme = "http";
@@ -56,7 +56,7 @@ await MeshServiceHost.RunStatefulAsync(
 ```
 
 **What you get:**
-- Orleans hosting without exposing silo details.
+- Orleans hosting by default without surfacing Orleans types (provider can be swapped later).
 - Same registration/telemetry/auth/heartbeat pipeline as stateless hosts.
 
 ## Key options
@@ -75,5 +75,5 @@ await MeshServiceHost.RunStatefulAsync(
 ## Notes
 - If you don’t register an `IServiceRegistry`, the host will insert a no-op registry only when explicitly allowed (or in Development). For real deployments, leave `AllowNoopServiceRegistry` as false and supply a registry.
 - Middleware hook is available via `MeshServiceApp.Use(Func<HttpContext, Func<Task>, Task>)`.
-- Stateful path currently assumes Orleans; the abstraction hides silo config behind `MeshStatefulOptions`.
+- Stateful path currently assumes Orleans under the hood but is exposed via `StatefulMeshHost` + `StatefulHostOptions` to keep implementation details out of consumer code.
 - Telemetry/auth are enabled by default. To opt out (e.g., lightweight internal jobs), set `EnableTelemetry = false` and/or `EnableAuth = false` in `MeshServiceOptions`.

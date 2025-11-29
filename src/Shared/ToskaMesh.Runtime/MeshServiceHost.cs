@@ -5,13 +5,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ToskaMesh.Runtime.Orleans;
 using ToskaMesh.Protocols;
 
 namespace ToskaMesh.Runtime;
 
 /// <summary>
-/// High-level runtime wrapper for hosting mesh-aware services without exposing ASP.NET Core/Orleans details.
+/// High-level runtime wrapper for hosting stateless mesh-aware services without exposing ASP.NET Core details.
 /// </summary>
 public static class MeshServiceHost
 {
@@ -81,51 +80,6 @@ public static class MeshServiceHost
         var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
 
         return new MeshServiceHostHandle(app, client);
-    }
-
-    /// <summary>
-    /// Run a stateful (Orleans-backed) mesh service without exposing silo configuration.
-    /// </summary>
-    public static async Task RunStatefulAsync(
-        Action<MeshStatefulOptions>? configureSilo = null,
-        Action<MeshServiceOptions>? configureOptions = null,
-        Action<IServiceCollection>? configureServices = null,
-        CancellationToken cancellationToken = default)
-    {
-        using var host = CreateStatefulHost(configureSilo, configureOptions, configureServices);
-        await host.StartAsync(cancellationToken);
-        await host.WaitForShutdownAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// Start a stateful (Orleans-backed) mesh service and return the host (useful for tests/embedding).
-    /// </summary>
-    public static IHost StartStateful(
-        Action<MeshStatefulOptions>? configureSilo = null,
-        Action<MeshServiceOptions>? configureOptions = null,
-        Action<IServiceCollection>? configureServices = null)
-    {
-        var host = CreateStatefulHost(configureSilo, configureOptions, configureServices);
-        host.Start();
-        return host;
-    }
-
-    private static IHost CreateStatefulHost(
-        Action<MeshStatefulOptions>? configureSilo,
-        Action<MeshServiceOptions>? configureOptions,
-        Action<IServiceCollection>? configureServices)
-    {
-        var builder = Host.CreateDefaultBuilder();
-
-        builder.UseMeshSilo("mesh-stateful-service", configureSilo);
-
-        builder.ConfigureServices((context, services) =>
-        {
-            services.AddMeshService(context.Configuration, configureOptions);
-            configureServices?.Invoke(services);
-        });
-
-        return builder.Build();
     }
 }
 

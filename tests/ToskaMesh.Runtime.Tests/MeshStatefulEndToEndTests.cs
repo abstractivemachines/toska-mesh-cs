@@ -1,9 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
-using ToskaMesh.Runtime;
-using ToskaMesh.Runtime.Orleans;
 using ToskaMesh.Runtime.Tests.StatefulSample;
+using ToskaMesh.Runtime.Stateful;
 using ToskaMesh.Security;
 using Xunit;
 
@@ -16,15 +15,16 @@ public class MeshStatefulEndToEndTests
     {
         Environment.SetEnvironmentVariable("Mesh:ServiceAuth:Secret", new string('s', MeshServiceAuthOptions.MinimumSecretLength));
 
-        using var host = MeshServiceHost.StartStateful(
-            configureSilo: silo =>
+        using var host = StatefulMeshHost.Start(
+            configureStateful: options =>
             {
-                silo.ServiceName = "stateful-e2e";
-                silo.PrimaryPort = 21112;
-                silo.ClientPort = 21001;
-                silo.ClusterProvider = StatefulClusterProvider.Local;
+                options.ServiceName = "stateful-e2e";
+                options.ServiceId = "stateful-e2e";
+                options.Orleans.PrimaryPort = 21112;
+                options.Orleans.ClientPort = 21001;
+                options.Orleans.ClusterProvider = StatefulClusterProvider.Local;
             },
-            configureOptions: options =>
+            configureService: options =>
             {
                 options.ServiceName = "stateful-e2e";
                 options.RegisterAutomatically = false;

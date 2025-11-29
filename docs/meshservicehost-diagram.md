@@ -17,7 +17,7 @@ flowchart TD
     end
 
     subgraph "Stateful host (Orleans)"
-        T1["MeshServiceHost.RunStatefulAsync / StartStateful"]
+        T1["StatefulMeshHost.RunAsync / Start"]
         T2["UseMeshSilo\n(cluster provider, Consul/AzureTable/AdoNet, ports, dashboard)"]
         T3["AddMeshService for registration/telemetry/auth/heartbeat"]
     end

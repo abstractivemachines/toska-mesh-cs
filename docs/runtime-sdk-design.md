@@ -12,8 +12,8 @@ See also: [MeshServiceHost quickstart](meshservicehost-quickstart.md) for usage 
 - If no `IServiceRegistry` is registered, a noop registry is added. This is intended for tests/dev only; set `AllowNoopServiceRegistry = false` to fail fast when discovery is misconfigured.
 
 ### Stateful hosting
-- `MeshServiceHost.RunStatefulAsync(...)` wraps Orleans hosting without exposing silo configuration. Uses `MeshStatefulOptions` for cluster settings and `MeshServiceOptions` for registration/telemetry/auth/heartbeat.
+- `StatefulMeshHost.RunAsync(...)` (in `ToskaMesh.Runtime.Stateful`) wraps the provider-specific host (Orleans by default) without exposing silo configuration. Uses `StatefulHostOptions` for cluster settings and `MeshServiceOptions` for registration/telemetry/auth/heartbeat.
 
 ### Auth/Telemetry defaults
 - Defaults: telemetry and auth are enabled. Set `EnableTelemetry = false` and/or `EnableAuth = false` in `MeshServiceOptions` to opt out for lightweight services.
-- For stateful hosts, the same options flow through `RunStatefulAsync` and are applied to the underlying host.
+- For stateful hosts, the same options flow through `StatefulMeshHost` and are applied to the underlying host.

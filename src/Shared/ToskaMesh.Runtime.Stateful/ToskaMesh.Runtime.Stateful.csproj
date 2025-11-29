@@ -4,13 +4,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageId>ToskaMesh.Runtime.Orleans</PackageId>
-    <Title>ToskaMesh Runtime Orleans</Title>
-    <Description>Stateful runtime host for Toska Mesh services using Orleans, aligned with MeshServiceHost API.</Description>
+    <PackageId>ToskaMesh.Runtime.Stateful</PackageId>
+    <Title>ToskaMesh Runtime Stateful</Title>
+    <Description>Provider-agnostic stateful runtime host for Toska Mesh services. Uses Orleans by default while hiding provider details from consumers.</Description>
     <Authors>Toska Mesh</Authors>
     <RepositoryUrl>https://github.com/abstractivemachines-com/toska-mesh-cs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>toska-mesh;runtime;stateful;orleans</PackageTags>
+    <PackageTags>toska-mesh;runtime;stateful;service-host</PackageTags>
     <Version>0.1.0-preview</Version>
     <PackageReadmeFile>PackageReadme.md</PackageReadmeFile>
   </PropertyGroup>
@@ -18,8 +18,7 @@
     <None Include="PackageReadme.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\ToskaMesh.Core\ToskaMesh.Core.csproj" />
-    <ProjectReference Include="..\ToskaMesh.Telemetry\ToskaMesh.Telemetry.csproj" />
-    <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Runtime\ToskaMesh.Runtime.csproj" />
+    <ProjectReference Include="..\ToskaMesh.Runtime.Orleans\ToskaMesh.Runtime.Orleans.csproj" />
   </ItemGroup>
 </Project>
