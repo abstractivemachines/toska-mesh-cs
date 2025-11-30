@@ -147,6 +147,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show docker output while building/pushing images.",
     )
 
+    services_parser = subparsers.add_parser(
+        "services",
+        help="List deployed Toska Mesh user services.",
+    )
+    services_parser.add_argument(
+        "--namespace",
+        default="toskamesh",
+        help="Kubernetes namespace to query (default: toskamesh).",
+    )
+    services_parser.add_argument(
+        "-l",
+        "--selector",
+        default="component=example",
+        help="Label selector to filter user services (default: component=example). Use --all to disable.",
+    )
+    services_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="List all services without a selector (may include core components).",
+    )
+    services_parser.add_argument(
+        "--no-services",
+        action="store_true",
+        help="Do not query Services (only Deployments).",
+    )
+    services_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit raw JSON for scripting.",
+    )
+
     return parser
 
 
@@ -285,6 +316,50 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         except DeployConfigError as exc:
             print(f"{args.command.capitalize()} failed: {exc}", file=sys.stderr)
+            return 1
+
+    if args.command == "services":
+        import json
+
+        from .info import (
+            KubectlError,
+            format_deployments_table,
+            format_services_table,
+            gather_service_info,
+        )
+
+        selector = None if args.all else args.selector
+        try:
+            data = gather_service_info(
+                namespace=args.namespace,
+                selector=selector,
+                include_services=not args.no_services,
+                progress=reporter,
+            )
+
+            if args.json:
+                serializable = {
+                    "deployments": [d.__dict__ for d in data["deployments"]],
+                    "services": [s.__dict__ for s in data["services"]],
+                }
+                print(json.dumps(serializable, indent=2))
+                return 0
+
+            if data["deployments"]:
+                print("\nDeployments")
+                print(format_deployments_table(data["deployments"]))
+            else:
+                print("\nDeployments: none found")
+
+            if not args.no_services:
+                if data["services"]:
+                    print("\nServices")
+                    print(format_services_table(data["services"]))
+                else:
+                    print("\nServices: none found")
+            return 0
+        except KubectlError as exc:
+            print(f"Services failed: {exc}", file=sys.stderr)
             return 1
 
     # Default to help when no command is provided.

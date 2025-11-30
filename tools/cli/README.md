@@ -48,6 +48,16 @@ Notes:
 - `--dry-run` prints the planned docker commands; `-v` shows docker stdout/stderr.
 - Commands emit progress by default; plans/commands are shown when using `--dry-run` or `-v`.
 
+## Services
+List deployed Toska Mesh user services (defaults to namespace `toskamesh` and selector `component=example`):
+
+```bash
+toska services [--namespace toskamesh] [-l component=example] [--all] [--no-services] [--json]
+```
+- `--all` removes the label selector (may include core components).
+- `--no-services` skips querying Kubernetes Services (only Deployments).
+- `--json` prints raw data for scripting.
+
 ## Destroy
 Delete resources described in the same manifest:
 
