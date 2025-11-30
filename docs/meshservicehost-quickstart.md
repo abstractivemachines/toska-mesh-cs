@@ -1,6 +1,6 @@
 # MeshServiceHost Quickstart
 
-Related docs: [MeshServiceHost diagram](meshservicehost-diagram.md), [runtime SDK design notes](runtime-sdk-design.md).
+Related docs: [MeshServiceHost diagram](meshservicehost-diagram.md), [runtime SDK design notes](runtime-sdk-design.md), samples in [`examples/hello-mesh-service/README.md`](../examples/hello-mesh-service/README.md) and [`examples/todo-mesh-service/README.md`](../examples/todo-mesh-service/README.md).
 
 Runnable sample (NuGet consumer): `examples/hello-mesh-service` packs `ToskaMesh.Runtime`, restores from `./artifacts/nuget`, and shows how to run alongside the mesh with Docker Compose.
 

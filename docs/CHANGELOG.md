@@ -1,0 +1,22 @@
+# Changelog Index
+
+- **Foundation & Services**
+  - [001_phase1_foundation_implementation](../changes/001_phase1_foundation_implementation.md)
+  - [002_discovery_service_implementation](../changes/002_discovery_service_implementation.md)
+  - [003_gateway_service_implementation](../changes/003_gateway_service_implementation.md)
+- **Resilience & Routing**
+  - [002_fix_thread_safety_load_balancer](../changes/002_fix_thread_safety_load_balancer.md)
+  - [006_implement_polly_circuit_breaker](../changes/006_implement_polly_circuit_breaker.md)
+  - [008_fix_iphash_deterministic_hash](../changes/008_fix_iphash_deterministic_hash.md)
+- **Security**
+  - [003_fix_swallowed_exception_jwt](../changes/003_fix_swallowed_exception_jwt.md)
+  - [007_fix_security_configuration_issues](../changes/007_fix_security_configuration_issues.md)
+- **Deployments & Ops**
+  - [004_kubernetes_helm_deployment_setup](../changes/004_kubernetes_helm_deployment_setup.md)
+  - [004_extract_consul_health_check_config](../changes/004_extract_consul_health_check_config.md)
+  - [005_dockerfile_fixes_and_deployment](../changes/005_dockerfile_fixes_and_deployment.md)
+  - [005_fix_consul_registry_timestamps](../changes/005_fix_consul_registry_timestamps.md)
+  - [007_eks_cost_optimization](../changes/007_eks_cost_optimization.md)
+- **Docs & Process**
+  - [001_code_review_document](../changes/001_code_review_document.md)
+  - [009_add_adr_documentation](../changes/009_add_adr_documentation.md)

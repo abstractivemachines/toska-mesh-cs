@@ -6,6 +6,11 @@ A distributed service mesh implementation in C#/.NET 8, ported from the original
 
 This C# implementation maintains the hybrid architecture of the original Elixir version while leveraging the .NET ecosystem and best practices.
 
+## Documentation
+
+- Start at [docs/README.md](docs/README.md) for quickstarts, architecture, operations, and deployments.
+- ADRs live in [docs/adr/README.md](docs/adr/README.md); change notes are indexed in [docs/CHANGELOG.md](docs/CHANGELOG.md).
+
 ## Architecture
 
 ### Project Structure

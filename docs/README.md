@@ -1,0 +1,26 @@
+# Documentation Index
+
+- **Quickstarts**
+  - [MeshServiceHost quickstart](meshservicehost-quickstart.md) – build/run services with the runtime; links to samples.
+  - [Talos quickstart](../deployments/QUICKSTART-TALOS.md), [EKS quickstart](../deployments/QUICKSTART-EKS.md) – cluster bootstraps.
+- **Architecture & Design**
+  - [MeshServiceHost diagram](meshservicehost-diagram.md) – hosting flow.
+  - [Runtime SDK design](runtime-sdk-design.md) – runtime surface, middleware, stateful host.
+  - [Evented communication](evented-communication.md) – messaging/event patterns.
+- **Operations**
+  - [Kubernetes deployment](kubernetes-deployment.md) – k8s guidance and overlays.
+  - [Monitoring setup](monitoring-setup.md) – observability, metrics, alerts.
+  - [Cost optimization](cost-optimization.md) – runtime cost knobs; see also [EKS cost summary](../deployments/terraform/eks/COST-OPTIMIZATION-SUMMARY.md).
+  - [EKS deployment guide](eks-deployment-guide.md) – EKS specifics; Terraform at [eks/README](../deployments/terraform/eks/README.md).
+- **Deployments**
+  - [Talos quickstart](../deployments/QUICKSTART-TALOS.md) | [EKS quickstart](../deployments/QUICKSTART-EKS.md)
+  - Terraform: [eks/README](../deployments/terraform/eks/README.md), [EKS cost summary](../deployments/terraform/eks/COST-OPTIMIZATION-SUMMARY.md)
+- **Examples**
+  - [Examples index](../examples/README.md) → [hello-mesh-service](../examples/hello-mesh-service/README.md), [todo-mesh-service](../examples/todo-mesh-service/README.md) (stateful + k8s notes).
+- **ADRs**
+  - [ADR index](adr/README.md) (001 Orleans clustering, 002 Polly resilience, 003 Consul discovery, 004 YARP gateway).
+- **Plans & Reviews**
+  - [Implementation plan](IMPLEMENTATION_PLAN.md), [Stateful namespace plan](plans/stateful-runtime-namespace-plan.md), [Example consumer on mesh](plans/example-consumer-on-mesh.md)
+  - [Code review](CODE_REVIEW.md)
+- **Changelog**
+  - [Changelog index](CHANGELOG.md) – links to detailed change notes under `changes/`.

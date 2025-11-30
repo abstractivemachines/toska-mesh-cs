@@ -1,4 +1,4 @@
-See also: [MeshServiceHost quickstart](meshservicehost-quickstart.md) for usage examples.
+See also: [MeshServiceHost quickstart](meshservicehost-quickstart.md) for usage examples, [MeshServiceHost diagram](meshservicehost-diagram.md), [Evented communication](evented-communication.md), and runtime package READMEs (`src/Shared/ToskaMesh.Runtime/PackageReadme.md`, `src/Shared/ToskaMesh.Runtime.Stateful/PackageReadme.md`, `src/Shared/ToskaMesh.Runtime.Orleans/PackageReadme.md`).
 
 ### Middleware hook
 - `MeshServiceApp.Use(Func<HttpContext, Func<Task>, Task>)` allows adding custom middleware without exposing ASP.NET types directly.
