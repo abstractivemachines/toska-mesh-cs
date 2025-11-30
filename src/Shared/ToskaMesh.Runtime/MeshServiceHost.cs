@@ -48,9 +48,6 @@ public static class MeshServiceHost
         builder.Services.AddSingleton(options);
         configureServices?.Invoke(builder.Services);
 
-        // If the caller didn't register a service registry, use a no-op stub only if explicitly allowed.
-        builder.Services.TryAddMeshServiceRegistryStub(options, builder.Environment);
-
         builder.Services.AddMeshService(builder.Configuration, opt =>
         {
             opt.ServiceName = options.ServiceName;
@@ -67,6 +64,9 @@ public static class MeshServiceHost
             opt.ServiceRegistryProvider = options.ServiceRegistryProvider;
             opt.Metadata = new Dictionary<string, string>(options.Metadata, StringComparer.OrdinalIgnoreCase);
         });
+
+        // If the caller still didn't register a service registry, use a no-op stub only if explicitly allowed.
+        builder.Services.TryAddMeshServiceRegistryStub(options, builder.Environment);
 
         var app = builder.Build();
         var meshApp = new MeshServiceApp(app);
