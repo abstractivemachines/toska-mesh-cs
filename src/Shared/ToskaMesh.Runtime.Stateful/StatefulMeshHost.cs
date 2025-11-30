@@ -56,6 +56,24 @@ public static class StatefulMeshHost
                 configureService?.Invoke(opts);
             });
 
+            if (statefulOptions.KeyValue.Enabled)
+            {
+                services.AddMeshKeyValueStore(context.Configuration, redis =>
+                {
+                    if (!string.IsNullOrWhiteSpace(statefulOptions.KeyValue.ConnectionString))
+                    {
+                        redis.ConnectionString = statefulOptions.KeyValue.ConnectionString!;
+                    }
+
+                    if (statefulOptions.KeyValue.Database.HasValue)
+                    {
+                        redis.Database = statefulOptions.KeyValue.Database;
+                    }
+
+                    redis.KeyPrefix ??= statefulOptions.KeyValue.KeyPrefix;
+                });
+            }
+
             configureServices?.Invoke(services);
         });
 
@@ -84,6 +102,7 @@ public class StatefulHostOptions
     public string? ServiceId { get; set; }
     public StatefulRuntimeProvider Provider { get; set; } = StatefulRuntimeProvider.Orleans;
     public OrleansProviderOptions Orleans { get; } = new();
+    public StatefulKeyValueOptions KeyValue { get; } = new();
 
     internal void EnsureDefaults()
     {
@@ -94,6 +113,7 @@ public class StatefulHostOptions
 
         ServiceId ??= ServiceName;
         Orleans.EnsureDefaults();
+        KeyValue.EnsureDefaults(ServiceName);
     }
 }
 

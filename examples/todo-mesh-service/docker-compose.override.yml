@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  todo-mesh-silo:
+    image: todo-mesh-silo:local
+    build:
+      context: ../..
+      dockerfile: examples/todo-mesh-service/Dockerfile.silo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Consul__Address=http://consul:8500
+      - Mesh__KeyValue__Redis__ConnectionString=redis:6379
+      - Mesh__KeyValue__Redis__Database=1
+      - Mesh__KeyValue__Redis__KeyPrefix=todo-mesh-silo:
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    depends_on:
+      - consul
+      - redis
+    networks:
+      - toksa-mesh
+
+  todo-mesh-api:
+    image: todo-mesh-api:local
+    build:
+      context: ../..
+      dockerfile: examples/todo-mesh-service/Dockerfile.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Consul__Address=http://consul:8500
+      - Orleans__ClusterId=mesh-stateful
+      - Orleans__ServiceId=todo-mesh-service
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport=true
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Identity__ServiceName=todo-mesh-api
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    depends_on:
+      - discovery
+      - todo-mesh-silo
+    networks:
+      - toksa-mesh
+    ports:
+      - "18081:8080"
+      - "18082:8081"

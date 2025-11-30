@@ -23,4 +23,7 @@
     <ProjectReference Include="..\ToskaMesh.Security\ToskaMesh.Security.csproj" />
     <ProjectReference Include="..\ToskaMesh.Protocols\ToskaMesh.Protocols.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
 </Project>

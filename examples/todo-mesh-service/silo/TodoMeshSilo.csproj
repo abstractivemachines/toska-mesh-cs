@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ToskaMesh.Runtime.Stateful" Version="0.1.0-preview" />
+    <PackageReference Include="ToskaMesh.Runtime" Version="0.1.0-preview" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\contracts\TodoMeshContracts.csproj" />
+  </ItemGroup>
+</Project>
