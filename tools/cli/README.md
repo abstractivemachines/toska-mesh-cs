@@ -52,10 +52,18 @@ Notes:
 List deployed Toska Mesh user services (defaults to namespace `toskamesh` and selector `component=example`):
 
 ```bash
-toska services [--namespace toskamesh] [-l component=example] [--all] [--no-services] [--json]
+toska services [--namespace toskamesh] [-l component=example] [--all] [--json]
 ```
 - `--all` removes the label selector (may include core components).
-- `--no-services` skips querying Kubernetes Services (only Deployments).
+- `--json` prints raw data for scripting.
+
+## Deployments
+List Toska Mesh user deployments (defaults to namespace `toskamesh` and selector `component=example`):
+
+```bash
+toska deployments [--namespace toskamesh] [-l component=example] [--all] [--json]
+```
+- `--all` removes the label selector (may include core components).
 - `--json` prints raw data for scripting.
 
 ## Destroy

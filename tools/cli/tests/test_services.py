@@ -96,12 +96,33 @@ def test_gather_service_info_passes_selector_and_namespace():
     data = gather_service_info(
         namespace="toskamesh",
         selector="component=example",
+        include_deployments=True,
         include_services=True,
         run_cmd=fake_runner,
     )
 
     assert data["deployments"] == []
     assert any("-l" in cmd for cmd in seen_cmds)
+
+
+def test_gather_service_info_skips_deployments_when_disabled():
+    seen_cmds = []
+
+    def fake_runner(cmd):
+        seen_cmds.append(cmd)
+        return _fake_result({"items": []})
+
+    data = gather_service_info(
+        namespace="toskamesh",
+        selector=None,
+        include_deployments=False,
+        include_services=True,
+        run_cmd=fake_runner,
+    )
+
+    assert data["deployments"] == []
+    assert any("svc" in cmd for cmd in seen_cmds)
+    assert not any("deploy" in cmd for cmd in seen_cmds)
 
 
 def test_kubectl_error_bubbles():

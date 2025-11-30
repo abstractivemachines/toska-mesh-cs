@@ -154,14 +154,17 @@ def gather_service_info(
     *,
     namespace: str,
     selector: Optional[str],
-    include_services: bool,
+    include_deployments: bool = True,
+    include_services: bool = True,
     run_cmd=None,
     progress: ProgressReporter | None = None,
 ) -> dict:
     progress = progress or ProgressReporter()
 
-    with progress.step("Listing deployments"):
-        deployments = list_deployments(namespace=namespace, selector=selector, run_cmd=run_cmd)
+    deployments: List[DeploymentInfo] = []
+    if include_deployments:
+        with progress.step("Listing deployments"):
+            deployments = list_deployments(namespace=namespace, selector=selector, run_cmd=run_cmd)
 
     services: List[ServiceInfo] = []
     if include_services:
