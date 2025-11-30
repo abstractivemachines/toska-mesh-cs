@@ -130,6 +130,7 @@ public class OrleansProviderOptions
     public string ClusterId { get; set; } = "toska-mesh";
     public int PrimaryPort { get; set; } = 11111;
     public int ClientPort { get; set; } = 30000;
+    public string? AdvertisedIPAddress { get; set; }
     public StatefulClusterProvider ClusterProvider { get; set; } = StatefulClusterProvider.Local;
     public string? ConsulAddress { get; set; } = "http://localhost:8500";
     public string? ConsulToken { get; set; }
@@ -169,6 +170,7 @@ public class OrleansProviderOptions
         target.ClusterId = ClusterId;
         target.PrimaryPort = PrimaryPort;
         target.ClientPort = ClientPort;
+        target.AdvertisedIPAddress = AdvertisedIPAddress;
         target.ClusterProvider = ClusterProvider.ToOrleansProvider();
         target.ConsulAddress = ConsulAddress;
         target.ConsulToken = ConsulToken;

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-mesh-silo
+  labels:
+    app: todo-mesh-silo
+    component: example
+spec:
+  selector:
+    app: todo-mesh-silo
+  ports:
+  - name: silo
+    port: 11111
+    targetPort: 11111
+    protocol: TCP
+  - name: gateway
+    port: 30000
+    targetPort: 30000
+    protocol: TCP
+  type: ClusterIP

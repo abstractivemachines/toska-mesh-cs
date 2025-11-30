@@ -21,6 +21,8 @@ Open issues:
 Suggested next steps:
 - Silo: disable mesh auto-registration or set `Mesh__Service__Address=$(status.podIP)` and `Mesh__Service__Port=11111` before registering; keep probes on port 11111.
 - API: Orleans client startup now logs connection failures and retries (5s backoff) without killing Kestrel; health exposes `/health/ready` as “unhealthy” until connected. Rebuild/push/redeploy the API image, update readiness probes to `/health/ready` (liveness can stay `/health`), and watch pod logs for Orleans connection errors.
+- API k8s overlay added: `k8s/todo-mesh-api` (ConfigMap, Deployment, Service) targets image `192.168.50.73:5000/todo-mesh-api:local` with readiness `/health/ready`. Apply with `kubectl apply -f k8s/todo-mesh-api -n <ns>`.
+- Silo k8s overlay added: `k8s/todo-mesh-silo` (ConfigMap, Deployment, Service) targets image `192.168.50.73:5000/todo-mesh-silo:local`, disables mesh auto-registration, and sets probes to TCP 11111. Apply with `kubectl apply -f k8s/todo-mesh-silo -n <ns>`.
 - Validate Orleans connectivity: confirm Consul membership for `mesh-stateful`/`todo-mesh-silo` and gateway port 30000 reachability; keep probes lenient enough to surface the logs.
 - Validate discovery gRPC with a proper gRPC client (e.g., grpcurl) at `toskamesh-discovery.toskamesh.svc.cluster.local:50051`.
 

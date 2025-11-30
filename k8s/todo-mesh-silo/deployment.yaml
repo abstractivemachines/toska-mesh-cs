@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-mesh-silo
+  labels:
+    app: todo-mesh-silo
+    component: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-mesh-silo
+  template:
+    metadata:
+      labels:
+        app: todo-mesh-silo
+        component: example
+    spec:
+      containers:
+      - name: todo-mesh-silo
+        image: 192.168.50.73:5000/todo-mesh-silo:local
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 11111
+          name: silo
+          protocol: TCP
+        - containerPort: 30000
+          name: gateway
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-silo-config
+              key: consul_address
+        - name: Orleans__ClusterId
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-silo-config
+              key: orleans_cluster_id
+        - name: Orleans__AdvertisedIPAddress
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: Mesh__KeyValue__Redis__ConnectionString
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-silo-config
+              key: redis_connection
+        - name: Mesh__KeyValue__Redis__Database
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-silo-config
+              key: redis_database
+        - name: Mesh__KeyValue__Redis__KeyPrefix
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-silo-config
+              key: redis_key_prefix
+        - name: Mesh__Service__RegisterAutomatically
+          value: "false"
+        - name: Mesh__Service__Address
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: Mesh__Service__Port
+          value: "11111"
+        - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          tcpSocket:
+            port: 11111
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 11111
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      imagePullSecrets: []

@@ -29,6 +29,10 @@ public static class MeshSiloHostingExtensions
             config.ClusterId = options.ClusterId;
             config.SiloPort = options.PrimaryPort;
             config.GatewayPort = options.ClientPort;
+            if (!string.IsNullOrWhiteSpace(options.AdvertisedIPAddress))
+            {
+                config.AdvertisedIPAddress = options.AdvertisedIPAddress;
+            }
             config.ClusteringMode = options.ClusterProvider switch
             {
                 StatefulClusterProvider.Local => "localhost",

@@ -18,6 +18,7 @@ await StatefulMeshHost.RunAsync(
         opts.Orleans.ClusterId = "mesh-stateful";
         opts.Orleans.ClusterProvider = StatefulClusterProvider.Consul;
         opts.Orleans.ConsulAddress = configuration.GetValue<string>("Consul:Address") ?? "http://consul:8500";
+        opts.Orleans.AdvertisedIPAddress = configuration.GetValue<string>("Orleans:AdvertisedIPAddress");
         opts.KeyValue.Enabled = true;
         opts.KeyValue.ConnectionString = configuration.GetValue<string>("Mesh:KeyValue:Redis:ConnectionString")
             ?? "redis:6379";

@@ -22,6 +22,7 @@ var serviceId = configuration.GetValue<string>("Orleans:ServiceId") ?? "todo-mes
 
 try
 {
+    Console.WriteLine("[todo-mesh-api] Starting MeshServiceHost...");
     await MeshServiceHost.RunAsync(
         app =>
         {
@@ -198,10 +199,7 @@ public sealed class OrleansClientHealthCheck : IHealthCheck
 {
     private readonly OrleansClientConnectionState state;
 
-    public OrleansClientHealthCheck(OrleansClientConnectionState state)
-    {
-        this.state = state;
-    }
+    public OrleansClientHealthCheck(OrleansClientConnectionState state) => this.state = state;
 
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,

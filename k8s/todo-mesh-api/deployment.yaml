@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-mesh-api
+  labels:
+    app: todo-mesh-api
+    component: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-mesh-api
+  template:
+    metadata:
+      labels:
+        app: todo-mesh-api
+        component: example
+    spec:
+      containers:
+      - name: todo-mesh-api
+        image: 192.168.50.73:5000/todo-mesh-api:local
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: consul_address
+        - name: Orleans__ClusterId
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: orleans_cluster_id
+        - name: Orleans__ServiceId
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: orleans_service_id
+        - name: Mesh__Service__ServiceName
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: mesh_service_name
+        - name: Mesh__Identity__ServiceName
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: mesh_service_name
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          valueFrom:
+            configMapKeyRef:
+              name: todo-mesh-api-config
+              key: discovery_grpc_address
+        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+          value: "true"
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: mesh_service_auth_secret
+        - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 6
+      imagePullSecrets: []

@@ -80,6 +80,11 @@ public class OrleansClusterConfig
     /// Dashboard port (if enabled).
     /// </summary>
     public int DashboardPort { get; set; } = 8080;
+
+    /// <summary>
+    /// Advertised IP address for silo endpoints (useful in containerized deployments).
+    /// </summary>
+    public string? AdvertisedIPAddress { get; set; }
 }
 
 public enum OrleansClusterProvider

@@ -34,10 +34,17 @@ public static class OrleansHostingExtensions
             });
 
             // Configure endpoints
+            var advertisedIp = IPAddress.Loopback;
+            if (!string.IsNullOrWhiteSpace(config.AdvertisedIPAddress) &&
+                IPAddress.TryParse(config.AdvertisedIPAddress, out var parsedIp))
+            {
+                advertisedIp = parsedIp;
+            }
+
             siloBuilder.ConfigureEndpoints(
                 siloPort: config.SiloPort,
                 gatewayPort: config.GatewayPort,
-                advertisedIP: IPAddress.Loopback,
+                advertisedIP: advertisedIp,
                 listenOnAnyHostAddress: true);
 
             // Configure clustering

@@ -3,6 +3,7 @@ WORKDIR /src
 
 COPY ./artifacts/nuget ./artifacts/nuget
 COPY Directory.Build.props Directory.Packages.props ./
+COPY ./src ./src
 COPY ./examples/todo-mesh-service ./examples/todo-mesh-service
 
 WORKDIR /src/examples/todo-mesh-service/silo

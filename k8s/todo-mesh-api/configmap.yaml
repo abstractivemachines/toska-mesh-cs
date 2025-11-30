@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-mesh-api-config
+data:
+  consul_address: "http://consul-server.toskamesh-infra.svc.cluster.local:8500"
+  discovery_grpc_address: "http://toskamesh-discovery.toskamesh.svc.cluster.local:50051"
+  orleans_cluster_id: "mesh-stateful"
+  orleans_service_id: "todo-mesh-silo"
+  mesh_service_name: "todo-mesh-api"

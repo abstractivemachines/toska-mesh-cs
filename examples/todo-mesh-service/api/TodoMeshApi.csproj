@@ -4,11 +4,12 @@
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ToskaMesh.Runtime" Version="0.1.0-preview" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="8.2.0" />
-    <PackageReference Include="Microsoft.Orleans.Clustering.Consul" Version="8.2.0" />
+    <ProjectReference Include="..\contracts\TodoMeshContracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime\ToskaMesh.Runtime.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime.Stateful\ToskaMesh.Runtime.Stateful.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\contracts\TodoMeshContracts.csproj" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Orleans.Clustering.Consul" Version="8.2.0" />
   </ItemGroup>
 </Project>

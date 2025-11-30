@@ -23,6 +23,11 @@ public class MeshStatefulOptions
     /// </summary>
     public int ClientPort { get; set; } = 30000;
 
+    /// <summary>
+    /// IP address advertised to the cluster/client (useful in containerized deployments).
+    /// </summary>
+    public string? AdvertisedIPAddress { get; set; }
+
     public StatefulClusterProvider ClusterProvider { get; set; } = StatefulClusterProvider.Local;
 
     public string? ConsulAddress { get; set; } = "http://localhost:8500";

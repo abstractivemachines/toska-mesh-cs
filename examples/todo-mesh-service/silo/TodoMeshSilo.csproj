@@ -6,10 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ToskaMesh.Runtime.Stateful" Version="0.1.0-preview" />
-    <PackageReference Include="ToskaMesh.Runtime" Version="0.1.0-preview" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\contracts\TodoMeshContracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime.Stateful\ToskaMesh.Runtime.Stateful.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime\ToskaMesh.Runtime.csproj" />
   </ItemGroup>
 </Project>
