@@ -1,0 +1,405 @@
+from __future__ import annotations
+
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, List, Optional
+
+import yaml
+
+from .progress import ProgressReporter
+
+
+class DeployConfigError(Exception):
+    """Raised when the deploy manifest is invalid or a deployment fails."""
+
+
+@dataclass(frozen=True)
+class ImageRef:
+    repository: str
+    tag: str = "latest"
+    registry: Optional[str] = None
+
+    def as_string(self) -> str:
+        prefix = f"{self.registry}/" if self.registry else ""
+        return f"{prefix}{self.repository}:{self.tag}"
+
+
+@dataclass(frozen=True)
+class Workload:
+    name: str
+    mode: str
+    manifests: List[Path]
+    image: Optional[ImageRef] = None
+    build_context: Optional[Path] = None
+    dockerfile: Optional[Path] = None
+
+
+@dataclass(frozen=True)
+class DeployConfig:
+    service: str
+    mode: str
+    target: str
+    namespace: Optional[str]
+    workloads: List[Workload]
+
+
+def load_deploy_config(manifest_path: Path) -> DeployConfig:
+    manifest_path = manifest_path.resolve()
+    if not manifest_path.exists():
+        raise DeployConfigError(
+            f"Deploy manifest not found at {manifest_path}. Add one or pass --manifest."
+        )
+
+    try:
+        data = yaml.safe_load(manifest_path.read_text()) or {}
+    except yaml.YAMLError as exc:
+        raise DeployConfigError(f"Unable to parse YAML manifest: {exc}") from exc
+
+    service = data.get("service") or {}
+    service_name = service.get("name")
+    service_mode = (service.get("type") or service.get("mode") or "").lower()
+    if not service_name:
+        raise DeployConfigError("service.name is required in the deploy manifest.")
+    if service_mode not in {"stateless", "stateful"}:
+        raise DeployConfigError("service.type must be 'stateless' or 'stateful'.")
+
+    deploy = data.get("deploy") or {}
+    target = (deploy.get("target") or "kubernetes").lower()
+    namespace = deploy.get("namespace")
+    if target not in {"kubernetes", "k8s"}:
+        raise DeployConfigError(f"Unsupported deploy target '{target}'. Only kubernetes is supported right now.")
+    target = "kubernetes"  # normalize shorthand
+
+    workloads_data = data.get("workloads")
+    if workloads_data is None:
+        manifest_entries = deploy.get("manifests") or deploy.get("manifest")
+        if manifest_entries is None:
+            raise DeployConfigError(
+                "Define 'workloads' or 'deploy.manifests' in the deploy manifest."
+            )
+        if isinstance(manifest_entries, (str, Path)):
+            manifest_entries = [manifest_entries]
+        workloads_data = [
+            {
+                "name": service_name,
+                "mode": service_mode,
+                "manifests": [entry],
+                "image": data.get("image"),
+            }
+            for entry in manifest_entries
+        ]
+
+    workloads: List[Workload] = []
+    for index, raw in enumerate(workloads_data):
+        workload_name = raw.get("name") or f"{service_name}-{index + 1}"
+        workload_mode = (raw.get("type") or raw.get("mode") or service_mode).lower()
+        manifest_value = raw.get("manifests") or raw.get("manifest") or raw.get("path")
+        if not manifest_value:
+            raise DeployConfigError(f"Workload '{workload_name}' is missing a manifest path.")
+
+        manifest_values = manifest_value if isinstance(manifest_value, list) else [manifest_value]
+        resolved_manifests: List[Path] = []
+        for manifest_entry in manifest_values:
+            manifest_path_value = Path(manifest_entry)
+            resolved_manifest = (manifest_path.parent / manifest_path_value).resolve()
+            if not resolved_manifest.exists():
+                raise DeployConfigError(
+                    f"Manifest path not found for workload '{workload_name}': {manifest_path_value}"
+                )
+            resolved_manifests.append(resolved_manifest)
+
+        image_data = raw.get("image") or data.get("image") or {}
+        image = None
+        repository = image_data.get("repository") or image_data.get("name")
+        if repository:
+            image = ImageRef(
+                repository=repository,
+                tag=image_data.get("tag", "latest"),
+                registry=image_data.get("registry"),
+            )
+
+        build_data = raw.get("build") or {}
+        context_value = build_data.get("context")
+        dockerfile_value = build_data.get("dockerfile")
+        build_context = (manifest_path.parent / context_value).resolve() if context_value else None
+        dockerfile = (manifest_path.parent / dockerfile_value).resolve() if dockerfile_value else None
+
+        workloads.append(
+            Workload(
+                name=workload_name,
+                mode=workload_mode,
+                manifests=resolved_manifests,
+                image=image,
+                build_context=build_context,
+                dockerfile=dockerfile,
+            )
+        )
+
+    return DeployConfig(
+        service=service_name,
+        mode=service_mode,
+        target=target,
+        namespace=namespace,
+        workloads=workloads,
+    )
+
+
+def format_plan(config: DeployConfig) -> str:
+    lines = [
+        f"Service: {config.service} ({config.mode})",
+        f"Target: {config.target}",
+        f"Namespace: {config.namespace or '(default)'}",
+        "",
+        "Workloads:",
+    ]
+
+    for workload in config.workloads:
+        image_str = workload.image.as_string() if workload.image else "unspecified"
+        manifest_str = ", ".join(str(m) for m in workload.manifests)
+        lines.append(
+            f"- {workload.name} [{workload.mode}]"
+            f" -> manifests {manifest_str}"
+            f" (image: {image_str})"
+        )
+
+    return "\n".join(lines)
+
+
+def deploy(
+    config: DeployConfig,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    run_cmd=None,
+    progress: ProgressReporter | None = None,
+    emit=None,
+) -> Iterable[str]:
+    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    printer = emit or print
+    progress = progress or ProgressReporter()
+
+    executed: list[str] = []
+    if config.target != "kubernetes":
+        raise DeployConfigError(f"Unsupported target '{config.target}'.")
+
+    for workload in config.workloads:
+        for manifest in workload.manifests:
+            cmd = ["kubectl", "apply", "-f", str(manifest)]
+            if config.namespace:
+                cmd.extend(["-n", config.namespace])
+
+            rendered = " ".join(cmd)
+            executed.append(rendered)
+
+            with progress.step(f"Applying {manifest.name}") as step:
+                if dry_run:
+                    step.mark("skipped")
+                    continue
+
+                result = runner(cmd)
+                return_code = getattr(result, "returncode", 1)
+                if return_code != 0:
+                    stderr = getattr(result, "stderr", "") or getattr(result, "stdout", "")
+                    raise DeployConfigError(
+                        f"kubectl apply failed for workload '{workload.name}' (exit {return_code}): {stderr}"
+                    )
+
+                if verbose:
+                    stdout = getattr(result, "stdout", "") or ""
+                    stderr = getattr(result, "stderr", "") or ""
+                    if stdout.strip():
+                        printer(stdout.strip())
+                    if stderr.strip():
+                        printer(stderr.strip())
+
+    return executed
+
+
+def destroy(
+    config: DeployConfig,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    run_cmd=None,
+    progress: ProgressReporter | None = None,
+    emit=None,
+) -> Iterable[str]:
+    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    printer = emit or print
+    progress = progress or ProgressReporter()
+
+    executed: list[str] = []
+    if config.target != "kubernetes":
+        raise DeployConfigError(f"Unsupported target '{config.target}'.")
+
+    for workload in config.workloads:
+        for manifest in workload.manifests:
+            cmd = ["kubectl", "delete", "-f", str(manifest)]
+            if config.namespace:
+                cmd.extend(["-n", config.namespace])
+
+            rendered = " ".join(cmd)
+            executed.append(rendered)
+
+            with progress.step(f"Deleting {manifest.name}") as step:
+                if dry_run:
+                    step.mark("skipped")
+                    continue
+
+                result = runner(cmd)
+                return_code = getattr(result, "returncode", 1)
+                if return_code != 0:
+                    stderr = getattr(result, "stderr", "") or getattr(result, "stdout", "")
+                    raise DeployConfigError(
+                        f"kubectl delete failed for workload '{workload.name}' (exit {return_code}): {stderr}"
+                    )
+
+                if verbose:
+                    stdout = getattr(result, "stdout", "") or ""
+                    stderr = getattr(result, "stderr", "") or ""
+                    if stdout.strip():
+                        printer(stdout.strip())
+                    if stderr.strip():
+                        printer(stderr.strip())
+
+    return executed
+
+
+def build_images(
+    config: DeployConfig,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    run_cmd=None,
+    progress: ProgressReporter | None = None,
+    emit=None,
+) -> Iterable[str]:
+    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    printer = emit or print
+    progress = progress or ProgressReporter()
+
+    executed: list[str] = []
+    for workload in config.workloads:
+        if not workload.image:
+            raise DeployConfigError(f"Workload '{workload.name}' is missing an image definition.")
+
+        context = workload.build_context or manifest_default_context(config, workload)
+        dockerfile = workload.dockerfile or context / "Dockerfile"
+
+        cmd = [
+            "docker",
+            "build",
+            "-t",
+            workload.image.as_string(),
+            "-f",
+            str(dockerfile),
+            str(context),
+        ]
+        rendered = " ".join(cmd)
+        executed.append(rendered)
+
+        with progress.step(f"Building {workload.name}") as step:
+            if dry_run:
+                step.mark("skipped")
+                continue
+
+            result = runner(cmd)
+            return_code = getattr(result, "returncode", 1)
+            if return_code != 0:
+                stderr = getattr(result, "stderr", "") or getattr(result, "stdout", "")
+                raise DeployConfigError(
+                    f"Docker build failed for workload '{workload.name}' (exit {return_code}): {stderr}"
+                )
+
+            if verbose:
+                stdout = getattr(result, "stdout", "") or ""
+                stderr = getattr(result, "stderr", "") or ""
+                if stdout.strip():
+                    printer(stdout.strip())
+                if stderr.strip():
+                    printer(stderr.strip())
+
+    return executed
+
+
+def push_images(
+    config: DeployConfig,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    run_cmd=None,
+    progress: ProgressReporter | None = None,
+    emit=None,
+) -> Iterable[str]:
+    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    printer = emit or print
+    progress = progress or ProgressReporter()
+
+    executed: list[str] = []
+    for workload in config.workloads:
+        if not workload.image:
+            raise DeployConfigError(f"Workload '{workload.name}' is missing an image definition.")
+
+        image_ref = workload.image.as_string()
+        cmd = ["docker", "push", image_ref]
+        rendered = " ".join(cmd)
+        executed.append(rendered)
+
+        with progress.step(f"Pushing {workload.name}") as step:
+            if dry_run:
+                step.mark("skipped")
+                continue
+
+            result = runner(cmd)
+            return_code = getattr(result, "returncode", 1)
+            if return_code != 0:
+                stderr = getattr(result, "stderr", "") or getattr(result, "stdout", "")
+                raise DeployConfigError(
+                    f"Docker push failed for workload '{workload.name}' (exit {return_code}): {stderr}"
+                )
+
+            if verbose:
+                stdout = getattr(result, "stdout", "") or ""
+                stderr = getattr(result, "stderr", "") or ""
+                if stdout.strip():
+                    printer(stdout.strip())
+                if stderr.strip():
+                    printer(stderr.strip())
+
+    return executed
+
+
+def publish(
+    config: DeployConfig,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    run_cmd=None,
+    progress: ProgressReporter | None = None,
+    emit=None,
+) -> Iterable[str]:
+    progress = progress or ProgressReporter()
+
+    build_cmds = build_images(
+        config,
+        dry_run=dry_run,
+        verbose=verbose,
+        run_cmd=run_cmd,
+        progress=progress,
+        emit=emit,
+    )
+    push_cmds = push_images(
+        config,
+        dry_run=dry_run,
+        verbose=verbose,
+        run_cmd=run_cmd,
+        progress=progress,
+        emit=emit,
+    )
+    return list(build_cmds) + list(push_cmds)
+
+
+def manifest_default_context(config: DeployConfig, workload: Workload) -> Path:
+    # Default context: manifest directory for the first manifest of the workload.
+    return workload.manifests[0].parent
