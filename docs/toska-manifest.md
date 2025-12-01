@@ -10,17 +10,21 @@ The Toska CLI uses a `toska.yaml` manifest to know how to build and deploy a ser
 - `deploy`: deployment target.
   - `target`: e.g., `kubernetes`.
   - `namespace`: Kubernetes namespace for the rendered manifests.
-- `workloads`: array of workload definitions (typically one per container).
-  - `name`: workload identifier.
-  - `type`: `stateless` or `stateful`.
-  - `manifests`: list of Kubernetes manifest paths (relative to the manifest file) to apply.
-  - `image`: container image metadata.
-    - `repository`: image name.
-    - `tag`: tag to build/push.
-    - `registry`: registry host (e.g., `localhost:5000` for local dev).
-  - `build`: how to build the image.
-    - `context`: docker build context.
-    - `dockerfile`: path to the Dockerfile within the repo.
+  - `workloads`: array of workload definitions (typically one per container).
+    - `name`: workload identifier.
+    - `type`: `stateless` or `stateful`.
+    - `manifests`: list of Kubernetes manifest paths (relative to the manifest file) to apply.
+    - `image`: container image metadata.
+      - `repository`: image name.
+      - `tag`: tag to build/push.
+      - `registry`: registry host (e.g., `localhost:5000` for local dev).
+    - `build`: how to build the image.
+      - `context`: docker build context.
+      - `dockerfile`: path to the Dockerfile within the repo.
+    - `portForward` (optional): for local testing, describes how to port-forward the workload service.
+      - `service`: K8s service name to forward (defaults to workload name).
+      - `port`: remote service port.
+      - `localPort`: local port to bind (defaults to `port`).
 
 ## Example
 
@@ -48,6 +52,10 @@ workloads:
     build:
       context: ../..
       dockerfile: examples/adder-mesh-service/Dockerfile
+    portForward:
+      service: adder-mesh-service
+      port: 8083
+      localPort: 8083
 ```
 
 ## Publish flow (example)
@@ -57,6 +65,7 @@ From the manifest directory:
 ```bash
 dotnet pack ../../src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Release -o ../../artifacts/nuget
 toska publish --manifest toska.yaml
+toska deploy --port-forward --manifest toska.yaml  # optional: start kubectl port-forward
 ```
 
 This builds and pushes `localhost:5000/adder-mesh-service:local` using the provided Dockerfile, then applies the Kubernetes manifests listed under `manifests`. Adjust `registry`, `namespace`, or manifest paths to match your environment.***

@@ -57,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show kubectl output while applying manifests.",
     )
+    deploy_parser.add_argument(
+        "--port-forward",
+        action="store_true",
+        help="Start kubectl port-forward for workloads that define portForward in the manifest.",
+    )
 
     destroy_parser = subparsers.add_parser(
         "destroy",
@@ -233,6 +238,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 config,
                 dry_run=args.dry_run,
                 verbose=args.verbose,
+                port_forward=args.port_forward,
                 progress=reporter,
             )
 

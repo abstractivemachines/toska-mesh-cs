@@ -33,6 +33,7 @@ class Workload:
     image: Optional[ImageRef] = None
     build_context: Optional[Path] = None
     dockerfile: Optional[Path] = None
+    port_forward: Optional["PortForward"] = None
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,13 @@ class DeployConfig:
     target: str
     namespace: Optional[str]
     workloads: List[Workload]
+
+
+@dataclass(frozen=True)
+class PortForward:
+    service: str
+    remote_port: int
+    local_port: Optional[int] = None
 
 
 def load_deploy_config(manifest_path: Path) -> DeployConfig:
@@ -125,6 +133,20 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
         build_context = (manifest_path.parent / context_value).resolve() if context_value else None
         dockerfile = (manifest_path.parent / dockerfile_value).resolve() if dockerfile_value else None
 
+        port_forward_data = raw.get("portForward") or raw.get("port_forward")
+        port_forward = None
+        if port_forward_data:
+            service_name = port_forward_data.get("service") or workload_name
+            remote_port = int(port_forward_data.get("port") or port_forward_data.get("targetPort") or 0)
+            local_port = port_forward_data.get("localPort") or port_forward_data.get("local_port")
+            if remote_port <= 0:
+                raise DeployConfigError(f"Workload '{workload_name}' portForward.port/targetPort must be set.")
+            port_forward = PortForward(
+                service=service_name,
+                remote_port=remote_port,
+                local_port=int(local_port) if local_port else None,
+            )
+
         workloads.append(
             Workload(
                 name=workload_name,
@@ -133,6 +155,7 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
                 image=image,
                 build_context=build_context,
                 dockerfile=dockerfile,
+                port_forward=port_forward,
             )
         )
 
@@ -171,6 +194,7 @@ def deploy(
     *,
     dry_run: bool = False,
     verbose: bool = False,
+    port_forward: bool = False,
     run_cmd=None,
     progress: ProgressReporter | None = None,
     emit=None,
@@ -319,6 +343,40 @@ def build_images(
                     printer(stdout.strip())
                 if stderr.strip():
                     printer(stderr.strip())
+
+    if port_forward and not dry_run:
+        for workload in config.workloads:
+            pf = workload.port_forward
+            if not pf:
+                continue
+
+            local_port = pf.local_port or pf.remote_port
+            cmd = [
+                "kubectl",
+                "port-forward",
+                f"svc/{pf.service}",
+                f"{local_port}:{pf.remote_port}",
+            ]
+            if config.namespace:
+                cmd.extend(["-n", config.namespace])
+
+            rendered = " ".join(cmd)
+            executed.append(rendered)
+
+            with progress.step(f"Port-forward {pf.service}") as step:
+                proc = subprocess.Popen(cmd)
+                step.mark("running")
+                printer(f"Port-forwarding to {pf.service} at localhost:{local_port} (ctrl+c to stop)")
+                try:
+                    proc.wait()
+                except KeyboardInterrupt:
+                    proc.terminate()
+                    proc.wait()
+                    step.mark("stopped")
+                    break
+                return_code = proc.returncode
+                if return_code != 0:
+                    raise DeployConfigError(f"kubectl port-forward failed for '{pf.service}' (exit {return_code})")
 
     return executed
 
