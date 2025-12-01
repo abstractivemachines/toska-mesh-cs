@@ -4,15 +4,18 @@ metadata:
   name: adder-mesh-service
   labels:
     app: adder-mesh-service
+    component: example
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: adder-mesh-service
+      component: example
   template:
     metadata:
       labels:
         app: adder-mesh-service
+        component: example
     spec:
       containers:
         - name: adder-mesh-service
