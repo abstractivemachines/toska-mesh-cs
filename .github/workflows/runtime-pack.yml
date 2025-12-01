@@ -33,7 +33,7 @@ jobs:
           path: artifacts/nuget/*.nupkg
 
       - name: Publish to NuGet (tagged builds only)
-        if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'runtime-') && secrets.NUGET_API_KEY != '' }}
+        if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'runtime-') && env.NUGET_API_KEY != '' }}
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
