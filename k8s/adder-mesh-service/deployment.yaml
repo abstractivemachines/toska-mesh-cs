@@ -20,13 +20,46 @@ spec:
       containers:
         - name: adder-mesh-service
           image: 192.168.50.73:5000/adder-mesh-service:local
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
               name: http
           env:
             - name: ASPNETCORE_URLS
               value: http://+:8083
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: Mesh__Service__ServiceName
+              value: adder-mesh-service
+            - name: Mesh__Service__ServiceId
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: Mesh__Service__Address
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__Port
+              value: "8083"
+            - name: Mesh__Service__Routing__HealthCheckEndpoint
+              value: /health
+            - name: Mesh__ServiceDiscovery__Grpc__Address
+              value: http://toskamesh-discovery.toskamesh.svc.cluster.local:50051
+            - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+              value: "true"
+            - name: Mesh__ServiceAuth__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-discovery-secrets
+                  key: mesh_service_auth_secret
+            - name: Mesh__ServiceAuth__Issuer
+              value: ToskaMesh.Services
+            - name: Mesh__ServiceAuth__Audience
+              value: ToskaMesh.Services
+            - name: Mesh__Identity__ServiceName
+              value: adder-mesh-service
+            - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
+              value: "true"
           readinessProbe:
             httpGet:
               path: /health
