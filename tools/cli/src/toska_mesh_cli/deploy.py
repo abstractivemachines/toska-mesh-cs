@@ -344,40 +344,6 @@ def build_images(
                 if stderr.strip():
                     printer(stderr.strip())
 
-    if port_forward and not dry_run:
-        for workload in config.workloads:
-            pf = workload.port_forward
-            if not pf:
-                continue
-
-            local_port = pf.local_port or pf.remote_port
-            cmd = [
-                "kubectl",
-                "port-forward",
-                f"svc/{pf.service}",
-                f"{local_port}:{pf.remote_port}",
-            ]
-            if config.namespace:
-                cmd.extend(["-n", config.namespace])
-
-            rendered = " ".join(cmd)
-            executed.append(rendered)
-
-            with progress.step(f"Port-forward {pf.service}") as step:
-                proc = subprocess.Popen(cmd)
-                step.mark("running")
-                printer(f"Port-forwarding to {pf.service} at localhost:{local_port} (ctrl+c to stop)")
-                try:
-                    proc.wait()
-                except KeyboardInterrupt:
-                    proc.terminate()
-                    proc.wait()
-                    step.mark("stopped")
-                    break
-                return_code = proc.returncode
-                if return_code != 0:
-                    raise DeployConfigError(f"kubectl port-forward failed for '{pf.service}' (exit {return_code})")
-
     return executed
 
 
