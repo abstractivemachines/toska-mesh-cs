@@ -18,4 +18,4 @@ workloads:
       registry: localhost:5000
     build:
       context: ../..
-      dockerfile: examples/adder-mesh-service/Dockerfile
+      dockerfile: Dockerfile
