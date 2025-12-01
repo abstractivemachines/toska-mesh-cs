@@ -50,16 +50,14 @@ This outlines how to turn on mutual TLS for the gateway (clients must present ce
 
 ## Kubernetes wiring
 - `k8s/gateway/deployment.yaml` now mounts `/etc/tls` (from `toskamesh-gateway-tls`) and reads optional env vars for Kestrel HTTPS + the outbound client cert password. Without the secret, the pod runs unchanged.
-- Create the TLS secret with your artifacts:
+- Create/update the TLS secret with your artifacts:
   ```bash
-  kubectl create secret generic toskamesh-gateway-tls \
-    --from-file=gateway-server.pfx=./gateway-server.pfx \
-    --from-literal=gateway_server_pfx_password=changeit \
-    --from-file=gateway-client.pfx=./gateway-client.pfx \
-    --from-literal=gateway_client_pfx_password=changeit \
-    --from-file=ca.crt=./ca.crt \
-    --from-literal=gateway_server_pfx_path=/etc/tls/gateway-server.pfx \
-    --from-literal=kestrel_https_url=https://+:8443
+  ./tools/create-gateway-tls-secret.sh \
+    --namespace toskamesh \
+    --server-pfx ./gateway-server.pfx --server-pass changeit \
+    --client-pfx ./gateway-client.pfx --client-pass changeit \
+    --ca-crt ./ca.crt \
+    --kestrel-url https://+:8443
   ```
 - Roll the CA bundle into your app images or a shared ConfigMap so downstream services trust the gateway client cert.
 
