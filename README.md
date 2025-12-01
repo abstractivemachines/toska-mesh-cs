@@ -410,7 +410,7 @@ Key environment variables for configuration:
 
 ## License
 
-MIT License - See LICENSE file for details
+Licensed under the Apache License 2.0. See `LICENSE` and `NOTICE` for details.
 
 ## Resources
 
