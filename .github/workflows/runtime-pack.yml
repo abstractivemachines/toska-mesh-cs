@@ -3,13 +3,12 @@ name: Runtime Packages
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - "**"
     tags:
       - "runtime-*"
 
 jobs:
   pack:
+    if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'runtime-') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
