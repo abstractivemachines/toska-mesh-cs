@@ -102,6 +102,7 @@ services:
       dockerfile: deployments/Dockerfile.Gateway
     ports:
       - "${GATEWAY_PORT:-15000}:80"
+      - "${GATEWAY_HTTPS_PORT:-15443}:8443"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
@@ -110,12 +111,16 @@ services:
       - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
       - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
       - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Gateway__Tls__ClientCertificatePath=/etc/tls/gateway-client.pfx
+      - Mesh__Gateway__Tls__ClientCertificatePassword=${GATEWAY_CLIENT_CERT_PASSWORD:-}
     depends_on:
       - consul
       - discovery
       - prometheus
     networks:
       - toksa-mesh
+    volumes:
+      - ./certs/gateway:/etc/tls:ro
 
   discovery:
     build:

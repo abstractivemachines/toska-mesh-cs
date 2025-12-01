@@ -12,9 +12,12 @@ using ToskaMesh.Common.ServiceDiscovery;
 using ToskaMesh.Gateway.Configuration;
 using ToskaMesh.Gateway.Middleware;
 using ToskaMesh.Gateway.Services;
+using ToskaMesh.Gateway.Telemetry;
 using ToskaMesh.Protocols;
 using ToskaMesh.Telemetry;
 using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Forwarder;
+using Yarp.Telemetry.Consumption;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +30,10 @@ var corsConfig = builder.Configuration.GetSection(CorsConfiguration.SectionName)
     ?? new CorsConfiguration();
 var routingConfig = builder.Configuration.GetSection(GatewayRoutingOptions.SectionName).Get<GatewayRoutingOptions>()
     ?? new GatewayRoutingOptions();
+var resilienceOptions = builder.Configuration.GetSection(GatewayResilienceOptions.SectionName).Get<GatewayResilienceOptions>()
+    ?? new GatewayResilienceOptions();
+var tlsOptions = builder.Configuration.GetSection(GatewayTlsOptions.SectionName).Get<GatewayTlsOptions>()
+    ?? new GatewayTlsOptions();
 var consulHealthConfig = builder.Configuration.GetSection(ConsulHealthCheckOptions.SectionName).Get<ConsulHealthCheckOptions>()
     ?? new ConsulHealthCheckOptions();
 
@@ -130,6 +137,10 @@ builder.Services.AddReverseProxy()
                     Array.Empty<Yarp.ReverseProxy.Configuration.ClusterConfig>());
 
 builder.Services.AddSingleton(routingConfig);
+builder.Services.AddSingleton(resilienceOptions);
+builder.Services.AddSingleton(tlsOptions);
+builder.Services.AddSingleton<IForwarderHttpClientFactory, ResilientForwarderHttpClientFactory>();
+builder.Services.AddTelemetryConsumer<GatewayProxyMetricsConsumer>();
 
 // Add CORS
 builder.Services.AddCors(options =>

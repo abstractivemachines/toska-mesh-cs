@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -30,11 +31,21 @@ public static class TelemetryExtensions
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddConsoleExporter())
-            .WithMetrics(metrics => metrics
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation()
-                .AddPrometheusExporter());
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddPrometheusExporter();
+
+                metrics.AddMeter($"ToskaMesh.{serviceName}");
+
+                if (string.Equals(serviceName, "Gateway", StringComparison.OrdinalIgnoreCase))
+                {
+                    metrics.AddMeter("ToskaMesh.Gateway.Proxy");
+                }
+            });
 
         return services;
     }

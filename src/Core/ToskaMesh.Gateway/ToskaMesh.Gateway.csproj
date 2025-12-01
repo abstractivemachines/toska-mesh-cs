@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="Yarp.Telemetry.Consumption" />
     <PackageReference Include="AspNetCoreRateLimit" />
+    <PackageReference Include="Polly.Extensions.Http" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" />

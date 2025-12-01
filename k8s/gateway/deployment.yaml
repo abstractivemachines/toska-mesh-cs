@@ -27,6 +27,9 @@ spec:
         - containerPort: 80
           name: http
           protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
@@ -47,6 +50,34 @@ spec:
             secretKeyRef:
               name: toskamesh-gateway-secrets
               key: jwt_secret_key
+        - name: Mesh__Gateway__Tls__ClientCertificatePath
+          value: "/etc/tls/gateway-client.pfx"
+        - name: Mesh__Gateway__Tls__ClientCertificatePassword
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-gateway-tls
+              key: gateway_client_pfx_password
+              optional: true
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-gateway-tls
+              key: kestrel_https_url
+              optional: true
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+          value: "RequireCertificate"
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-gateway-tls
+              key: gateway_server_pfx_path
+              optional: true
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-gateway-tls
+              key: gateway_server_pfx_password
+              optional: true
         resources:
           requests:
             cpu: 100m
@@ -66,3 +97,12 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: gateway-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: gateway-tls
+        secret:
+          secretName: toskamesh-gateway-tls
+          optional: true
