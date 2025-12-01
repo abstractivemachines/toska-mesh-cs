@@ -28,21 +28,31 @@ spec:
             - name: ASPNETCORE_URLS
               value: http://+:8083
             - name: ASPNETCORE_ENVIRONMENT
-              value: Development
-            - name: Mesh__Service__ServiceName
-              value: adder-mesh-service
-            - name: Mesh__Service__ServiceId
+              value: Production
+            - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: adder-mesh-service
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
             - name: Mesh__Service__Port
               value: "8083"
             - name: Mesh__Service__Routing__HealthCheckEndpoint
               value: /health
-            - name: Mesh__ServiceDiscovery__Grpc__Address
-              value: http://toskamesh-discovery.toskamesh.svc.cluster.local:50051
-            - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+            - name: Mesh__Service__RegisterAutomatically
               value: "true"
+            - name: Mesh__Service__ServiceRegistryProvider
+              value: consul
+            - name: Consul__Address
+              value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
             - name: Mesh__ServiceAuth__Secret
               valueFrom:
                 secretKeyRef:

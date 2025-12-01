@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-grain-api
+  namespace: toskamesh
+  labels:
+    app: redis-grain-demo
+spec:
+  selector:
+    app: redis-grain-demo
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

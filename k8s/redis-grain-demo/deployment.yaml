@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-grain-demo
+  namespace: toskamesh
+  labels:
+    app: redis-grain-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-grain-demo
+  template:
+    metadata:
+      labels:
+        app: redis-grain-demo
+    spec:
+      containers:
+        - name: redis-grain-silo
+          image: 192.168.50.73:5000/redis-grain-silo:local-reg
+          env:
+            - name: Mesh__ServiceAuth__Secret
+              value: changeme-redis-grain-demo-secret-1234567890
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: redis-grain-silo
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__Port
+              value: "8080"
+            - name: Mesh__Service__Routing__HealthCheckEndpoint
+              value: /health
+            - name: Mesh__Service__RegisterAutomatically
+              value: "true"
+            - name: Mesh__Service__ServiceRegistryProvider
+              value: consul
+            - name: Consul__Address
+              value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
+            - name: Redis__ConnectionString
+              value: redis-master.toskamesh-infra.svc.cluster.local:6379
+            - name: Orleans__ClusterId
+              value: redis-grain-demo
+            - name: Orleans__ServiceId
+              value: redis-grain-silo
+          ports:
+            - containerPort: 11111
+              name: silo
+            - containerPort: 30000
+              name: gateway
+        - name: redis-grain-api
+          image: 192.168.50.73:5000/redis-grain-api:local-reg
+          env:
+            - name: Mesh__ServiceAuth__Secret
+              value: changeme-redis-grain-demo-secret-1234567890
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: redis-grain-api
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__Port
+              value: "8080"
+            - name: Mesh__Service__Routing__HealthCheckEndpoint
+              value: /health
+            - name: Mesh__Service__RegisterAutomatically
+              value: "true"
+            - name: Mesh__Service__ServiceRegistryProvider
+              value: consul
+            - name: Consul__Address
+              value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
+            - name: Orleans__ClusterId
+              value: redis-grain-demo
+            - name: Orleans__ServiceId
+              value: redis-grain-silo
+            - name: Orleans__GatewayPort
+              value: "30000"
+          ports:
+            - containerPort: 8080
+              name: api

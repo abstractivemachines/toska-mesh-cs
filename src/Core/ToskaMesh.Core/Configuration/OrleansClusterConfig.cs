@@ -72,6 +72,22 @@ public class OrleansClusterConfig
     public string? DatabaseInvariant { get; set; } = "Npgsql";
 
     /// <summary>
+    /// Connection string for Redis-backed grain storage (optional).
+    /// When set, Redis is used for grain state and reminders fall back to in-memory unless otherwise configured.
+    /// </summary>
+    public string? RedisStorageConnectionString { get; set; }
+
+    /// <summary>
+    /// Optional Redis database for grain storage.
+    /// </summary>
+    public int? RedisStorageDatabase { get; set; }
+
+    /// <summary>
+    /// Optional key prefix for grain storage keys.
+    /// </summary>
+    public string? RedisStorageKeyPrefix { get; set; }
+
+    /// <summary>
     /// Enable Orleans dashboard for monitoring (development only).
     /// </summary>
     public bool EnableDashboard { get; set; } = false;

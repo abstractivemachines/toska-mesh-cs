@@ -7,6 +7,7 @@
   - [MeshServiceHost diagram](meshservicehost-diagram.md) – hosting flow.
   - [Runtime SDK design](runtime-sdk-design.md) – runtime surface, middleware, stateful host.
   - [Orleans stateful grain example](orleans-stateful-grain-example.md) – session grain with persistence/reminders and silo hosting via the runtime.
+  - [Queue to grain dispatch](queue-to-grain-dispatch.md) – Redis queue in front of Orleans grains for decoupled inter-service calls.
   - [Evented communication](evented-communication.md) – messaging/event patterns.
 - **Operations**
   - [Kubernetes deployment](kubernetes-deployment.md) – k8s guidance and overlays.

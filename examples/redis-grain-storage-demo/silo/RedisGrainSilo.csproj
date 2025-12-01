@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\contracts\RedisGrainDemo.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime.Stateful\ToskaMesh.Runtime.Stateful.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\ToskaMesh.Runtime\ToskaMesh.Runtime.csproj" />
+  </ItemGroup>
+</Project>

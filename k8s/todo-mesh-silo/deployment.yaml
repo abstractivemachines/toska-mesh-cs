@@ -30,6 +30,14 @@ spec:
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -59,14 +67,25 @@ spec:
             configMapKeyRef:
               name: todo-mesh-silo-config
               key: redis_key_prefix
-        - name: Mesh__Service__RegisterAutomatically
-          value: "false"
-        - name: Mesh__Service__Address
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
+        - name: Mesh__Service__ServiceName
+          value: todo-mesh-silo
+        - name: Mesh__Service__ServiceId
+          value: $(POD_NAME)
+        - name: Mesh__Service__AdvertisedAddress
+          value: $(POD_IP)
         - name: Mesh__Service__Port
           value: "11111"
+        - name: Mesh__Service__Routing__HealthCheckEndpoint
+          value: /health
+        - name: Mesh__Service__RegisterAutomatically
+          value: "true"
+        - name: Mesh__Service__ServiceRegistryProvider
+          value: consul
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: mesh_service_auth_secret
         - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
           value: "true"
         resources:

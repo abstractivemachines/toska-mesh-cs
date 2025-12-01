@@ -139,6 +139,9 @@ public class OrleansProviderOptions
     public string? AzureStorageConnectionString { get; set; }
     public bool EnableDashboard { get; set; }
     public int DashboardPort { get; set; } = 8080;
+    public string? RedisStorageConnectionString { get; set; }
+    public int? RedisStorageDatabase { get; set; }
+    public string? RedisStorageKeyPrefix { get; set; }
 
     internal void EnsureDefaults()
     {
@@ -179,6 +182,11 @@ public class OrleansProviderOptions
         target.AzureStorageConnectionString = AzureStorageConnectionString;
         target.EnableDashboard = EnableDashboard;
         target.DashboardPort = DashboardPort;
+        target.RedisStorageConnectionString = RedisStorageConnectionString;
+        target.RedisStorageDatabase = RedisStorageDatabase;
+        target.RedisStorageKeyPrefix = string.IsNullOrWhiteSpace(RedisStorageKeyPrefix)
+            ? $"{serviceName}:grain:"
+            : RedisStorageKeyPrefix;
     }
 }
 

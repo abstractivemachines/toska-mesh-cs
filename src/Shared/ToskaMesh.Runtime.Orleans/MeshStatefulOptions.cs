@@ -35,6 +35,9 @@ public class MeshStatefulOptions
     public string? DatabaseConnectionString { get; set; }
     public string? DatabaseInvariant { get; set; } = "Npgsql";
     public string? AzureStorageConnectionString { get; set; }
+    public string? RedisStorageConnectionString { get; set; }
+    public int? RedisStorageDatabase { get; set; }
+    public string? RedisStorageKeyPrefix { get; set; }
     public bool EnableDashboard { get; set; }
     public int DashboardPort { get; set; } = 8080;
 

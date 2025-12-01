@@ -5,6 +5,7 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 using OrleansDashboard;
 using System.Net;
+using ToskaMesh.Core.Storage;
 
 namespace ToskaMesh.Core.Configuration;
 
@@ -85,7 +86,32 @@ public static class OrleansHostingExtensions
             }
 
             // Configure grain storage
-            if (!string.IsNullOrEmpty(config.DatabaseConnectionString))
+            if (!string.IsNullOrEmpty(config.RedisStorageConnectionString))
+            {
+                var basePrefix = string.IsNullOrWhiteSpace(config.RedisStorageKeyPrefix)
+                    ? $"{config.ServiceId}:grain:"
+                    : config.RedisStorageKeyPrefix!;
+                var clusterPrefix = basePrefix.EndsWith(":", StringComparison.Ordinal)
+                    ? $"{basePrefix}cluster:"
+                    : $"{basePrefix}:cluster:";
+
+                siloBuilder.AddRedisGrainStorageAsDefault(options =>
+                {
+                    options.ConnectionString = config.RedisStorageConnectionString!;
+                    options.Database = config.RedisStorageDatabase;
+                    options.KeyPrefix = basePrefix;
+                });
+
+                siloBuilder.AddRedisGrainStorage("clusterStore", options =>
+                {
+                    options.ConnectionString = config.RedisStorageConnectionString!;
+                    options.Database = config.RedisStorageDatabase;
+                    options.KeyPrefix = clusterPrefix;
+                });
+
+                siloBuilder.UseInMemoryReminderService();
+            }
+            else if (!string.IsNullOrEmpty(config.DatabaseConnectionString))
             {
                 siloBuilder.AddAdoNetGrainStorage("Default", options =>
                 {

@@ -48,6 +48,9 @@ public static class MeshSiloHostingExtensions
             config.AzureStorageConnectionString = options.AzureStorageConnectionString;
             config.EnableDashboard = options.EnableDashboard;
             config.DashboardPort = options.DashboardPort;
+            config.RedisStorageConnectionString = options.RedisStorageConnectionString;
+            config.RedisStorageDatabase = options.RedisStorageDatabase;
+            config.RedisStorageKeyPrefix = options.RedisStorageKeyPrefix;
         });
 
         builder.ConfigureServices(services =>

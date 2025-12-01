@@ -1,0 +1,34 @@
+service:
+  name: redis-grain-demo
+  type: stateful
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh
+
+workloads:
+  - name: redis-grain-silo
+    type: stateful
+    manifests:
+      - ../../k8s/redis-grain-demo/service.yaml
+      - ../../k8s/redis-grain-demo/deployment.yaml
+    image:
+      repository: redis-grain-silo
+      tag: local-reg
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: Dockerfile.silo
+
+  - name: redis-grain-api
+    type: stateless
+    manifests:
+      - ../../k8s/redis-grain-demo/service.yaml
+      - ../../k8s/redis-grain-demo/deployment.yaml
+    image:
+      repository: redis-grain-api
+      tag: local-reg
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: Dockerfile.api
