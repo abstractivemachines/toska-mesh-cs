@@ -23,3 +23,14 @@ curl -X POST "http://localhost:8083/add" \
 ```
 
 The sample defaults to registering with the gRPC discovery service at `http://discovery:80`; override via `Mesh:ServiceDiscovery:Grpc:Address` (see `appsettings.json`). Update `Mesh:ServiceAuth` for your environment before deploying beyond local/dev.
+
+## Build and publish with Toska CLI
+
+From this directory:
+
+```bash
+dotnet pack ../../src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Release -o ../../artifacts/nuget
+toska publish --manifest toska.yaml
+```
+
+The manifest builds `localhost:5000/adder-mesh-service:local` using `examples/adder-mesh-service/Dockerfile` and applies the Kubernetes manifests under `k8s/adder-mesh-service`. Adjust registry/namespace in `toska.yaml` as needed.

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adder-mesh-service
+  labels:
+    app: adder-mesh-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adder-mesh-service
+  template:
+    metadata:
+      labels:
+        app: adder-mesh-service
+    spec:
+      containers:
+        - name: adder-mesh-service
+          image: localhost:5000/adder-mesh-service:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+              name: http
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8083
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            initialDelaySeconds: 10
+            periodSeconds: 15
