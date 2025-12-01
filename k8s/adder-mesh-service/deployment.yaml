@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: adder-mesh-service
-          image: localhost:5000/adder-mesh-service:local
+          image: 192.168.50.73:5000/adder-mesh-service:local
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083

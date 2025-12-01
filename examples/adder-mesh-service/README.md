@@ -33,4 +33,4 @@ dotnet pack ../../src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Relea
 toska publish --manifest toska.yaml
 ```
 
-The manifest builds `localhost:5000/adder-mesh-service:local` using `examples/adder-mesh-service/Dockerfile` and applies the Kubernetes manifests under `k8s/adder-mesh-service`. Adjust registry/namespace in `toska.yaml` as needed.
+The manifest builds `192.168.50.73:5000/adder-mesh-service:local` using `examples/adder-mesh-service/Dockerfile` and applies the Kubernetes manifests under `k8s/adder-mesh-service`. Adjust registry/namespace in `toska.yaml` and the deployment manifest if your registry differs.

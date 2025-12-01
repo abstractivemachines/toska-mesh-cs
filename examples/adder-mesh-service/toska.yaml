@@ -15,7 +15,7 @@ workloads:
     image:
       repository: adder-mesh-service
       tag: local
-      registry: localhost:5000
+      registry: 192.168.50.73:5000
     build:
       context: ../..
       dockerfile: Dockerfile
