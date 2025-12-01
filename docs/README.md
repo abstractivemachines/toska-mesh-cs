@@ -12,6 +12,8 @@
   - [Monitoring setup](monitoring-setup.md) – observability, metrics, alerts.
   - [Cost optimization](cost-optimization.md) – runtime cost knobs; see also [EKS cost summary](../deployments/terraform/eks/COST-OPTIMIZATION-SUMMARY.md).
   - [EKS deployment guide](eks-deployment-guide.md) – EKS specifics; Terraform at [eks/README](../deployments/terraform/eks/README.md).
+- **Tooling**
+  - [Toska manifest reference](toska-manifest.md) – structure and publish flow for `toska.yaml`.
 - **Deployments**
   - [Talos quickstart](../deployments/QUICKSTART-TALOS.md) | [EKS quickstart](../deployments/QUICKSTART-EKS.md)
   - Terraform: [eks/README](../deployments/terraform/eks/README.md), [EKS cost summary](../deployments/terraform/eks/COST-OPTIMIZATION-SUMMARY.md)
