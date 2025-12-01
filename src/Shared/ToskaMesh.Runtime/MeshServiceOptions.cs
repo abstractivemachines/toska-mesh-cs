@@ -11,7 +11,8 @@ public class MeshServiceOptions
 {
     public string ServiceName { get; set; } = "mesh-service";
     public string? ServiceId { get; set; }
-    public string Address { get; set; } = "localhost";
+    public string Address { get; set; } = "0.0.0.0";
+    public string? AdvertisedAddress { get; set; }
     public int Port { get; set; } = 8080;
     public string HealthEndpoint { get; set; } = "/health";
     public TimeSpan HealthInterval { get; set; } = TimeSpan.FromSeconds(30);
@@ -38,6 +39,9 @@ public class MeshServiceOptions
             Port = 8080;
         }
 
+        Address = string.IsNullOrWhiteSpace(Address) ? "0.0.0.0" : Address;
+        AdvertisedAddress = string.IsNullOrWhiteSpace(AdvertisedAddress) ? Address : AdvertisedAddress;
+
         Validate();
     }
 
@@ -47,7 +51,7 @@ public class MeshServiceOptions
         return new ServiceRegistration(
             ServiceName,
             ServiceId!,
-            Address,
+            AdvertisedAddress!,
             Port,
             BuildMetadata(),
             new HealthCheckConfiguration(
@@ -75,6 +79,11 @@ public class MeshServiceOptions
         if (string.IsNullOrWhiteSpace(ServiceName))
         {
             throw new InvalidOperationException("MeshServiceOptions.ServiceName is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(AdvertisedAddress))
+        {
+            throw new InvalidOperationException("MeshServiceOptions.AdvertisedAddress is required.");
         }
 
         if (Port < 0)

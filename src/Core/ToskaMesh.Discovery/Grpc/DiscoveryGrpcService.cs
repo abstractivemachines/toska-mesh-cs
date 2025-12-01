@@ -1,9 +1,11 @@
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using ToskaMesh.Discovery.Services;
 using ToskaMesh.Grpc.Discovery;
 using ToskaMesh.Protocols;
 using ToskaMesh.Security;
+using System.Net;
 
 namespace ToskaMesh.Discovery.Grpc;
 
@@ -21,10 +23,12 @@ public class DiscoveryGrpcService : DiscoveryRegistry.DiscoveryRegistryBase
 
     public override async Task<RegisterServiceResponse> Register(RegisterServiceRequest request, ServerCallContext context)
     {
+        var advertisedAddress = ResolveAdvertisedAddress(request, context);
+
         var registration = new ServiceRegistration(
             request.ServiceName,
             string.IsNullOrWhiteSpace(request.ServiceId) ? Guid.NewGuid().ToString("N") : request.ServiceId,
-            request.Address,
+            advertisedAddress,
             request.Port,
             request.Metadata.ToDictionary(pair => pair.Key, pair => pair.Value),
             request.HealthCheck == null
@@ -48,6 +52,93 @@ public class DiscoveryGrpcService : DiscoveryRegistry.DiscoveryRegistryBase
             ServiceId = result.ServiceId,
             ErrorMessage = result.ErrorMessage ?? string.Empty
         };
+    }
+
+    private string ResolveAdvertisedAddress(RegisterServiceRequest request, ServerCallContext context)
+    {
+        var requested = request.Address?.Trim();
+        if (IsRoutableAddress(requested, out _))
+        {
+            return requested!;
+        }
+
+        var remote = GetRemoteIp(context);
+        if (remote != null && IsRoutableAddress(remote.ToString(), out _))
+        {
+            var resolved = remote.ToString();
+            _logger.LogInformation(
+                "Normalized service address for {Service} from '{Requested}' to caller IP {Resolved}",
+                request.ServiceName,
+                string.IsNullOrWhiteSpace(requested) ? "(none)" : requested,
+                resolved);
+            return resolved;
+        }
+
+        _logger.LogWarning(
+            "Could not resolve a routable address for {Service}; keeping requested value '{Requested}'",
+            request.ServiceName,
+            string.IsNullOrWhiteSpace(requested) ? "(none)" : requested);
+
+        return requested ?? string.Empty;
+    }
+
+    private static bool IsRoutableAddress(string? value, out IPAddress? parsed)
+    {
+        parsed = null;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (!IPAddress.TryParse(value, out var ip))
+        {
+            // Allow hostnames to pass through.
+            return true;
+        }
+
+        parsed = ip;
+        var target = ip.IsIPv4MappedToIPv6 ? ip.MapToIPv4() : ip;
+
+        if (IPAddress.IsLoopback(target))
+        {
+            return false;
+        }
+
+        if (target.Equals(IPAddress.Any) || target.Equals(IPAddress.IPv6Any))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static IPAddress? GetRemoteIp(ServerCallContext context)
+    {
+        var httpContext = context.GetHttpContext();
+        var remote = httpContext?.Connection.RemoteIpAddress;
+        if (remote?.IsIPv4MappedToIPv6 == true)
+        {
+            remote = remote.MapToIPv4();
+        }
+
+        if (remote != null)
+        {
+            return remote;
+        }
+
+        var peer = context.Peer;
+        if (string.IsNullOrWhiteSpace(peer) || !peer.StartsWith("ipv4:", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var withoutPrefix = peer.Substring("ipv4:".Length);
+        var colonIndex = withoutPrefix.LastIndexOf(':');
+        var addressPart = colonIndex > 0 ? withoutPrefix[..colonIndex] : withoutPrefix;
+
+        return IPAddress.TryParse(addressPart, out var peerIp)
+            ? (peerIp.IsIPv4MappedToIPv6 ? peerIp.MapToIPv4() : peerIp)
+            : null;
     }
 
     public override async Task<DeregisterServiceResponse> Deregister(DeregisterServiceRequest request, ServerCallContext context)

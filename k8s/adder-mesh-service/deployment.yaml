@@ -35,10 +35,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: Mesh__Service__Address
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
             - name: Mesh__Service__Port
               value: "8083"
             - name: Mesh__Service__Routing__HealthCheckEndpoint
