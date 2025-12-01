@@ -3,7 +3,8 @@ name: Runtime Packages
 on:
   workflow_dispatch:
   push:
-    branches: []
+    branches-ignore:
+      - "**"
     tags:
       - "runtime-*"
 
