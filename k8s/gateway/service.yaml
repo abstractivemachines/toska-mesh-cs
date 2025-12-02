@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: toskamesh-gateway
   labels:
-    app: toskamesh-gateway
-    component: core
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: gateway
 spec:
   type: LoadBalancer
   ports:
@@ -17,4 +18,6 @@ spec:
     protocol: TCP
     name: https
   selector:
-    app: toskamesh-gateway
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: gateway

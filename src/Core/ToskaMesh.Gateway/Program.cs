@@ -195,7 +195,11 @@ app.UseRequestLogging(); // Custom logging middleware
 
 app.UseCors();
 
-app.UseHttpsRedirection();
+// Keep health endpoints on plain HTTP so kube probes don't get redirected to mTLS
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), branch =>
+{
+    branch.UseHttpsRedirection();
+});
 
 // Rate limiting
 if (rateLimitConfig.EnableRateLimiting)

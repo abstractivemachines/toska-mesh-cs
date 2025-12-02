@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: toskamesh-discovery
   labels:
-    app: toskamesh-discovery
-    component: core
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: discovery
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +13,15 @@ spec:
     targetPort: 80
     protocol: TCP
     name: http
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+    name: grpc
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: https
   selector:
-    app: toskamesh-discovery
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: discovery

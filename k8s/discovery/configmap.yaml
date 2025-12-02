@@ -4,4 +4,4 @@ metadata:
   name: toskamesh-discovery-config
 data:
   consul_address: "http://consul:8500"
-  rabbitmq_host: "rabbitmq"
+  rabbitmq_host: "rabbitmq.toskamesh-infra.svc.cluster.local"

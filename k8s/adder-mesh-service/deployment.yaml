@@ -3,19 +3,22 @@ kind: Deployment
 metadata:
   name: adder-mesh-service
   labels:
-    app: adder-mesh-service
-    component: example
+    app.kubernetes.io/name: adder-mesh-service
+    app.kubernetes.io/instance: adder-mesh-service
+    app.kubernetes.io/component: example
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: adder-mesh-service
-      component: example
+      app.kubernetes.io/name: adder-mesh-service
+      app.kubernetes.io/instance: adder-mesh-service
+      app.kubernetes.io/component: example
   template:
     metadata:
       labels:
-        app: adder-mesh-service
-        component: example
+        app.kubernetes.io/name: adder-mesh-service
+        app.kubernetes.io/instance: adder-mesh-service
+        app.kubernetes.io/component: example
     spec:
       containers:
         - name: adder-mesh-service
@@ -24,9 +27,32 @@ spec:
           ports:
             - containerPort: 8083
               name: http
+            - containerPort: 8443
+              name: https
           env:
             - name: ASPNETCORE_URLS
               value: http://+:8083
+            - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
+              value: "http://+:8083"
+            - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: https_url
+            - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+              value: "RequireCertificate"
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: server_pfx_path
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: server_pfx_password
+            - name: SSL_CERT_FILE
+              value: "/etc/tls/ca.crt"
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
             - name: POD_NAME
@@ -51,6 +77,10 @@ spec:
               value: "true"
             - name: Mesh__Service__ServiceRegistryProvider
               value: consul
+            - name: Mesh__ServiceDiscovery__Grpc__Address
+              value: http://toskamesh-discovery:50051
+            - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+              value: "true"
             - name: Consul__Address
               value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
             - name: Mesh__ServiceAuth__Secret
@@ -78,3 +108,11 @@ spec:
               port: 8083
             initialDelaySeconds: 10
             periodSeconds: 15
+          volumeMounts:
+            - name: mesh-tls
+              mountPath: /etc/tls
+              readOnly: true
+      volumes:
+        - name: mesh-tls
+          secret:
+            secretName: toskamesh-mtls

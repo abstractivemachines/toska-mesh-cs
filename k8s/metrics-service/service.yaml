@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: toskamesh-metrics-service
   labels:
-    app: toskamesh-metrics-service
-    component: business
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: metrics-service
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +13,11 @@ spec:
     targetPort: 80
     protocol: TCP
     name: http
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: https
   selector:
-    app: toskamesh-metrics-service
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: metrics-service

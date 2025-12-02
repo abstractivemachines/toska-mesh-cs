@@ -3,18 +3,22 @@ kind: Deployment
 metadata:
   name: todo-mesh-silo
   labels:
-    app: todo-mesh-silo
-    component: example
+    app.kubernetes.io/name: todo-mesh-silo
+    app.kubernetes.io/instance: todo-mesh-silo
+    app.kubernetes.io/component: example
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: todo-mesh-silo
+      app.kubernetes.io/name: todo-mesh-silo
+      app.kubernetes.io/instance: todo-mesh-silo
+      app.kubernetes.io/component: example
   template:
     metadata:
       labels:
-        app: todo-mesh-silo
-        component: example
+        app.kubernetes.io/name: todo-mesh-silo
+        app.kubernetes.io/instance: todo-mesh-silo
+        app.kubernetes.io/component: example
     spec:
       containers:
       - name: todo-mesh-silo

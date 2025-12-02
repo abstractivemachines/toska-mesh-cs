@@ -3,18 +3,22 @@ kind: Deployment
 metadata:
   name: toskamesh-core
   labels:
-    app: toskamesh-core
-    component: core
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: core
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: toskamesh-core
+      app.kubernetes.io/name: toskamesh
+      app.kubernetes.io/instance: toskamesh
+      app.kubernetes.io/component: core
   template:
     metadata:
       labels:
-        app: toskamesh-core
-        component: core
+        app.kubernetes.io/name: toskamesh
+        app.kubernetes.io/instance: toskamesh
+        app.kubernetes.io/component: core
       annotations:
         sidecar.istio.io/inject: "true"
         traffic.sidecar.istio.io/includeInboundPorts: "*"
@@ -27,6 +31,9 @@ spec:
         - containerPort: 80
           name: http
           protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
         - containerPort: 11111
           name: silo
           protocol: TCP
@@ -38,6 +45,27 @@ spec:
           value: "Development"
         - name: ASPNETCORE_URLS
           value: "http://+:80"
+        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
+          value: "http://+:80"
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: https_url
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+          value: "RequireCertificate"
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_path
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_password
+        - name: SSL_CERT_FILE
+          value: "/etc/tls/ca.crt"
         - name: Orleans__Clustering__ServiceName
           value: "ToskaMesh"
         - name: Orleans__Clustering__ClusterId
@@ -71,3 +99,11 @@ spec:
             port: 80
           initialDelaySeconds: 20
           periodSeconds: 5
+        volumeMounts:
+        - name: mesh-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: mesh-tls
+        secret:
+          secretName: toskamesh-mtls

@@ -3,14 +3,21 @@ kind: Service
 metadata:
   name: todo-mesh-api
   labels:
-    app: todo-mesh-api
-    component: example
+    app.kubernetes.io/name: todo-mesh-api
+    app.kubernetes.io/instance: todo-mesh-api
+    app.kubernetes.io/component: example
 spec:
   selector:
-    app: todo-mesh-api
+    app.kubernetes.io/name: todo-mesh-api
+    app.kubernetes.io/instance: todo-mesh-api
+    app.kubernetes.io/component: example
   ports:
   - name: http
     port: 8080
     targetPort: 8080
+    protocol: TCP
+  - name: https
+    port: 8443
+    targetPort: 8443
     protocol: TCP
   type: ClusterIP

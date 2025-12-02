@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: toskamesh-config-service
   labels:
-    app: toskamesh-config-service
-    component: business
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: config-service
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +13,11 @@ spec:
     targetPort: 80
     protocol: TCP
     name: http
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: https
   selector:
-    app: toskamesh-config-service
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: config-service

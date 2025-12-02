@@ -3,18 +3,22 @@ kind: Deployment
 metadata:
   name: toskamesh-discovery
   labels:
-    app: toskamesh-discovery
-    component: core
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: discovery
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: toskamesh-discovery
+      app.kubernetes.io/name: toskamesh
+      app.kubernetes.io/instance: toskamesh
+      app.kubernetes.io/component: discovery
   template:
     metadata:
       labels:
-        app: toskamesh-discovery
-        component: core
+        app.kubernetes.io/name: toskamesh
+        app.kubernetes.io/instance: toskamesh
+        app.kubernetes.io/component: discovery
       annotations:
         sidecar.istio.io/inject: "true"
         traffic.sidecar.istio.io/includeInboundPorts: "*"
@@ -22,16 +26,43 @@ spec:
     spec:
       containers:
       - name: discovery
-        image: toskamesh-discovery:latest
+        image: 192.168.50.73:5000/toskamesh-discovery:local
         ports:
         - containerPort: 80
           name: http
+          protocol: TCP
+        - containerPort: 50051
+          name: grpc
+          protocol: TCP
+        - containerPort: 8443
+          name: https
           protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
         - name: ASPNETCORE_URLS
           value: "http://+:80"
+        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
+          value: "http://+:80"
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: https_url
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+          value: "RequireCertificate"
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_path
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_password
+        - name: SSL_CERT_FILE
+          value: "/etc/tls/ca.crt"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -76,3 +107,11 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: mesh-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: mesh-tls
+        secret:
+          secretName: toskamesh-mtls

@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: toskamesh-health-monitor
   labels:
-    app: toskamesh-health-monitor
-    component: core
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: health-monitor
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +13,11 @@ spec:
     targetPort: 80
     protocol: TCP
     name: http
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: https
   selector:
-    app: toskamesh-health-monitor
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: health-monitor

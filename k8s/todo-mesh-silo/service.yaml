@@ -3,11 +3,14 @@ kind: Service
 metadata:
   name: todo-mesh-silo
   labels:
-    app: todo-mesh-silo
-    component: example
+    app.kubernetes.io/name: todo-mesh-silo
+    app.kubernetes.io/instance: todo-mesh-silo
+    app.kubernetes.io/component: example
 spec:
   selector:
-    app: todo-mesh-silo
+    app.kubernetes.io/name: todo-mesh-silo
+    app.kubernetes.io/instance: todo-mesh-silo
+    app.kubernetes.io/component: example
   ports:
   - name: silo
     port: 11111
