@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: core
-        image: toskamesh-core:latest
+        image: 192.168.50.73:5000/toskamesh-core:local
         ports:
         - containerPort: 80
           name: http

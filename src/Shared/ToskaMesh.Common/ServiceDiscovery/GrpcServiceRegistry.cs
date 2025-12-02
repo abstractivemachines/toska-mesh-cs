@@ -1,5 +1,8 @@
 using System;
 using Google.Protobuf.WellKnownTypes;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -148,6 +151,8 @@ public class ServiceDiscoveryGrpcOptions
 {
     public string Address { get; set; } = "https://localhost:5010";
     public bool AllowInsecureTransport { get; set; }
+    public string ClientCertificatePath { get; set; } = string.Empty;
+    public string ClientCertificatePassword { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -203,6 +208,20 @@ public static class GrpcServiceRegistryExtensions
         }).ConfigureChannel(options =>
         {
             options.UnsafeUseInsecureChannelCallCredentials = !usesHttps && grpcOptions.AllowInsecureTransport;
+            if (usesHttps && !string.IsNullOrWhiteSpace(grpcOptions.ClientCertificatePath))
+            {
+                try
+                {
+                    var cert = new X509Certificate2(grpcOptions.ClientCertificatePath, grpcOptions.ClientCertificatePassword);
+                    var handler = new SocketsHttpHandler();
+                    handler.SslOptions.ClientCertificates = new X509CertificateCollection { cert };
+                    options.HttpHandler = handler;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Failed to load discovery client certificate from {grpcOptions.ClientCertificatePath}", ex);
+                }
+            }
         });
 
         services.AddSingleton<IServiceRegistry, GrpcServiceRegistry>();

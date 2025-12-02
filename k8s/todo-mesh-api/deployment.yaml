@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: todo-mesh-api
-        image: 192.168.50.73:5000/todo-mesh-api:local
+        image: 192.168.50.73:5000/todo-mesh-api:local-20251202
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -109,6 +109,13 @@ spec:
               key: discovery_grpc_address
         - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
           value: "false"
+        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
+          value: "/etc/tls/client.pfx"
+        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: client_pfx_password
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
