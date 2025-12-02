@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: core
-        image: 192.168.50.73:5000/toskamesh-core:local
+        image: 192.168.50.73:5000/toskamesh-core:local-20251202-corefix
         ports:
         - containerPort: 80
           name: http
@@ -66,10 +66,18 @@ spec:
               key: server_pfx_password
         - name: SSL_CERT_FILE
           value: "/etc/tls/ca.crt"
-        - name: Orleans__Clustering__ServiceName
-          value: "ToskaMesh"
-        - name: Orleans__Clustering__ClusterId
-          value: "dev"
+        - name: Orleans__ClusterProvider
+          value: "Consul"
+        - name: Orleans__ConsulAddress
+          value: "http://consul-server.toskamesh-infra.svc.cluster.local:8500"
+        - name: Orleans__ClusterId
+          value: "talos-local"
+        - name: Orleans__ServiceId
+          value: "ToskaMesh-Local"
+        - name: Orleans__ClusterMembership__Provider
+          value: "Consul"
+        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+          value: "true"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -79,7 +87,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: toskamesh-core-secrets
-              key: orleans_storage_connection
+              key: db_connection_string
         resources:
           requests:
             cpu: 200m
@@ -88,15 +96,13 @@ spec:
             cpu: 1000m
             memory: 1Gi
         livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 80
+          tcpSocket:
+            port: 11111
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 80
+          tcpSocket:
+            port: 11111
           initialDelaySeconds: 20
           periodSeconds: 5
         volumeMounts:
