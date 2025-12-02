@@ -4,4 +4,4 @@ metadata:
   name: toskamesh-tracing-service-config
 data:
   consul_address: "http://consul:8500"
-  discovery_grpc_address: "http://toskamesh-discovery:50051"
+  discovery_grpc_address: "https://toskamesh-internal.toskamesh.svc.cluster.local:50051"

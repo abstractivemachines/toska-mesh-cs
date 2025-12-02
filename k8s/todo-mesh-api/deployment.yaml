@@ -108,14 +108,12 @@ spec:
               name: todo-mesh-api-config
               key: discovery_grpc_address
         - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
-          value: "true"
+          value: "false"
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
               name: toskamesh-discovery-secrets
               key: mesh_service_auth_secret
-        - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
-          value: "true"
         resources:
           requests:
             cpu: 100m

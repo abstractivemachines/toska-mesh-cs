@@ -4,7 +4,7 @@
 - Investigate why discovery pods refuse connections on :80/:50051 (readiness 503). Check longer logs, describe pods, and confirm Kestrel binding/entrypoint matches env (`ASPNETCORE_URLS`, `Kestrel__Endpoints__Http__Url`, `Kestrel__Endpoints__Grpc__Url`).
 - Verify service selectors vs pod labels (Helm uses `app.kubernetes.io/*`). Ensure endpoints exist and kube-probes are correct.
 - From a curl pod, retest `http://toskamesh-discovery.toskamesh.svc.cluster.local:80/health/ready` and `http://toskamesh-discovery.toskamesh.svc.cluster.local:50051` once fixed.
-- Discovery fixed: rabbit host now points at `rabbitmq.toskamesh-infra.svc.cluster.local`, gRPC exposed on 50051 (service targetPort 50051 + container port added). Pods healthy.
+- Discovery fixed: rabbit host now points at `rabbitmq.toskamesh-infra.svc.cluster.local`, gRPC served over TLS on 50051 with SAN wildcard service host (`toskamesh-internal.toskamesh.svc.cluster.local`); added companion `toskamesh-internal` service for that hostname. Clients use HTTPS and AllowInsecureTransport=false (name now matches cert), client cert optional.
 
 2) Stabilize gateway rollout
 - New gateway pod CrashLooped; old pod still serving. After discovery is healthy, restart gateway and confirm liveness/readiness on :80 and HTTPS/mTLS on :8443 with mounted TLS secret.

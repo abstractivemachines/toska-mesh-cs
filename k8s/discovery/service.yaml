@@ -25,3 +25,23 @@ spec:
     app.kubernetes.io/name: toskamesh
     app.kubernetes.io/instance: toskamesh
     app.kubernetes.io/component: discovery
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: toskamesh-internal
+  labels:
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: discovery
+spec:
+  type: ClusterIP
+  ports:
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+    name: grpc
+  selector:
+    app.kubernetes.io/name: toskamesh
+    app.kubernetes.io/instance: toskamesh
+    app.kubernetes.io/component: discovery

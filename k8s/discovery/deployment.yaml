@@ -44,6 +44,38 @@ spec:
           value: "http://+:80"
         - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
           value: "http://+:80"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Url
+          value: "https://+:50051"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols
+          value: "Http2"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__ClientCertificateMode
+          value: "AllowCertificate"
+        - name: Kestrel__Endpoints__Grpc__Url
+          value: "https://+:50051"
+        - name: Kestrel__Endpoints__Grpc__Protocols
+          value: "Http2"
+        - name: Kestrel__Endpoints__Grpc__ClientCertificateMode
+          value: "AllowCertificate"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Path
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_path
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Password
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_password
+        - name: Kestrel__Endpoints__Grpc__Certificate__Path
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_path
+        - name: Kestrel__Endpoints__Grpc__Certificate__Password
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-mtls
+              key: server_pfx_password
         - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
           valueFrom:
             secretKeyRef:
@@ -63,6 +95,8 @@ spec:
               key: server_pfx_password
         - name: SSL_CERT_FILE
           value: "/etc/tls/ca.crt"
+        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+          value: "false"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:

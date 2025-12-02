@@ -78,9 +78,9 @@ spec:
             - name: Mesh__Service__ServiceRegistryProvider
               value: consul
             - name: Mesh__ServiceDiscovery__Grpc__Address
-              value: http://toskamesh-discovery:50051
+              value: https://toskamesh-internal.toskamesh.svc.cluster.local:50051
             - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
-              value: "true"
+              value: "false"
             - name: Consul__Address
               value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
             - name: Mesh__ServiceAuth__Secret
@@ -94,8 +94,6 @@ spec:
               value: ToskaMesh.Services
             - name: Mesh__Identity__ServiceName
               value: adder-mesh-service
-            - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
-              value: "true"
           readinessProbe:
             httpGet:
               path: /health
