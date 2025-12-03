@@ -284,6 +284,13 @@ def _default_port_forward_runner(cmd: list[str]) -> subprocess.Popen:
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
+def _subprocess_runner(verbose: bool):
+    def _run(cmd: list[str]):
+        return subprocess.run(cmd, check=False, text=True, capture_output=not verbose)
+
+    return _run
+
+
 def deploy(
     config: DeployConfig,
     *,
@@ -297,7 +304,7 @@ def deploy(
     progress: ProgressReporter | None = None,
     emit=None,
 ) -> DeployOutcome:
-    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    runner = run_cmd or _subprocess_runner(verbose)
     port_forward_runner = port_forward_runner or _default_port_forward_runner
     printer = emit or print
     progress = progress or ProgressReporter()
@@ -377,7 +384,7 @@ def destroy(
     progress: ProgressReporter | None = None,
     emit=None,
 ) -> Iterable[str]:
-    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
 
@@ -429,7 +436,7 @@ def build_images(
     progress: ProgressReporter | None = None,
     emit=None,
 ) -> Iterable[str]:
-    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
 
@@ -486,7 +493,7 @@ def push_images(
     progress: ProgressReporter | None = None,
     emit=None,
 ) -> Iterable[str]:
-    runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
 

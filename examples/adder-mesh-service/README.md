@@ -22,7 +22,7 @@ curl -X POST "http://localhost:8083/add" \
 # -> { "a":4,"b":7,"sum":11 }
 ```
 
-The sample defaults to registering with the gRPC discovery service at `http://discovery:80`; override via `Mesh:ServiceDiscovery:Grpc:Address` (see `appsettings.json`). Update `Mesh:ServiceAuth` for your environment before deploying beyond local/dev.
+The sample defaults to registering with the gRPC discovery service at `http://toskamesh-discovery:80`; override via `Mesh:ServiceDiscovery:Grpc:Address` (see `appsettings.json`). Update `Mesh:ServiceAuth` for your environment before deploying beyond local/dev.
 
 ## Build and publish with Toska CLI
 

@@ -36,6 +36,7 @@ var tlsOptions = builder.Configuration.GetSection(GatewayTlsOptions.SectionName)
     ?? new GatewayTlsOptions();
 var consulHealthConfig = builder.Configuration.GetSection(ConsulHealthCheckOptions.SectionName).Get<ConsulHealthCheckOptions>()
     ?? new ConsulHealthCheckOptions();
+var forceHttpsRedirect = builder.Configuration.GetValue<bool?>("Mesh:Gateway:ForceHttpsRedirect") ?? true;
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -196,10 +197,13 @@ app.UseRequestLogging(); // Custom logging middleware
 app.UseCors();
 
 // Keep health endpoints on plain HTTP so kube probes don't get redirected to mTLS
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), branch =>
+if (forceHttpsRedirect)
 {
-    branch.UseHttpsRedirection();
-});
+    app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), branch =>
+    {
+        branch.UseHttpsRedirection();
+    });
+}
 
 // Rate limiting
 if (rateLimitConfig.EnableRateLimiting)

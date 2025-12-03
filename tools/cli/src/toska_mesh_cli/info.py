@@ -189,27 +189,30 @@ def list_pods(
     return pods
 
 
-def format_deployments_table(deployments: Iterable[DeploymentInfo]) -> str:
-    rows = [["NAME", "READY", "AVAILABLE", "IMAGES"]]
+def format_deployments_table(deployments: Iterable[DeploymentInfo], *, rich_output: bool = False) -> str:
+    headers = ["NAME", "READY", "AVAILABLE", "IMAGES"]
+    rows = []
     for d in deployments:
         images = ", ".join(d.images) if d.images else "-"
         rows.append([d.name, d.ready, str(d.available), images])
-    return _format_table(rows)
+    return _render_table(headers, rows, rich_output=rich_output)
 
 
-def format_services_table(services: Iterable[ServiceInfo]) -> str:
-    rows = [["NAME", "TYPE", "CLUSTER IP", "PORTS"]]
+def format_services_table(services: Iterable[ServiceInfo], *, rich_output: bool = False) -> str:
+    headers = ["NAME", "TYPE", "CLUSTER IP", "PORTS"]
+    rows = []
     for s in services:
         ports = s.ports or "-"
         rows.append([s.name, s.svc_type, s.cluster_ip or "-", ports])
-    return _format_table(rows)
+    return _render_table(headers, rows, rich_output=rich_output)
 
 
-def format_pods_table(pods: Iterable[PodInfo]) -> str:
-    rows = [["NAME", "READY", "STATUS", "RESTARTS", "NODE"]]
+def format_pods_table(pods: Iterable[PodInfo], *, rich_output: bool = False) -> str:
+    headers = ["NAME", "READY", "STATUS", "RESTARTS", "NODE"]
+    rows = []
     for p in pods:
         rows.append([p.name, p.ready, p.status or "-", str(p.restarts), p.node or "-"])
-    return _format_table(rows)
+    return _render_table(headers, rows, rich_output=rich_output)
 
 
 def _format_table(rows: List[List[str]]) -> str:
@@ -223,6 +226,28 @@ def _format_table(rows: List[List[str]]) -> str:
         if idx == 0:
             lines.append("  ".join("-" * w for w in widths))
     return "\n".join(lines)
+
+
+def _render_table(headers: list[str], rows: list[list[str]], *, rich_output: bool) -> str:
+    if not rich_output:
+        return _format_table([headers, *rows])
+
+    try:
+        from rich import box
+        from rich.console import Console
+        from rich.table import Table
+    except Exception:
+        return _format_table([headers, *rows])
+
+    table = Table(box=box.SIMPLE_HEAVY, show_edge=False, show_header=True, header_style="bold")
+    for header in headers:
+        table.add_column(header)
+    for row in rows:
+        table.add_row(*row)
+
+    console = Console(record=True)
+    console.print(table)
+    return console.export_text()
 
 
 def gather_service_info(

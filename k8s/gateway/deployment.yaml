@@ -76,6 +76,11 @@ spec:
               name: toskamesh-gateway-tls
               key: gateway_client_pfx_password
               optional: true
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-discovery-secrets
+              key: mesh_service_auth_secret
         - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
           valueFrom:
             secretKeyRef:
@@ -83,7 +88,7 @@ spec:
               key: kestrel_https_url
               optional: true
         - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
-          value: "RequireCertificate"
+          value: "NoCertificate"
         - name: ASPNETCORE_Kestrel__Certificates__Default__Path
           valueFrom:
             secretKeyRef:
@@ -96,6 +101,8 @@ spec:
               name: toskamesh-gateway-tls
               key: gateway_server_pfx_password
               optional: true
+        - name: Mesh__Gateway__ForceHttpsRedirect
+          value: "false"
         resources:
           requests:
             cpu: 100m

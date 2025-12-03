@@ -329,11 +329,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     reporter = ProgressReporter()
+    rich_output = reporter.console is not None
 
     if args.command == "info":
         with reporter.step("Info"):
             pass
         print(f"Toska Mesh CLI v{__version__} placeholder: define commands next.")
+        reporter.summarize()
         return 0
 
     if args.command == "validate":
@@ -368,10 +370,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             if result.ok:
                 print("Manifest is valid.")
+                reporter.summarize()
                 return 0
+            reporter.summarize()
             return 1
         except DeployConfigError as exc:
             print(f"Validate failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     if args.command == "deploy":
@@ -424,9 +429,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                     wait_on_port_forwards(result.port_forwards)
                 else:
                     print("\nNo workloads with portForward defined; nothing to port-forward.")
+            reporter.summarize()
             return 0
         except DeployConfigError as exc:
             print(f"Deploy failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
         finally:
             if forward_handles:
@@ -464,9 +471,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"\n{header}")
                 for command in commands:
                     print(f"- {command}")
+            reporter.summarize()
             return 0
         except DeployConfigError as exc:
             print(f"Destroy failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     if args.command in {"build", "push", "publish"}:
@@ -527,9 +536,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"\n{header}")
                 for command in commands:
                     print(f"- {command}")
+            reporter.summarize()
             return 0
         except DeployConfigError as exc:
             print(f"{args.command.capitalize()} failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     if args.command == "services":
@@ -564,12 +575,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             if data["services"]:
                 print("\nServices")
-                print(format_services_table(data["services"]))
+                print(format_services_table(data["services"], rich_output=rich_output))
             else:
                 print("\nServices: none found")
+            reporter.summarize()
             return 0
         except KubectlError as exc:
             print(f"Services failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     if args.command == "deployments":
@@ -598,12 +611,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             if data["deployments"]:
                 print("\nDeployments")
-                print(format_deployments_table(data["deployments"]))
+                print(format_deployments_table(data["deployments"], rich_output=rich_output))
             else:
                 print("\nDeployments: none found")
+            reporter.summarize()
             return 0
         except KubectlError as exc:
             print(f"Deployments failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     if args.command == "status":
@@ -641,24 +656,26 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             if data["deployments"]:
                 print("\nDeployments")
-                print(format_deployments_table(data["deployments"]))
+                print(format_deployments_table(data["deployments"], rich_output=rich_output))
             else:
                 print("\nDeployments: none found")
 
             if data["services"]:
                 print("\nServices")
-                print(format_services_table(data["services"]))
+                print(format_services_table(data["services"], rich_output=rich_output))
             else:
                 print("\nServices: none found")
 
             if data["pods"]:
                 print("\nPods")
-                print(format_pods_table(data["pods"]))
+                print(format_pods_table(data["pods"], rich_output=rich_output))
             else:
                 print("\nPods: none found")
+            reporter.summarize()
             return 0
         except KubectlError as exc:
             print(f"Status failed: {exc}", file=sys.stderr)
+            reporter.summarize()
             return 1
 
     # Default to help when no command is provided.

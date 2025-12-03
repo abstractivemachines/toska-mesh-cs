@@ -37,6 +37,7 @@ toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose] [--port-forward] [-w w
 - `--port-forward` runs `kubectl port-forward` for workloads that declare `portForward` and keeps them alive until Ctrl+C.
 - `-w/--workload` limits the deploy to specific workloads defined in the manifest.
 - `--kubeconfig/--context` are forwarded to `kubectl` commands.
+- Progress output uses spinners and a summary when a TTY is detected; `-v` streams command output as it runs.
 
 ## Build / Push / Publish
 Build images, push them to a registry, or do both (publish) based on image + build settings in `toska.yaml`:

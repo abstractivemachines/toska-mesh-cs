@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 authors = [{ name = "Toska Mesh Team" }]
 dependencies = [
   "PyYAML>=6.0",
+  "rich>=13.7",
 ]
 
 [project.optional-dependencies]
