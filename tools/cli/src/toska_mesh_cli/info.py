@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from .progress import ProgressReporter
@@ -33,14 +34,35 @@ class ServiceInfo:
     selector: Dict[str, str] = field(default_factory=dict)
 
 
+@dataclass
+class PodInfo:
+    name: str
+    namespace: str
+    ready: str
+    status: str
+    restarts: int
+    node: str
+
+
+def _kubectl_args(kubeconfig: Optional[Path] = None, context: Optional[str] = None) -> List[str]:
+    args: List[str] = []
+    if kubeconfig:
+        args.extend(["--kubeconfig", str(kubeconfig)])
+    if context:
+        args.extend(["--context", context])
+    return args
+
+
 def list_deployments(
     *,
     namespace: str,
     selector: Optional[str] = None,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
     run_cmd=None,
 ) -> List[DeploymentInfo]:
     runner = run_cmd or (lambda cmd: subprocess.run(cmd, capture_output=True, text=True))
-    cmd = ["kubectl", "get", "deploy", "-n", namespace, "-o", "json"]
+    cmd = ["kubectl", *_kubectl_args(kubeconfig, context), "get", "deploy", "-n", namespace, "-o", "json"]
     if selector:
         cmd.extend(["-l", selector])
 
@@ -82,10 +104,12 @@ def list_services(
     *,
     namespace: str,
     selector: Optional[str] = None,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
     run_cmd=None,
 ) -> List[ServiceInfo]:
     runner = run_cmd or (lambda cmd: subprocess.run(cmd, capture_output=True, text=True))
-    cmd = ["kubectl", "get", "svc", "-n", namespace, "-o", "json"]
+    cmd = ["kubectl", *_kubectl_args(kubeconfig, context), "get", "svc", "-n", namespace, "-o", "json"]
     if selector:
         cmd.extend(["-l", selector])
 
@@ -121,6 +145,50 @@ def list_services(
     return services
 
 
+def list_pods(
+    *,
+    namespace: str,
+    selector: Optional[str] = None,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
+    run_cmd=None,
+) -> List[PodInfo]:
+    runner = run_cmd or (lambda cmd: subprocess.run(cmd, capture_output=True, text=True))
+    cmd = ["kubectl", *_kubectl_args(kubeconfig, context), "get", "pods", "-n", namespace, "-o", "json"]
+    if selector:
+        cmd.extend(["-l", selector])
+
+    result = runner(cmd)
+    if getattr(result, "returncode", 1) != 0:
+        raise KubectlError(getattr(result, "stderr", "") or getattr(result, "stdout", ""))
+
+    try:
+        payload = json.loads(result.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise KubectlError(f"Unable to parse kubectl output: {exc}") from exc
+
+    pods: List[PodInfo] = []
+    for item in payload.get("items", []):
+        meta = item.get("metadata", {})
+        status = item.get("status", {}) or {}
+        container_statuses = status.get("containerStatuses") or []
+        ready_count = sum(1 for cs in container_statuses if cs.get("ready"))
+        total = len(container_statuses)
+        ready = f"{ready_count}/{total or 0}"
+        restarts = sum(int(cs.get("restartCount", 0) or 0) for cs in container_statuses)
+        pods.append(
+            PodInfo(
+                name=meta.get("name", ""),
+                namespace=meta.get("namespace", namespace),
+                ready=ready,
+                status=status.get("phase", ""),
+                restarts=restarts,
+                node=status.get("nodeName", ""),
+            )
+        )
+    return pods
+
+
 def format_deployments_table(deployments: Iterable[DeploymentInfo]) -> str:
     rows = [["NAME", "READY", "AVAILABLE", "IMAGES"]]
     for d in deployments:
@@ -134,6 +202,13 @@ def format_services_table(services: Iterable[ServiceInfo]) -> str:
     for s in services:
         ports = s.ports or "-"
         rows.append([s.name, s.svc_type, s.cluster_ip or "-", ports])
+    return _format_table(rows)
+
+
+def format_pods_table(pods: Iterable[PodInfo]) -> str:
+    rows = [["NAME", "READY", "STATUS", "RESTARTS", "NODE"]]
+    for p in pods:
+        rows.append([p.name, p.ready, p.status or "-", str(p.restarts), p.node or "-"])
     return _format_table(rows)
 
 
@@ -156,6 +231,9 @@ def gather_service_info(
     selector: Optional[str],
     include_deployments: bool = True,
     include_services: bool = True,
+    include_pods: bool = False,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
     run_cmd=None,
     progress: ProgressReporter | None = None,
 ) -> dict:
@@ -164,14 +242,38 @@ def gather_service_info(
     deployments: List[DeploymentInfo] = []
     if include_deployments:
         with progress.step("Listing deployments"):
-            deployments = list_deployments(namespace=namespace, selector=selector, run_cmd=run_cmd)
+            deployments = list_deployments(
+                namespace=namespace,
+                selector=selector,
+                kubeconfig=kubeconfig,
+                context=context,
+                run_cmd=run_cmd,
+            )
 
     services: List[ServiceInfo] = []
     if include_services:
         with progress.step("Listing services"):
-            services = list_services(namespace=namespace, selector=selector, run_cmd=run_cmd)
+            services = list_services(
+                namespace=namespace,
+                selector=selector,
+                kubeconfig=kubeconfig,
+                context=context,
+                run_cmd=run_cmd,
+            )
+
+    pods: List[PodInfo] = []
+    if include_pods:
+        with progress.step("Listing pods"):
+            pods = list_pods(
+                namespace=namespace,
+                selector=selector,
+                kubeconfig=kubeconfig,
+                context=context,
+                run_cmd=run_cmd,
+            )
 
     return {
         "deployments": deployments,
         "services": services,
+        "pods": pods,
     }

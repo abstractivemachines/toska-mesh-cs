@@ -33,6 +33,23 @@ def build_parser() -> argparse.ArgumentParser:
         description="Temporary command until concrete workflows are implemented.",
     )
 
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="Validate a Toska Mesh manifest.",
+        description="Validate a Toska Mesh deploy manifest and report errors/warnings.",
+    )
+    validate_parser.add_argument(
+        "-f",
+        "--manifest",
+        default="toska.yaml",
+        help="Path to a deploy manifest (default: toska.yaml).",
+    )
+    validate_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit validation output as JSON.",
+    )
+
     deploy_parser = subparsers.add_parser(
         "deploy",
         help="Deploy a user service to a target environment.",
@@ -62,6 +79,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Start kubectl port-forward for workloads that define portForward in the manifest.",
     )
+    deploy_parser.add_argument(
+        "-w",
+        "--workload",
+        action="append",
+        help="Limit deploy to specific workload(s) by name.",
+    )
+    deploy_parser.add_argument(
+        "--kubeconfig",
+        type=Path,
+        help="Path to kubeconfig file (passed to kubectl).",
+    )
+    deploy_parser.add_argument(
+        "--context",
+        help="Kube context to target (passed to kubectl).",
+    )
 
     destroy_parser = subparsers.add_parser(
         "destroy",
@@ -85,6 +117,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show kubectl output while deleting manifests.",
     )
+    destroy_parser.add_argument(
+        "-w",
+        "--workload",
+        action="append",
+        help="Limit deletion to specific workload(s) by name.",
+    )
+    destroy_parser.add_argument(
+        "--kubeconfig",
+        type=Path,
+        help="Path to kubeconfig file (passed to kubectl).",
+    )
+    destroy_parser.add_argument(
+        "--context",
+        help="Kube context to target (passed to kubectl).",
+    )
 
     build_parser = subparsers.add_parser(
         "build",
@@ -106,6 +153,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="Show docker output while building images.",
+    )
+    build_parser.add_argument(
+        "-w",
+        "--workload",
+        action="append",
+        help="Limit builds to specific workload(s) by name.",
     )
 
     push_parser = subparsers.add_parser(
@@ -129,6 +182,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show docker output while pushing images.",
     )
+    push_parser.add_argument(
+        "-w",
+        "--workload",
+        action="append",
+        help="Limit pushes to specific workload(s) by name.",
+    )
 
     publish_parser = subparsers.add_parser(
         "publish",
@@ -150,6 +209,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="Show docker output while building/pushing images.",
+    )
+    publish_parser.add_argument(
+        "-w",
+        "--workload",
+        action="append",
+        help="Limit publish to specific workload(s) by name.",
     )
 
     services_parser = subparsers.add_parser(
@@ -177,6 +242,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit raw JSON for scripting.",
     )
+    services_parser.add_argument(
+        "--kubeconfig",
+        type=Path,
+        help="Path to kubeconfig file (passed to kubectl).",
+    )
+    services_parser.add_argument(
+        "--context",
+        help="Kube context to target (passed to kubectl).",
+    )
 
     deployments_parser = subparsers.add_parser(
         "deployments",
@@ -203,6 +277,50 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit raw JSON for scripting.",
     )
+    deployments_parser.add_argument(
+        "--kubeconfig",
+        type=Path,
+        help="Path to kubeconfig file (passed to kubectl).",
+    )
+    deployments_parser.add_argument(
+        "--context",
+        help="Kube context to target (passed to kubectl).",
+    )
+
+    status_parser = subparsers.add_parser(
+        "status",
+        help="Show deployments, services, and pods for Toska Mesh workloads.",
+    )
+    status_parser.add_argument(
+        "--namespace",
+        default="toskamesh",
+        help="Kubernetes namespace to query (default: toskamesh).",
+    )
+    status_parser.add_argument(
+        "-l",
+        "--selector",
+        default="component=example",
+        help="Label selector to filter workloads (default: component=example). Use --all to disable.",
+    )
+    status_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="List all resources without a selector (may include core components).",
+    )
+    status_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit raw JSON for scripting.",
+    )
+    status_parser.add_argument(
+        "--kubeconfig",
+        type=Path,
+        help="Path to kubeconfig file (passed to kubectl).",
+    )
+    status_parser.add_argument(
+        "--context",
+        help="Kube context to target (passed to kubectl).",
+    )
 
     return parser
 
@@ -218,14 +336,63 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Toska Mesh CLI v{__version__} placeholder: define commands next.")
         return 0
 
-    if args.command == "deploy":
-        from .deploy import DeployConfigError, deploy, format_plan, load_deploy_config
+    if args.command == "validate":
+        import json
+
+        from .deploy import DeployConfigError, load_deploy_config, validate_deploy_config
 
         manifest_path = Path(args.manifest)
 
         try:
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
+            result = validate_deploy_config(config)
+
+            if args.json:
+                payload = {
+                    "errors": result.errors,
+                    "warnings": result.warnings,
+                    "ok": result.ok,
+                }
+                print(json.dumps(payload, indent=2))
+                return 0 if result.ok else 1
+
+            if result.errors:
+                print("Validation errors:")
+                for err in result.errors:
+                    print(f"- {err}")
+            if result.warnings:
+                print("\nWarnings:")
+                for warn in result.warnings:
+                    print(f"- {warn}")
+
+            if result.ok:
+                print("Manifest is valid.")
+                return 0
+            return 1
+        except DeployConfigError as exc:
+            print(f"Validate failed: {exc}", file=sys.stderr)
+            return 1
+
+    if args.command == "deploy":
+        from .deploy import (
+            DeployConfigError,
+            deploy,
+            filter_workloads,
+            format_plan,
+            load_deploy_config,
+            stop_port_forwards,
+            wait_on_port_forwards,
+        )
+
+        manifest_path = Path(args.manifest)
+        forward_handles = []
+
+        try:
+            with reporter.step(f"Loading manifest {manifest_path}"):
+                config = load_deploy_config(manifest_path)
+                if args.workload:
+                    config = filter_workloads(config, args.workload)
 
             with reporter.step("Building deployment plan"):
                 plan = format_plan(config)
@@ -234,32 +401,47 @@ def main(argv: Sequence[str] | None = None) -> int:
             if show_plan:
                 print(plan)
 
-            commands = deploy(
+            result = deploy(
                 config,
                 dry_run=args.dry_run,
                 verbose=args.verbose,
                 port_forward=args.port_forward,
+                kubeconfig=args.kubeconfig,
+                context=args.context,
                 progress=reporter,
             )
+            forward_handles = result.port_forwards
 
             if show_plan:
                 header = "Planned commands:" if args.dry_run else "Executed commands:"
                 print(f"\n{header}")
-                for command in commands:
+                for command in result.commands:
                     print(f"- {command}")
+
+            if args.port_forward and not args.dry_run:
+                if result.port_forwards:
+                    print("\nPort-forwarding; press Ctrl+C to stop.")
+                    wait_on_port_forwards(result.port_forwards)
+                else:
+                    print("\nNo workloads with portForward defined; nothing to port-forward.")
             return 0
         except DeployConfigError as exc:
             print(f"Deploy failed: {exc}", file=sys.stderr)
             return 1
+        finally:
+            if forward_handles:
+                stop_port_forwards(forward_handles)
 
     if args.command == "destroy":
-        from .deploy import DeployConfigError, destroy, format_plan, load_deploy_config
+        from .deploy import DeployConfigError, destroy, filter_workloads, format_plan, load_deploy_config
 
         manifest_path = Path(args.manifest)
 
         try:
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
+                if args.workload:
+                    config = filter_workloads(config, args.workload)
 
             with reporter.step("Building deletion plan"):
                 plan = format_plan(config)
@@ -272,6 +454,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 config,
                 dry_run=args.dry_run,
                 verbose=args.verbose,
+                kubeconfig=args.kubeconfig,
+                context=args.context,
                 progress=reporter,
             )
 
@@ -289,6 +473,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         from .deploy import (
             DeployConfigError,
             build_images,
+            filter_workloads,
             format_plan,
             load_deploy_config,
             publish,
@@ -300,6 +485,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
+                if args.workload:
+                    config = filter_workloads(config, args.workload)
 
             with reporter.step("Building image plan"):
                 plan = format_plan(config)
@@ -362,6 +549,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 selector=selector,
                 include_deployments=False,
                 include_services=True,
+                kubeconfig=args.kubeconfig,
+                context=args.context,
                 progress=reporter,
             )
 
@@ -395,6 +584,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 selector=selector,
                 include_deployments=True,
                 include_services=False,
+                kubeconfig=args.kubeconfig,
+                context=args.context,
                 progress=reporter,
             )
 
@@ -413,6 +604,61 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         except KubectlError as exc:
             print(f"Deployments failed: {exc}", file=sys.stderr)
+            return 1
+
+    if args.command == "status":
+        import json
+
+        from .info import (
+            KubectlError,
+            format_deployments_table,
+            format_pods_table,
+            format_services_table,
+            gather_service_info,
+        )
+
+        selector = None if args.all else args.selector
+        try:
+            data = gather_service_info(
+                namespace=args.namespace,
+                selector=selector,
+                include_deployments=True,
+                include_services=True,
+                include_pods=True,
+                kubeconfig=args.kubeconfig,
+                context=args.context,
+                progress=reporter,
+            )
+
+            if args.json:
+                serializable = {
+                    "deployments": [d.__dict__ for d in data["deployments"]],
+                    "services": [s.__dict__ for s in data["services"]],
+                    "pods": [p.__dict__ for p in data["pods"]],
+                }
+                print(json.dumps(serializable, indent=2))
+                return 0
+
+            if data["deployments"]:
+                print("\nDeployments")
+                print(format_deployments_table(data["deployments"]))
+            else:
+                print("\nDeployments: none found")
+
+            if data["services"]:
+                print("\nServices")
+                print(format_services_table(data["services"]))
+            else:
+                print("\nServices: none found")
+
+            if data["pods"]:
+                print("\nPods")
+                print(format_pods_table(data["pods"]))
+            else:
+                print("\nPods: none found")
+            return 0
+        except KubectlError as exc:
+            print(f"Status failed: {exc}", file=sys.stderr)
             return 1
 
     # Default to help when no command is provided.

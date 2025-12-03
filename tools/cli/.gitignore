@@ -1,26 +1,11 @@
-# Virtual environments
-.venv/
-venv/
-
-# Python cache and bytecode
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-
-# Build artifacts
-build/
-dist/
 *.egg-info/
-.eggs/
-
-# Tooling caches
-.mypy_cache/
+.venv/
 .pytest_cache/
-.ruff_cache/
 .coverage
-coverage.xml
 htmlcov/
-.pytype/
-
-# Local configuration
-.python-version
+.mypy_cache/
+dist/
+build/

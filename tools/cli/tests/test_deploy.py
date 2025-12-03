@@ -5,13 +5,15 @@ from toska_mesh_cli.deploy import (
     build_images,
     deploy,
     destroy,
+    filter_workloads,
     load_deploy_config,
     publish,
     push_images,
+    validate_deploy_config,
 )
 
 
-def _write_manifest(tmp_path):
+def _write_manifest(tmp_path, *, with_port_forward: bool = False):
     dockerfile = tmp_path / "Dockerfile"
     dockerfile.write_text("# test")
 
@@ -44,6 +46,17 @@ workloads:
       dockerfile: Dockerfile
 """
     )
+    if with_port_forward:
+        manifest_text = manifest_file.read_text()
+        manifest_file.write_text(
+            manifest_text
+            + """
+    portForward:
+      service: sample-service
+      port: 8080
+      localPort: 18080
+"""
+        )
     return manifest_file
 
 
@@ -62,7 +75,8 @@ def test_deploy_dry_run_returns_commands(tmp_path):
     manifest = _write_manifest(tmp_path)
     config = load_deploy_config(manifest)
 
-    commands = list(deploy(config, dry_run=True))
+    result = deploy(config, dry_run=True)
+    commands = result.commands
 
     assert commands
     assert "kubectl apply" in commands[0]
@@ -81,7 +95,7 @@ def test_deploy_verbose_emits_runner_output(tmp_path, capsys):
     def fake_runner(cmd):
         return Result()
 
-    _ = list(deploy(config, dry_run=False, verbose=True, run_cmd=fake_runner))
+    _ = deploy(config, dry_run=False, verbose=True, run_cmd=fake_runner)
     captured = capsys.readouterr()
     assert "applied" in captured.out
 
@@ -125,6 +139,36 @@ def test_publish_runs_build_and_push(tmp_path):
 
     assert any(cmd[0:2] == ["docker", "build"] for cmd in calls)
     assert any(cmd[0:2] == ["docker", "push"] for cmd in calls)
+
+
+def test_port_forward_dry_run_adds_command(tmp_path):
+    manifest = _write_manifest(tmp_path, with_port_forward=True)
+    config = load_deploy_config(manifest)
+
+    result = deploy(config, dry_run=True, port_forward=True)
+
+    assert any("port-forward" in cmd for cmd in result.commands)
+
+
+def test_filter_workloads_limits_selection(tmp_path):
+    manifest = _write_manifest(tmp_path)
+    config = load_deploy_config(manifest)
+
+    filtered = filter_workloads(config, ["sample-service"])
+    assert len(filtered.workloads) == 1
+
+    with pytest.raises(DeployConfigError):
+        _ = filter_workloads(config, ["missing"])
+
+
+def test_validate_deploy_config_reports_missing_image(tmp_path):
+    manifest = _write_manifest(tmp_path)
+    manifest.write_text(manifest.read_text().replace("    image:\n      repository: sample\n      tag: local\n", ""))
+    config = load_deploy_config(manifest)
+
+    result = validate_deploy_config(config)
+    assert result.warnings
+    assert result.ok
 
 
 def test_invalid_manifest_path_raises(tmp_path):

@@ -4,7 +4,7 @@ This is the isolated Python command-line interface for the Toska Mesh repository
 
 ## Layout
 - `pyproject.toml` – packaging metadata and entry point declaration.
-- `src/toska_mesh_cli/` – CLI package source (placeholder today).
+- `src/toska_mesh_cli/` – CLI package source.
 - `tests/` – Python tests for the CLI package.
 - `.gitignore` – Python-specific ignores scoped to this tool.
 
@@ -17,6 +17,7 @@ pip install -e .[dev]
 
 toska --help
 toska info
+toska validate -f ./toska.yaml
 ```
 
 ## Deploy (preview)
@@ -28,31 +29,50 @@ toska deploy
 
 Options:
 ```bash
-toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose]
+toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose] [--port-forward] [-w workload] [--kubeconfig ~/.kube/config] [--context my-cluster]
 ```
 - Default manifest path: `toska.yaml` in the current directory.
 - Supported target: Kubernetes (`kubectl` must be pointed at your cluster, ToskaMesh already running there).
 - `--verbose` prints the underlying `kubectl` output; without it only the planned/executed commands are shown.
+- `--port-forward` runs `kubectl port-forward` for workloads that declare `portForward` and keeps them alive until Ctrl+C.
+- `-w/--workload` limits the deploy to specific workloads defined in the manifest.
+- `--kubeconfig/--context` are forwarded to `kubectl` commands.
 
 ## Build / Push / Publish
 Build images, push them to a registry, or do both (publish) based on image + build settings in `toska.yaml`:
 
 ```bash
-toska build [-f ./toska.yaml] [--dry-run] [-v/--verbose]
-toska push [-f ./toska.yaml] [--dry-run] [-v/--verbose]
-toska publish [-f ./toska.yaml] [--dry-run] [-v/--verbose]  # build then push
+toska build [-f ./toska.yaml] [--dry-run] [-v/--verbose] [-w workload]
+toska push [-f ./toska.yaml] [--dry-run] [-v/--verbose] [-w workload]
+toska publish [-f ./toska.yaml] [--dry-run] [-v/--verbose] [-w workload]  # build then push
 ```
 
 Notes:
 - Specify `workloads[*].image.repository|tag|registry` and `workloads[*].build.context|dockerfile`.
 - `--dry-run` prints the planned docker commands; `-v` shows docker stdout/stderr.
 - Commands emit progress by default; plans/commands are shown when using `--dry-run` or `-v`.
+- `-w/--workload` scopes build/push/publish to specific workloads in the manifest.
+
+## Validate
+Validate a manifest and surface missing paths/fields:
+
+```bash
+toska validate [-f ./toska.yaml] [--json]
+```
+- Exit code is non-zero when validation errors are found.
+
+## Status
+Show deployments, services, and pods that match the selector/namespace:
+
+```bash
+toska status [--namespace toskamesh] [-l component=example] [--all] [--json] [--kubeconfig ~/.kube/config] [--context my-cluster]
+```
 
 ## Services
 List deployed Toska Mesh user services (defaults to namespace `toskamesh` and selector `component=example`):
 
 ```bash
-toska services [--namespace toskamesh] [-l component=example] [--all] [--json]
+toska services [--namespace toskamesh] [-l component=example] [--all] [--json] [--kubeconfig ~/.kube/config] [--context my-cluster]
 ```
 - `--all` removes the label selector (may include core components).
 - `--json` prints raw data for scripting.
@@ -61,7 +81,7 @@ toska services [--namespace toskamesh] [-l component=example] [--all] [--json]
 List Toska Mesh user deployments (defaults to namespace `toskamesh` and selector `component=example`):
 
 ```bash
-toska deployments [--namespace toskamesh] [-l component=example] [--all] [--json]
+toska deployments [--namespace toskamesh] [-l component=example] [--all] [--json] [--kubeconfig ~/.kube/config] [--context my-cluster]
 ```
 - `--all` removes the label selector (may include core components).
 - `--json` prints raw data for scripting.
@@ -95,5 +115,5 @@ The deploy command currently validates the manifest and runs `kubectl apply` for
 
 ## Notes
 - Keep CLI logic and dependencies inside this folder to avoid leaking into the .NET solution.
-- The CLI currently provides placeholder commands only; we can add subcommands for orchestration, diagnostics, and developer workflows next.
+- The CLI currently provides deploy/build/publish/destroy/status/validate commands; add orchestration or diagnostics features here without touching the .NET solution.
 - Prefer adding dependencies to `pyproject.toml` with sensible version ranges and keep tests alongside features.

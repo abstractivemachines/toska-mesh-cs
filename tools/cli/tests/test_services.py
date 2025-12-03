@@ -3,11 +3,14 @@ import json
 from toska_mesh_cli.info import (
     DeploymentInfo,
     KubectlError,
+    PodInfo,
     ServiceInfo,
     format_deployments_table,
+    format_pods_table,
     format_services_table,
     gather_service_info,
     list_deployments,
+    list_pods,
     list_services,
 )
 
@@ -84,6 +87,32 @@ def test_format_tables_show_headers():
     assert "NAME" in svc_text
 
 
+def test_list_pods_parses_ready_and_status():
+    payload = {
+        "items": [
+            {
+                "metadata": {"name": "hello-pod", "namespace": "toskamesh"},
+                "status": {
+                    "phase": "Running",
+                    "nodeName": "node-a",
+                    "containerStatuses": [{"ready": True, "restartCount": 1}, {"ready": False, "restartCount": 0}],
+                },
+            }
+        ]
+    }
+
+    pods = list_pods(namespace="toskamesh", run_cmd=lambda cmd: _fake_result(payload))
+
+    assert pods[0].ready == "1/2"
+    assert pods[0].status == "Running"
+
+
+def test_format_pods_table_has_headers():
+    pods = [PodInfo(name="p", namespace="ns", ready="1/1", status="Running", restarts=0, node="node-a")]
+    text = format_pods_table(pods)
+    assert "NAME" in text
+
+
 def test_gather_service_info_passes_selector_and_namespace():
     seen_cmds = []
 
@@ -123,6 +152,26 @@ def test_gather_service_info_skips_deployments_when_disabled():
     assert data["deployments"] == []
     assert any("svc" in cmd for cmd in seen_cmds)
     assert not any("deploy" in cmd for cmd in seen_cmds)
+
+
+def test_gather_service_info_includes_pods_when_requested():
+    seen_cmds = []
+
+    def fake_runner(cmd):
+        seen_cmds.append(cmd)
+        return _fake_result({"items": []})
+
+    data = gather_service_info(
+        namespace="toskamesh",
+        selector=None,
+        include_deployments=True,
+        include_services=True,
+        include_pods=True,
+        run_cmd=fake_runner,
+    )
+
+    assert "pods" in data
+    assert any("pods" in cmd for cmd in seen_cmds)
 
 
 def test_kubectl_error_bubbles():

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import subprocess
+import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Sequence
 
 import yaml
 
@@ -50,6 +51,26 @@ class PortForward:
     service: str
     remote_port: int
     local_port: Optional[int] = None
+
+
+@dataclass
+class DeployOutcome:
+    commands: list[str]
+    port_forwards: list["PortForwardHandle"]
+
+
+@dataclass
+class PortForwardHandle:
+    command: str
+    process: subprocess.Popen
+
+    def stop(self) -> None:
+        if self.process.poll() is None:
+            try:
+                self.process.terminate()
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
 
 
 def load_deploy_config(manifest_path: Path) -> DeployConfig:
@@ -168,6 +189,65 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
     )
 
 
+def filter_workloads(config: DeployConfig, names: Sequence[str]) -> DeployConfig:
+    if not names:
+        return config
+
+    selected = [w for w in config.workloads if w.name in names]
+    missing = [n for n in names if n not in {w.name for w in config.workloads}]
+    if missing:
+        raise DeployConfigError(f"Workloads not found: {', '.join(missing)}")
+    return DeployConfig(
+        service=config.service,
+        mode=config.mode,
+        target=config.target,
+        namespace=config.namespace,
+        workloads=selected,
+    )
+
+
+@dataclass
+class ValidationResult:
+    errors: list[str]
+    warnings: list[str]
+
+    @property
+    def ok(self) -> bool:
+        return not self.errors
+
+
+def validate_deploy_config(config: DeployConfig) -> ValidationResult:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not config.workloads:
+        errors.append("No workloads defined in manifest.")
+
+    seen_names: set[str] = set()
+    for workload in config.workloads:
+        if workload.name in seen_names:
+            errors.append(f"Duplicate workload name '{workload.name}'.")
+        seen_names.add(workload.name)
+
+        for manifest in workload.manifests:
+            if not manifest.exists():
+                errors.append(f"Manifest missing for workload '{workload.name}': {manifest}")
+
+        if workload.image is None:
+            warnings.append(f"Workload '{workload.name}' is missing an image definition.")
+
+        if workload.build_context and not workload.build_context.exists():
+            errors.append(f"Build context not found for workload '{workload.name}': {workload.build_context}")
+
+        if workload.dockerfile and not workload.dockerfile.exists():
+            errors.append(f"Dockerfile not found for workload '{workload.name}': {workload.dockerfile}")
+
+        if workload.port_forward and workload.port_forward.remote_port <= 0:
+            errors.append(f"Port-forward target port invalid for workload '{workload.name}'.")
+
+    return ValidationResult(errors=errors, warnings=warnings)
+
+
 def format_plan(config: DeployConfig) -> str:
     lines = [
         f"Service: {config.service} ({config.mode})",
@@ -180,13 +260,28 @@ def format_plan(config: DeployConfig) -> str:
     for workload in config.workloads:
         image_str = workload.image.as_string() if workload.image else "unspecified"
         manifest_str = ", ".join(str(m) for m in workload.manifests)
+        pf = workload.port_forward
+        pf_str = f", port-forward svc/{pf.service}:{pf.local_port or pf.remote_port}->{pf.remote_port}" if pf else ""
         lines.append(
             f"- {workload.name} [{workload.mode}]"
             f" -> manifests {manifest_str}"
-            f" (image: {image_str})"
+            f" (image: {image_str}{pf_str})"
         )
 
     return "\n".join(lines)
+
+
+def _kubectl_args(kubeconfig: Optional[Path] = None, context: Optional[str] = None) -> list[str]:
+    args: list[str] = []
+    if kubeconfig:
+        args.extend(["--kubeconfig", str(kubeconfig)])
+    if context:
+        args.extend(["--context", context])
+    return args
+
+
+def _default_port_forward_runner(cmd: list[str]) -> subprocess.Popen:
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def deploy(
@@ -195,21 +290,28 @@ def deploy(
     dry_run: bool = False,
     verbose: bool = False,
     port_forward: bool = False,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
     run_cmd=None,
+    port_forward_runner=None,
     progress: ProgressReporter | None = None,
     emit=None,
-) -> Iterable[str]:
+) -> DeployOutcome:
     runner = run_cmd or (lambda cmd: subprocess.run(cmd, check=False, capture_output=True, text=True))
+    port_forward_runner = port_forward_runner or _default_port_forward_runner
     printer = emit or print
     progress = progress or ProgressReporter()
 
     executed: list[str] = []
+    forwards: list[PortForwardHandle] = []
     if config.target != "kubernetes":
         raise DeployConfigError(f"Unsupported target '{config.target}'.")
 
+    kube_args = _kubectl_args(kubeconfig, context)
+
     for workload in config.workloads:
         for manifest in workload.manifests:
-            cmd = ["kubectl", "apply", "-f", str(manifest)]
+            cmd = ["kubectl", *kube_args, "apply", "-f", str(manifest)]
             if config.namespace:
                 cmd.extend(["-n", config.namespace])
 
@@ -237,7 +339,31 @@ def deploy(
                     if stderr.strip():
                         printer(stderr.strip())
 
-    return executed
+        if port_forward and workload.port_forward:
+            pf = workload.port_forward
+            local = pf.local_port or pf.remote_port
+            cmd = [
+                "kubectl",
+                *kube_args,
+                "port-forward",
+                f"svc/{pf.service}",
+                f"{local}:{pf.remote_port}",
+            ]
+            if config.namespace:
+                cmd.extend(["-n", config.namespace])
+
+            rendered = " ".join(cmd)
+            executed.append(rendered)
+
+            with progress.step(f"Port-forward {pf.service} {local}->{pf.remote_port}") as step:
+                if dry_run:
+                    step.mark("skipped")
+                    continue
+                process = port_forward_runner(cmd)
+                forwards.append(PortForwardHandle(command=rendered, process=process))
+                step.mark("running")
+
+    return DeployOutcome(commands=executed, port_forwards=forwards)
 
 
 def destroy(
@@ -245,6 +371,8 @@ def destroy(
     *,
     dry_run: bool = False,
     verbose: bool = False,
+    kubeconfig: Optional[Path] = None,
+    context: Optional[str] = None,
     run_cmd=None,
     progress: ProgressReporter | None = None,
     emit=None,
@@ -257,9 +385,11 @@ def destroy(
     if config.target != "kubernetes":
         raise DeployConfigError(f"Unsupported target '{config.target}'.")
 
+    kube_args = _kubectl_args(kubeconfig, context)
+
     for workload in config.workloads:
         for manifest in workload.manifests:
-            cmd = ["kubectl", "delete", "-f", str(manifest)]
+            cmd = ["kubectl", *kube_args, "delete", "-f", str(manifest)]
             if config.namespace:
                 cmd.extend(["-n", config.namespace])
 
@@ -427,3 +557,26 @@ def publish(
 def manifest_default_context(config: DeployConfig, workload: Workload) -> Path:
     # Default context: manifest directory for the first manifest of the workload.
     return workload.manifests[0].parent
+
+
+def stop_port_forwards(handles: Iterable[PortForwardHandle]) -> None:
+    for handle in handles:
+        try:
+            handle.stop()
+        except Exception:
+            # Best-effort cleanup; ignore termination errors.
+            pass
+
+
+def wait_on_port_forwards(handles: Iterable[PortForwardHandle], *, poll_interval: float = 0.5) -> None:
+    active = list(handles)
+    if not active:
+        return
+
+    try:
+        while any(h.process.poll() is None for h in active):
+            time.sleep(poll_interval)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop_port_forwards(active)
