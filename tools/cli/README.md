@@ -20,6 +20,16 @@ toska info
 toska validate -f ./toska.yaml
 ```
 
+### Dev loop
+```bash
+# From tools/cli
+make install   # create venv + install dev deps
+make format    # black
+make lint      # ruff
+make typecheck # mypy (shallow)
+make test      # pytest with coverage
+```
+
 ## Deploy (preview)
 From a user service directory (e.g., under `examples/`), add a minimal `toska.yaml` and run:
 
@@ -34,6 +44,7 @@ toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose] [--port-forward] [-w w
 - Default manifest path: `toska.yaml` in the current directory.
 - Supported target: Kubernetes (`kubectl` must be pointed at your cluster, ToskaMesh already running there).
 - `--verbose` prints the underlying `kubectl` output; without it only the planned/executed commands are shown.
+- `-n/--namespace` overrides the manifest namespace for apply/delete/port-forward.
 - `--port-forward` runs `kubectl port-forward` for workloads that declare `portForward` and keeps them alive until Ctrl+C.
 - `-w/--workload` limits the deploy to specific workloads defined in the manifest.
 - `--kubeconfig/--context` are forwarded to `kubectl` commands.
@@ -118,3 +129,4 @@ The deploy command currently validates the manifest and runs `kubectl apply` for
 - Keep CLI logic and dependencies inside this folder to avoid leaking into the .NET solution.
 - The CLI currently provides deploy/build/publish/destroy/status/validate commands; add orchestration or diagnostics features here without touching the .NET solution.
 - Prefer adding dependencies to `pyproject.toml` with sensible version ranges and keep tests alongside features.
+- Commands fail fast when `kubectl`/`docker` are missing (skipped when using `--dry-run`).

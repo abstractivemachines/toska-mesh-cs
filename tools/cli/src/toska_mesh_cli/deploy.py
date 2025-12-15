@@ -4,6 +4,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from shutil import which
 from typing import Iterable, List, Optional, Sequence
 
 import yaml
@@ -73,6 +74,13 @@ class PortForwardHandle:
                 self.process.kill()
 
 
+def require_commands(commands: Sequence[str], context: str) -> None:
+    missing = [cmd for cmd in commands if which(cmd) is None]
+    if missing:
+        formatted = ", ".join(missing)
+        raise DeployConfigError(f"{context} requires command(s) on PATH: {formatted}")
+
+
 def load_deploy_config(manifest_path: Path) -> DeployConfig:
     manifest_path = manifest_path.resolve()
     if not manifest_path.exists():
@@ -107,6 +115,8 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
             raise DeployConfigError(
                 "Define 'workloads' or 'deploy.manifests' in the deploy manifest."
             )
+        if manifest_entries == []:
+            raise DeployConfigError("deploy.manifests is empty; add at least one manifest path.")
         if isinstance(manifest_entries, (str, Path)):
             manifest_entries = [manifest_entries]
         workloads_data = [
@@ -118,11 +128,19 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
             }
             for entry in manifest_entries
         ]
+    elif not isinstance(workloads_data, list):
+        raise DeployConfigError("workloads must be a list.")
+    elif len(workloads_data) == 0:
+        raise DeployConfigError("workloads list is empty; define at least one workload.")
 
     workloads: List[Workload] = []
     for index, raw in enumerate(workloads_data):
         workload_name = raw.get("name") or f"{service_name}-{index + 1}"
         workload_mode = (raw.get("type") or raw.get("mode") or service_mode).lower()
+        if workload_mode not in {"stateless", "stateful"}:
+            raise DeployConfigError(
+                f"workloads[{index}].type/mode must be 'stateless' or 'stateful' (got '{workload_mode}')."
+            )
         manifest_value = raw.get("manifests") or raw.get("manifest") or raw.get("path")
         if not manifest_value:
             raise DeployConfigError(f"Workload '{workload_name}' is missing a manifest path.")
@@ -141,6 +159,8 @@ def load_deploy_config(manifest_path: Path) -> DeployConfig:
         image_data = raw.get("image") or data.get("image") or {}
         image = None
         repository = image_data.get("repository") or image_data.get("name")
+        if image_data and not repository:
+            raise DeployConfigError(f"Workload '{workload_name}' image is missing repository/name.")
         if repository:
             image = ImageRef(
                 repository=repository,
@@ -222,6 +242,8 @@ def validate_deploy_config(config: DeployConfig) -> ValidationResult:
 
     if not config.workloads:
         errors.append("No workloads defined in manifest.")
+    if not config.namespace:
+        warnings.append("Namespace not set; kubectl default namespace will be used.")
 
     seen_names: set[str] = set()
     for workload in config.workloads:
@@ -235,6 +257,8 @@ def validate_deploy_config(config: DeployConfig) -> ValidationResult:
 
         if workload.image is None:
             warnings.append(f"Workload '{workload.name}' is missing an image definition.")
+        elif workload.build_context is None and workload.dockerfile is None:
+            warnings.append(f"Workload '{workload.name}' image set without build context; docker build may fail.")
 
         if workload.build_context and not workload.build_context.exists():
             errors.append(f"Build context not found for workload '{workload.name}': {workload.build_context}")
@@ -244,6 +268,8 @@ def validate_deploy_config(config: DeployConfig) -> ValidationResult:
 
         if workload.port_forward and workload.port_forward.remote_port <= 0:
             errors.append(f"Port-forward target port invalid for workload '{workload.name}'.")
+        if workload.port_forward and not workload.port_forward.service:
+            errors.append(f"Port-forward service missing for workload '{workload.name}'.")
 
     return ValidationResult(errors=errors, warnings=warnings)
 
@@ -308,6 +334,8 @@ def deploy(
     port_forward_runner = port_forward_runner or _default_port_forward_runner
     printer = emit or print
     progress = progress or ProgressReporter()
+    if not dry_run and run_cmd is None:
+        require_commands(["kubectl"], "Deploy")
 
     executed: list[str] = []
     forwards: list[PortForwardHandle] = []
@@ -367,6 +395,15 @@ def deploy(
                     step.mark("skipped")
                     continue
                 process = port_forward_runner(cmd)
+                # Detect immediate failures instead of leaving a broken process running.
+                time.sleep(0.2)
+                if process.poll() is not None:
+                    stderr = process.stderr.read().strip() if process.stderr else ""
+                    stdout = process.stdout.read().strip() if process.stdout else ""
+                    detail = stderr or stdout or f"exit code {process.returncode}"
+                    raise DeployConfigError(
+                        f"kubectl port-forward failed for workload '{workload.name}': {detail}"
+                    )
                 forwards.append(PortForwardHandle(command=rendered, process=process))
                 step.mark("running")
 
@@ -387,6 +424,8 @@ def destroy(
     runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
+    if not dry_run and run_cmd is None:
+        require_commands(["kubectl"], "Destroy")
 
     executed: list[str] = []
     if config.target != "kubernetes":
@@ -439,6 +478,8 @@ def build_images(
     runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
+    if not dry_run and run_cmd is None:
+        require_commands(["docker"], "Build")
 
     executed: list[str] = []
     for workload in config.workloads:
@@ -496,6 +537,8 @@ def push_images(
     runner = run_cmd or _subprocess_runner(verbose)
     printer = emit or print
     progress = progress or ProgressReporter()
+    if not dry_run and run_cmd is None:
+        require_commands(["docker"], "Push")
 
     executed: list[str] = []
     for workload in config.workloads:

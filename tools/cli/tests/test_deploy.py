@@ -186,3 +186,57 @@ deploy:
 
     with pytest.raises(DeployConfigError):
         load_deploy_config(manifest_file)
+
+
+def test_invalid_workload_mode_rejected(tmp_path):
+    manifest_file = tmp_path / "toska.yaml"
+    manifest_file.write_text(
+        """
+service:
+  name: broken-service
+  type: stateless
+workloads:
+  - name: broken-workload
+    type: invalid
+    manifests:
+      - k8s/service.yaml
+"""
+    )
+
+    with pytest.raises(DeployConfigError):
+        load_deploy_config(manifest_file)
+
+
+def test_port_forward_failure_is_reported(tmp_path):
+    manifest = _write_manifest(tmp_path, with_port_forward=True)
+    config = load_deploy_config(manifest)
+
+    class Result:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    class _Stream:
+        def __init__(self, text: str):
+            self._text = text
+
+        def read(self):
+            return self._text
+
+    class FailingPortForward:
+        def __init__(self):
+            self.returncode = 1
+            self.stdout = _Stream("")
+            self.stderr = _Stream("no pods to forward")
+
+        def poll(self):
+            return self.returncode
+
+    with pytest.raises(DeployConfigError):
+        deploy(
+            config,
+            dry_run=False,
+            port_forward=True,
+            run_cmd=lambda cmd: Result(),
+            port_forward_runner=lambda cmd: FailingPortForward(),
+        )

@@ -2,11 +2,20 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Sequence
+from shutil import which
 
 from . import __version__
 from .progress import ProgressReporter
+
+
+def _require_commands(commands: Sequence[str], action: str) -> None:
+    missing = [cmd for cmd in commands if which(cmd) is None]
+    if missing:
+        formatted = ", ".join(missing)
+        raise RuntimeError(f"{action} requires command(s) on PATH: {formatted}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -94,6 +103,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--context",
         help="Kube context to target (passed to kubectl).",
     )
+    deploy_parser.add_argument(
+        "-n",
+        "--namespace",
+        help="Override namespace defined in the manifest.",
+    )
 
     destroy_parser = subparsers.add_parser(
         "destroy",
@@ -131,6 +145,11 @@ def build_parser() -> argparse.ArgumentParser:
     destroy_parser.add_argument(
         "--context",
         help="Kube context to target (passed to kubectl).",
+    )
+    destroy_parser.add_argument(
+        "-n",
+        "--namespace",
+        help="Override namespace defined in the manifest.",
     )
 
     build_parser = subparsers.add_parser(
@@ -394,10 +413,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         forward_handles = []
 
         try:
+            if not args.dry_run:
+                _require_commands(["kubectl"], "Deploy")
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
                 if args.workload:
                     config = filter_workloads(config, args.workload)
+                if args.namespace:
+                    config = replace(config, namespace=args.namespace)
 
             with reporter.step("Building deployment plan"):
                 plan = format_plan(config)
@@ -431,7 +454,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     print("\nNo workloads with portForward defined; nothing to port-forward.")
             reporter.summarize()
             return 0
-        except DeployConfigError as exc:
+        except (DeployConfigError, RuntimeError) as exc:
             print(f"Deploy failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
@@ -445,10 +468,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         manifest_path = Path(args.manifest)
 
         try:
+            if not args.dry_run:
+                _require_commands(["kubectl"], "Destroy")
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
                 if args.workload:
                     config = filter_workloads(config, args.workload)
+                if args.namespace:
+                    config = replace(config, namespace=args.namespace)
 
             with reporter.step("Building deletion plan"):
                 plan = format_plan(config)
@@ -473,7 +500,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     print(f"- {command}")
             reporter.summarize()
             return 0
-        except DeployConfigError as exc:
+        except (DeployConfigError, RuntimeError) as exc:
             print(f"Destroy failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
@@ -492,6 +519,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         manifest_path = Path(args.manifest)
 
         try:
+            if not args.dry_run:
+                _require_commands(["docker"], args.command.capitalize())
             with reporter.step(f"Loading manifest {manifest_path}"):
                 config = load_deploy_config(manifest_path)
                 if args.workload:
@@ -538,7 +567,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     print(f"- {command}")
             reporter.summarize()
             return 0
-        except DeployConfigError as exc:
+        except (DeployConfigError, RuntimeError) as exc:
             print(f"{args.command.capitalize()} failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
@@ -555,6 +584,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         selector = None if args.all else args.selector
         try:
+            _require_commands(["kubectl"], "Services")
             data = gather_service_info(
                 namespace=args.namespace,
                 selector=selector,
@@ -580,7 +610,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print("\nServices: none found")
             reporter.summarize()
             return 0
-        except KubectlError as exc:
+        except (KubectlError, RuntimeError) as exc:
             print(f"Services failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
@@ -592,6 +622,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         selector = None if args.all else args.selector
         try:
+            _require_commands(["kubectl"], "Deployments")
             data = gather_service_info(
                 namespace=args.namespace,
                 selector=selector,
@@ -616,7 +647,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print("\nDeployments: none found")
             reporter.summarize()
             return 0
-        except KubectlError as exc:
+        except (KubectlError, RuntimeError) as exc:
             print(f"Deployments failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
@@ -634,6 +665,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         selector = None if args.all else args.selector
         try:
+            _require_commands(["kubectl"], "Status")
             data = gather_service_info(
                 namespace=args.namespace,
                 selector=selector,
@@ -673,7 +705,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print("\nPods: none found")
             reporter.summarize()
             return 0
-        except KubectlError as exc:
+        except (KubectlError, RuntimeError) as exc:
             print(f"Status failed: {exc}", file=sys.stderr)
             reporter.summarize()
             return 1
