@@ -30,6 +30,19 @@ make typecheck # mypy (shallow)
 make test      # pytest with coverage
 ```
 
+## Kubeconfig (Talos)
+Generate a Kubernetes kubeconfig using a Talos cluster (uses `talosctl` under the hood):
+```bash
+toska kubeconfig --talosconfig ./clusterconfig/talosconfig -e 192.168.50.229 --out ~/.kube/config --force
+```
+Options:
+- `--talosconfig` path to the Talos client config (defaults to `clusterconfig/talosconfig`).
+- `-e/--endpoint` Talos endpoint(s); if omitted, endpoints from the talosconfig are used.
+- `--node` optional node(s) override; defaults to nodes from talosconfig when present.
+- `-o/--out` output kubeconfig path (defaults to `~/.kube/config`); `--force` overwrites.
+- `--discover-cidr` optional CIDR(s) to probe for Talos endpoints (opt-in). `--discover-port` (default `50000`), `--discover-timeout` (seconds, default `0.2`), and `--max-hosts` (default `256`) shape the scan.
+- `-v/--verbose` streams `talosctl` output.
+
 ## Deploy (preview)
 From a user service directory (e.g., under `examples/`), add a minimal `toska.yaml` and run:
 

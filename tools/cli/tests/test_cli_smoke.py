@@ -45,3 +45,53 @@ workloads:
 
     assert exit_code == 0
     assert "valid" in captured.out.lower()
+
+
+def test_cli_kubeconfig_delegates_to_helper(monkeypatch, tmp_path):
+    from pathlib import Path
+
+    called: dict = {}
+
+    monkeypatch.setattr("toska_mesh_cli.cli._require_commands", lambda commands, action: None)
+
+    def fake_kubeconfig(**kwargs):
+        from toska_mesh_cli.cluster import KubeconfigResult
+
+        called.update(kwargs)
+        return KubeconfigResult(path="generated", endpoints=["1.2.3.4"], nodes=["1.2.3.5"])
+
+    monkeypatch.setattr("toska_mesh_cli.cluster.talos_kubeconfig", lambda **kwargs: fake_kubeconfig(**kwargs))
+
+    exit_code = main(
+        [
+            "kubeconfig",
+            "--talosconfig",
+            str(tmp_path / "talosconfig"),
+            "--endpoint",
+            "1.2.3.4",
+            "--node",
+            "1.2.3.5",
+            "--out",
+            str(tmp_path / "kubeconfig"),
+            "--force",
+            "--discover-cidr",
+            "10.0.0.0/24",
+            "--discover-port",
+            "50000",
+            "--discover-timeout",
+            "0.5",
+            "--max-hosts",
+            "32",
+        ]
+    )
+
+    assert exit_code == 0
+    assert called["endpoints"] == ["1.2.3.4"]
+    assert called["nodes"] == ["1.2.3.5"]
+    assert called["force"] is True
+    assert isinstance(called["talosconfig"], Path)
+    assert isinstance(called["out"], Path)
+    assert called["discover_cidrs"] == ["10.0.0.0/24"]
+    assert called["discover_port"] == 50000
+    assert called["discover_timeout"] == 0.5
+    assert called["max_hosts"] == 32

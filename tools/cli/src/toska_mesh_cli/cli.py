@@ -42,6 +42,73 @@ def build_parser() -> argparse.ArgumentParser:
         description="Temporary command until concrete workflows are implemented.",
     )
 
+    kubeconfig_parser = subparsers.add_parser(
+        "kubeconfig",
+        help="Generate a kubeconfig using talosctl.",
+        description="Generate a kubeconfig file for a Talos-backed cluster.",
+    )
+    kubeconfig_parser.add_argument(
+        "--talosconfig",
+        type=Path,
+        default=Path("clusterconfig") / "talosconfig",
+        help="Path to talosconfig (default: clusterconfig/talosconfig).",
+    )
+    kubeconfig_parser.add_argument(
+        "-e",
+        "--endpoint",
+        dest="endpoints",
+        action="append",
+        help="Talos endpoint(s); if omitted, use endpoints from talosconfig.",
+    )
+    kubeconfig_parser.add_argument(
+        "--node",
+        dest="nodes",
+        action="append",
+        help="Talos node(s); if omitted, use nodes from talosconfig when present.",
+    )
+    kubeconfig_parser.add_argument(
+        "-o",
+        "--out",
+        type=Path,
+        default=Path.home() / ".kube" / "config",
+        help="Output kubeconfig path (default: ~/.kube/config).",
+    )
+    kubeconfig_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing kubeconfig at the output path.",
+    )
+    kubeconfig_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show talosctl output while generating kubeconfig.",
+    )
+    kubeconfig_parser.add_argument(
+        "--discover-cidr",
+        action="append",
+        dest="discover_cidr",
+        help="CIDR(s) to scan for Talos endpoints (opt-in).",
+    )
+    kubeconfig_parser.add_argument(
+        "--discover-port",
+        type=int,
+        default=50000,
+        help="Port to probe during discovery (default: 50000).",
+    )
+    kubeconfig_parser.add_argument(
+        "--discover-timeout",
+        type=float,
+        default=0.2,
+        help="TCP timeout per host during discovery in seconds (default: 0.2).",
+    )
+    kubeconfig_parser.add_argument(
+        "--max-hosts",
+        type=int,
+        default=256,
+        help="Maximum hosts to probe across all CIDRs (default: 256).",
+    )
+
     validate_parser = subparsers.add_parser(
         "validate",
         help="Validate a Toska Mesh manifest.",
@@ -356,6 +423,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Toska Mesh CLI v{__version__} placeholder: define commands next.")
         reporter.summarize()
         return 0
+
+    if args.command == "kubeconfig":
+        from .cluster import KubeconfigError, talos_kubeconfig
+
+        try:
+            _require_commands(["talosctl"], "Kubeconfig")
+            with reporter.step("Generating kubeconfig"):
+                result = talos_kubeconfig(
+                    talosconfig=Path(args.talosconfig),
+                    endpoints=args.endpoints,
+                    nodes=args.nodes,
+                    out=Path(args.out),
+                    force=args.force,
+                    verbose=args.verbose,
+                    discover_cidrs=args.discover_cidr,
+                    discover_port=args.discover_port,
+                    discover_timeout=args.discover_timeout,
+                    max_hosts=args.max_hosts,
+                )
+            print(f"Wrote kubeconfig to {result.path}")
+            if result.endpoints:
+                print(f"Endpoints: {', '.join(result.endpoints)}")
+            reporter.summarize()
+            return 0
+        except (KubeconfigError, RuntimeError) as exc:
+            print(f"Kubeconfig failed: {exc}", file=sys.stderr)
+            reporter.summarize()
+            return 1
 
     if args.command == "validate":
         import json
