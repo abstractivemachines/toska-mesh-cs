@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -40,6 +41,62 @@ def build_parser() -> argparse.ArgumentParser:
         "info",
         help="Show placeholder CLI information.",
         description="Temporary command until concrete workflows are implemented.",
+    )
+
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Scaffold a new Toska Mesh service project.",
+        description="Generate a service scaffold from built-in templates.",
+    )
+    init_parser.add_argument(
+        "name",
+        help="Service name (kebab-case, used for discovery + k8s naming).",
+    )
+    init_parser.add_argument(
+        "--type",
+        choices=["stateless", "stateful"],
+        default="stateless",
+        help="Service type (default: stateless).",
+    )
+    init_parser.add_argument(
+        "--style",
+        choices=["host", "base"],
+        default="host",
+        help="Stateless style: host (MeshServiceHost) or base (MeshService).",
+    )
+    init_parser.add_argument(
+        "--stateful-template",
+        choices=["consul", "local"],
+        default="consul",
+        help="Stateful template: consul (default) or local.",
+    )
+    init_parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="Output directory (default: ./<name>).",
+    )
+    init_parser.add_argument(
+        "--solution",
+        "--sln",
+        dest="solution",
+        type=Path,
+        help="Optional solution file to add generated projects to.",
+    )
+    init_parser.add_argument(
+        "--runtime-version",
+        default="0.1.0-preview",
+        help="ToskaMesh.Runtime package version (default: 0.1.0-preview).",
+    )
+    init_parser.add_argument(
+        "--orleans-version",
+        default="8.2.0",
+        help="Microsoft.Orleans package version for stateful templates (default: 8.2.0).",
+    )
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite files in the output directory if it already exists.",
     )
 
     kubeconfig_parser = subparsers.add_parser(
@@ -423,6 +480,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Toska Mesh CLI v{__version__} placeholder: define commands next.")
         reporter.summarize()
         return 0
+
+    if args.command == "init":
+        from .scaffold import ScaffoldError, scaffold_service
+
+        output_dir = Path(args.output) if args.output else Path.cwd() / args.name
+
+        try:
+            with reporter.step(f"Scaffolding {args.name}"):
+                result = scaffold_service(
+                    args.name,
+                    service_type=args.type,
+                    style=args.style,
+                    stateful_template=args.stateful_template,
+                    output_dir=output_dir,
+                    runtime_version=args.runtime_version,
+                    orleans_version=args.orleans_version,
+                    solution=args.solution,
+                    force=args.force,
+                )
+            print(f"Created {result.output_dir}")
+            if result.added_projects:
+                for proj in result.added_projects:
+                    print(f"Added to solution: {proj}")
+            reporter.summarize()
+            return 0
+        except (ScaffoldError, subprocess.CalledProcessError) as exc:
+            print(f"Init failed: {exc}", file=sys.stderr)
+            reporter.summarize()
+            return 1
 
     if args.command == "kubeconfig":
         from .cluster import KubeconfigError, talos_kubeconfig

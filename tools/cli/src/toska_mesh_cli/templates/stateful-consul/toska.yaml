@@ -1,0 +1,36 @@
+service:
+  name: todo-mesh-service
+  type: stateful
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh
+
+workloads:
+  - name: todo-mesh-silo
+    type: stateful
+    manifests:
+      - k8s/todo-mesh-silo/configmap.yaml
+      - k8s/todo-mesh-silo/service.yaml
+      - k8s/todo-mesh-silo/deployment.yaml
+    image:
+      repository: todo-mesh-silo
+      tag: local
+      registry: localhost:5000
+    build:
+      context: .
+      dockerfile: Dockerfile.silo
+
+  - name: todo-mesh-api
+    type: stateless
+    manifests:
+      - k8s/todo-mesh-api/configmap.yaml
+      - k8s/todo-mesh-api/service.yaml
+      - k8s/todo-mesh-api/deployment.yaml
+    image:
+      repository: todo-mesh-api
+      tag: local
+      registry: localhost:5000
+    build:
+      context: .
+      dockerfile: Dockerfile.api

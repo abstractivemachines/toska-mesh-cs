@@ -30,6 +30,41 @@ make typecheck # mypy (shallow)
 make test      # pytest with coverage
 ```
 
+## Local install (wheelhouse)
+Package and install the CLI into `~/Applications` from a local wheelhouse directory:
+
+```bash
+# From tools/cli (ensure no venv is active)
+./scripts/install-local.sh
+```
+
+Override the wheelhouse or install root:
+```bash
+./scripts/install-local.sh /path/to/local-packages ~/Applications/toska-mesh-cli
+```
+
+This writes a wrapper at `~/Applications/toska`. Add `~/Applications` to your PATH or run it directly.
+
+## Init (scaffold)
+Create a new service scaffold from built-in templates:
+
+```bash
+cd tools/cli
+source .venv/bin/activate  # or create it via: python -m venv .venv
+
+toska init inventory-service --type stateless --style host
+toska init inventory-service --type stateless --style base
+toska init inventory-service --type stateful --stateful-template consul
+toska init inventory-service --type stateful --stateful-template local
+```
+
+Options:
+- `-o/--output` target directory (defaults to `./<name>`).
+- `--solution/--sln` adds generated `.csproj` files to an existing solution.
+- `--runtime-version` overrides `ToskaMesh.Runtime` package version.
+- `--orleans-version` overrides `Microsoft.Orleans.*` package version (stateful templates).
+- `--force` overwrites files in an existing output directory.
+
 ## Kubeconfig (Talos)
 Generate a Kubernetes kubeconfig using a Talos cluster (uses `talosctl` under the hood):
 ```bash

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "toska-mesh-cli"
-version = "0.0.1"
+version = "0.1.0"
 description = "Python CLI placeholder for the Toska Mesh workspace."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,6 +28,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+toska_mesh_cli = ["templates/**"]
 
 [project.scripts]
 toska = "toska_mesh_cli.__main__:main"

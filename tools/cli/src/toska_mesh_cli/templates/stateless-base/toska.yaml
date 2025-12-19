@@ -1,0 +1,25 @@
+service:
+  name: adder-mesh-service
+  type: stateless
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh
+
+workloads:
+  - name: adder-mesh-service
+    type: stateless
+    manifests:
+      - k8s/adder-mesh-service/service.yaml
+      - k8s/adder-mesh-service/deployment.yaml
+    image:
+      repository: adder-mesh-service
+      tag: local
+      registry: localhost:5000
+    build:
+      context: .
+      dockerfile: Dockerfile
+    portForward:
+      service: adder-mesh-service
+      port: 8083
+      localPort: 8083

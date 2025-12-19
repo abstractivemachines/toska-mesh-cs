@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-mesh-service
+  labels:
+    app.kubernetes.io/name: hello-mesh-service
+    app.kubernetes.io/instance: hello-mesh-service
+    app.kubernetes.io/component: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hello-mesh-service
+      app.kubernetes.io/instance: hello-mesh-service
+      app.kubernetes.io/component: example
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: hello-mesh-service
+        app.kubernetes.io/instance: hello-mesh-service
+        app.kubernetes.io/component: example
+    spec:
+      containers:
+        - name: hello-mesh-service
+          image: localhost:5000/hello-mesh-service:local
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8443
+              name: https
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
+              value: "http://+:8080"
+            - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: https_url
+            - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+              value: "RequireCertificate"
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: server_pfx_path
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: server_pfx_password
+            - name: SSL_CERT_FILE
+              value: "/etc/tls/ca.crt"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: hello-mesh-service
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
+            - name: Mesh__Service__Port
+              value: "8080"
+            - name: Mesh__Service__Routing__HealthCheckEndpoint
+              value: /health
+            - name: Mesh__Service__RegisterAutomatically
+              value: "true"
+            - name: Mesh__Service__ServiceRegistryProvider
+              value: consul
+            - name: Mesh__ServiceDiscovery__Grpc__Address
+              value: https://toskamesh-internal.toskamesh.svc.cluster.local:50051
+            - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+              value: "false"
+            - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
+              value: /etc/tls/client.pfx
+            - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-mtls
+                  key: client_pfx_password
+            - name: Consul__Address
+              value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
+            - name: Mesh__ServiceAuth__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-discovery-secrets
+                  key: mesh_service_auth_secret
+            - name: Mesh__ServiceAuth__Issuer
+              value: ToskaMesh.Services
+            - name: Mesh__ServiceAuth__Audience
+              value: ToskaMesh.Services
+            - name: Mesh__Identity__ServiceName
+              value: hello-mesh-service
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - name: mesh-tls
+              mountPath: /etc/tls
+              readOnly: true
+      volumes:
+        - name: mesh-tls
+          secret:
+            secretName: toskamesh-mtls

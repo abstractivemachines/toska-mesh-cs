@@ -1,0 +1,25 @@
+service:
+  name: hello-mesh-service
+  type: stateless
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh
+
+workloads:
+  - name: hello-mesh-service
+    type: stateless
+    manifests:
+      - k8s/hello-mesh-service/service.yaml
+      - k8s/hello-mesh-service/deployment.yaml
+    image:
+      repository: hello-mesh-service
+      tag: local
+      registry: localhost:5000
+    build:
+      context: .
+      dockerfile: Dockerfile
+    portForward:
+      service: hello-mesh-service
+      port: 8080
+      localPort: 8080
