@@ -3,8 +3,22 @@
 Distributed service mesh for .NET 8 with gateway, discovery, and runtime libraries (ported from the original Elixir implementation).
 
 ## Quick start
-- Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
-- Fast path (Docker Compose):
+
+### Install the CLI
+```bash
+cd tools/cli
+./scripts/install-local.sh
+# Add ~/Applications to PATH, or run directly: ~/Applications/toska
+```
+
+### Create a new service
+```bash
+toska init my-service --type stateless --style host
+cd my-service
+dotnet build
+```
+
+### Local development (Docker Compose)
 ```bash
 export MESH_SERVICE_AUTH_SECRET="local-dev-mesh-service-secret-32chars"
 export MESH_SERVICE_AUTH_ISSUER="ToskaMesh.Services"
@@ -12,7 +26,37 @@ export MESH_SERVICE_AUTH_AUDIENCE="ToskaMesh.Services"
 cd deployments
 docker-compose up -d postgres redis consul prometheus grafana gateway discovery
 ```
-- Health checks: `curl http://localhost:5000/health` (gateway) and `curl http://localhost:5010/health` (discovery). Consul UI at `http://localhost:8500`.
+
+### Deploy to Kubernetes
+```bash
+cd my-service
+toska validate                    # Check toska.yaml
+toska build                       # Build Docker image
+toska push                        # Push to registry
+toska deploy                      # Apply to cluster
+toska status                      # Check deployment status
+```
+
+Health checks: `curl http://localhost:5000/health` (gateway) and `curl http://localhost:5010/health` (discovery). Consul UI at `http://localhost:8500`.
+
+Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `toska init <name>` | Scaffold a new service (stateless/stateful) |
+| `toska validate` | Validate toska.yaml manifest |
+| `toska build` | Build Docker images |
+| `toska push` | Push images to registry |
+| `toska publish` | Build and push (combined) |
+| `toska deploy` | Deploy to Kubernetes |
+| `toska destroy` | Remove deployed resources |
+| `toska status` | Show deployment status |
+| `toska services` | List deployed services |
+| `toska kubeconfig` | Generate kubeconfig from Talos |
+
+See [tools/cli/README.md](tools/cli/README.md) for full CLI documentation.
 
 ## Documentation
 - Docs index: [docs/README.md](docs/README.md) for architecture, operations, deployments, and plans.
@@ -26,19 +70,40 @@ tests/          # Unit/integration tests
 deployments/    # Docker Compose, Helm, Terraform, quickstarts
 examples/       # Runnable samples (stateless/stateful)
 docs/           # Guides, ADRs, plans, changelog
-tools/          # CLI helper
+tools/cli/      # Toska CLI (Python)
 ```
 
 ## Common commands
-- Restore/build/test: `dotnet restore ToskaMesh.sln`, `dotnet build ToskaMesh.sln -c Release`, `dotnet test ToskaMesh.sln`.
-- Run gateway/discovery from source: `./run-gateway.sh`, `./run-discovery.sh` (or `dotnet run` in the respective project directories).
-- Formatting: `dotnet format` (respect solution settings).
+
+### Using the CLI
+```bash
+toska init inventory-api --type stateless --style host    # New stateless service
+toska init order-tracker --type stateful --stateful-template consul  # New stateful service
+toska validate -f toska.yaml                              # Validate manifest
+toska deploy --dry-run                                    # Preview deployment
+toska deploy -v                                           # Deploy with verbose output
+toska services --json                                     # List services as JSON
+```
+
+### .NET commands
+```bash
+dotnet restore ToskaMesh.sln
+dotnet build ToskaMesh.sln -c Release
+dotnet test ToskaMesh.sln
+dotnet format
+```
+
+### Running from source
+```bash
+./run-gateway.sh
+./run-discovery.sh
+# Or: dotnet run --project src/Core/ToskaMesh.Gateway
+```
 
 ## Security & configuration
 - Keep secrets (JWT, connection strings, TLS material) out of source control; prefer `.env` or shell exports when using Docker Compose.
 - Set `MESH_SERVICE_AUTH_SECRET` to a strong 32+ character value before running gateway/discovery; align issuer/audience across services.
 - Ports and endpoints can be overridden via environment variables defined in `deployments/docker-compose.yml`.
-- [ ] Production documentation
 
 ## Contributing
 
