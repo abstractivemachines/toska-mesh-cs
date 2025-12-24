@@ -46,6 +46,12 @@ public static class StatefulMeshHost
 
         builder.ConfigureServices((context, services) =>
         {
+            var meshOptions = MeshServiceOptions.FromConfiguration(context.Configuration);
+            meshOptions.ServiceName = statefulOptions.ServiceName;
+            meshOptions.ServiceId = statefulOptions.ServiceId;
+            configureService?.Invoke(meshOptions);
+            meshOptions.EnsureDefaults();
+
             services.AddSingleton(statefulOptions);
             services.AddSingleton(statefulOptions.Orleans);
 
@@ -56,22 +62,33 @@ public static class StatefulMeshHost
                 configureService?.Invoke(opts);
             });
 
+            services.TryAddMeshServiceRegistryStub(meshOptions, context.HostingEnvironment);
+
             if (statefulOptions.KeyValue.Enabled)
             {
-                services.AddMeshKeyValueStore(context.Configuration, redis =>
-                {
-                    if (!string.IsNullOrWhiteSpace(statefulOptions.KeyValue.ConnectionString))
+                services.AddMeshKeyValueStore(
+                    context.Configuration,
+                    redis =>
                     {
-                        redis.ConnectionString = statefulOptions.KeyValue.ConnectionString!;
-                    }
+                        if (!string.IsNullOrWhiteSpace(statefulOptions.KeyValue.ConnectionString))
+                        {
+                            redis.ConnectionString = statefulOptions.KeyValue.ConnectionString!;
+                        }
 
-                    if (statefulOptions.KeyValue.Database.HasValue)
+                        if (statefulOptions.KeyValue.Database.HasValue)
+                        {
+                            redis.Database = statefulOptions.KeyValue.Database;
+                        }
+
+                        redis.KeyPrefix ??= statefulOptions.KeyValue.KeyPrefix;
+                    },
+                    toskaStore =>
                     {
-                        redis.Database = statefulOptions.KeyValue.Database;
-                    }
-
-                    redis.KeyPrefix ??= statefulOptions.KeyValue.KeyPrefix;
-                });
+                        if (!string.IsNullOrWhiteSpace(statefulOptions.KeyValue.KeyPrefix))
+                        {
+                            toskaStore.KeyPrefix = statefulOptions.KeyValue.KeyPrefix;
+                        }
+                    });
             }
 
             configureServices?.Invoke(services);

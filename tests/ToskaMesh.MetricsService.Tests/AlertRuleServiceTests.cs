@@ -178,11 +178,11 @@ public class AlertRuleServiceTests
         rule.Name.Should().Be("Test Alert");
         rule.MetricName.Should().Be("test_metric");
         rule.Threshold.Should().Be(75);
-        rule.WindowMinutes.Should().Be(15);
+        rule.Window.Should().Be(TimeSpan.FromMinutes(15));
     }
 
     [Fact]
-    public async Task GetAllAsync_ReturnsAllRules()
+    public async Task ListAsync_ReturnsAllRules()
     {
         using var context = CreateDbContext();
         var history = new MetricHistoryService(context);
@@ -208,7 +208,7 @@ public class AlertRuleServiceTests
             WindowMinutes = 10
         }, CancellationToken.None);
 
-        var rules = await service.GetAllAsync(CancellationToken.None);
+        var rules = await service.ListAsync(CancellationToken.None);
 
         rules.Should().HaveCount(2);
     }

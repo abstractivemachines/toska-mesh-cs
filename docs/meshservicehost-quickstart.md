@@ -4,10 +4,12 @@ Related docs: [MeshServiceHost diagram](meshservicehost-diagram.md), [runtime SD
 
 Runnable sample (NuGet consumer): `examples/hello-mesh-service` packs `ToskaMesh.Runtime`, restores from `./artifacts/nuget`, and shows how to run alongside the mesh with Docker Compose.
 
-## Redis key/value helper
-- Stateless: `services.AddMeshKeyValueStore(configuration);` (optional `options => options.KeyPrefix = "my-svc:";`).
-- Stateful silo pattern: use `StatefulMeshHost` for grains only; expose HTTP via a separate `MeshServiceHost` front-end that uses an Orleans client. Set `StatefulHostOptions.KeyValue.Enabled = true` (and optionally `ConnectionString`, `Database`, `KeyPrefix`) to wire a Redis-backed `IKeyValueStore` with a default prefix of the service name.
-- Config: `Mesh:KeyValue:Redis:ConnectionString` (and optional `KeyPrefix`, `Database`); plaintext HTTP/2 already enabled by discovery/gateway defaults.
+## Key/value helper (Redis or ToskaStore)
+- Stateless: `services.AddMeshKeyValueStore(configuration);` (optional `options => options.KeyPrefix = "my-svc:";` for Redis).
+- Stateful silo pattern: use `StatefulMeshHost` for grains only; expose HTTP via a separate `MeshServiceHost` front-end that uses an Orleans client. Set `StatefulHostOptions.KeyValue.Enabled = true` to wire an `IKeyValueStore` with a default prefix of the service name.
+- Provider selection: set `Mesh:KeyValue:Provider` to `Redis` (default) or `ToskaStore`.
+- Redis config: `Mesh:KeyValue:Redis:ConnectionString` (and optional `KeyPrefix`, `Database`).
+- ToskaStore config: `Mesh:KeyValue:ToskaStore:BaseUrl` plus optional `AuthToken`, `KeyPrefix`. `ListKeysAsync`/`ListAsync` use `/kv/keys` when available; set `EnableKeyIndex=true` to fall back on a local key index if the endpoint is unavailable.
 - API: inject `IKeyValueStore` and call `SetAsync(key, value, ttl)`, `GetAsync<T>(key)`, `ListKeysAsync(prefix)`, `ListAsync<T>(prefix)`, `DeleteAsync(key)`.
 
 ## Stateless service (Lambda-style)

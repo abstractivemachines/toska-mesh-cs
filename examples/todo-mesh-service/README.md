@@ -1,15 +1,15 @@
-# Todo Mesh Service (stateful via Orleans + Redis KV)
+# Todo Mesh Service (stateful via Orleans + KV store)
 
 Two processes:
-- `todo-mesh-silo`: Orleans silo using `StatefulMeshHost`, clustering via Consul, state stored in Redis through `IKeyValueStore`.
+- `todo-mesh-silo`: Orleans silo using `StatefulMeshHost`, clustering via Consul, state stored through `IKeyValueStore` (Redis by default).
 - `todo-mesh-api`: HTTP API using `MeshServiceHost`, Orleans client calls grains in the silo.
 
-Todos persist across restarts because state lives in Redis.
+Todos persist across restarts because state lives in the configured key/value store.
 
 ## Prerequisites
 - .NET 8 SDK
 - Local runtime packages in `./artifacts/nuget`
-- Redis + Consul available (compose/Talos stacks already include both)
+- Redis + Consul available (compose/Talos stacks already include both) or ToskaStore if configured
 
 ## Build + run locally
 1) Pack runtime packages:
@@ -56,9 +56,36 @@ curl http://localhost:15000/api/todo-mesh-api/todos/abc
 ```
 
 Notes:
-- Set `Mesh__KeyValue__Redis__ConnectionString` and optionally `Database`/`KeyPrefix` for the silo; defaults match k8s overlays (`redis-master.toskamesh-infra.svc.cluster.local:6379`, DB 1, prefix `todo-mesh-silo:`).
+- Set `Mesh__KeyValue__Provider=Redis` (default) with `Mesh__KeyValue__Redis__ConnectionString` and optional `Database`/`KeyPrefix` for the silo; defaults match k8s overlays (`redis-master.toskamesh-infra.svc.cluster.local:6379`, DB 1, prefix `todo-mesh-silo:`).
+- For ToskaStore, set `Mesh__KeyValue__Provider=ToskaStore` and `Mesh__KeyValue__ToskaStore__BaseUrl` (plus optional `AuthToken`, `KeyPrefix`).
 - Orleans clustering uses Consul (`Consul:Address`); keep cluster/service ids aligned between silo and API (`mesh-stateful` / `todo-mesh-silo`).
 - HTTP/2 plaintext is allowed for the Orleans client by setting `DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true` in local/dev.
+
+## Using ToskaStore instead of Redis
+
+1) Start ToskaStore (from the `toska_store` repo):
+```bash
+cd ~/src/toska_store/apps/toska
+mix escript.build
+./toska start --host 0.0.0.0 --port 4000
+```
+
+2) Run the silo with ToskaStore configuration:
+```bash
+export Mesh__KeyValue__Provider=ToskaStore
+export Mesh__KeyValue__ToskaStore__BaseUrl=http://localhost:4000
+export Mesh__KeyValue__ToskaStore__KeyPrefix=todo-mesh-silo:
+```
+
+Optional auth token:
+```bash
+export Mesh__KeyValue__ToskaStore__AuthToken=your-token
+```
+
+If the ToskaStore server does not expose `/kv/keys`, set:
+```bash
+export Mesh__KeyValue__ToskaStore__EnableKeyIndex=true
+```
 
 ## Kubernetes / Talos deployment notes
 

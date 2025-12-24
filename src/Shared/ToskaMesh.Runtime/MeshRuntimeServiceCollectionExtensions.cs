@@ -32,6 +32,7 @@ public static class MeshRuntimeServiceCollectionExtensions
         services.AddSingleton<MeshRegistrationState>();
 
         var hasRegistry = services.Any(d => d.ServiceType == typeof(IServiceRegistry));
+        var hasRegistryConfig = HasServiceRegistryConfig(configuration, options.ServiceRegistryProvider);
 
         services.AddMeshInfrastructure(
             configuration,
@@ -41,7 +42,7 @@ public static class MeshRuntimeServiceCollectionExtensions
                 opt.EnableRedisCache = false;
                 opt.ServiceRegistryProvider = options.ServiceRegistryProvider;
                 opt.EnableHealthChecks = false; // add once below
-                if (hasRegistry)
+                if (hasRegistry || !hasRegistryConfig)
                 {
                     opt.EnableConsulServiceRegistry = false;
                 }
@@ -65,6 +66,16 @@ public static class MeshRuntimeServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    private static bool HasServiceRegistryConfig(IConfiguration configuration, ServiceRegistryProvider provider)
+    {
+        return provider switch
+        {
+            ServiceRegistryProvider.Grpc => !string.IsNullOrWhiteSpace(configuration["Mesh:ServiceDiscovery:Grpc:Address"]),
+            ServiceRegistryProvider.Consul => !string.IsNullOrWhiteSpace(configuration["Consul:Address"]),
+            _ => false
+        };
     }
 
     /// <summary>

@@ -76,10 +76,27 @@ public static class MeshServiceHost
         await app.StartAsync(cancellationToken);
 
         // Use the bound address (handles dynamic port if Port=0).
-        var baseAddress = app.Urls.FirstOrDefault() ?? $"http://{options.Address}:{options.Port}";
-        var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+        var baseAddress = GetClientBaseAddress(app, options);
+        var client = new HttpClient { BaseAddress = baseAddress };
 
         return new MeshServiceHostHandle(app, client);
+    }
+
+    private static Uri GetClientBaseAddress(WebApplication app, MeshServiceOptions options)
+    {
+        var address = app.Urls.FirstOrDefault() ?? $"http://{options.Address}:{options.Port}";
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
+        {
+            return new Uri($"http://127.0.0.1:{options.Port}");
+        }
+
+        if (uri.Host == "0.0.0.0" || uri.Host == "::")
+        {
+            var builder = new UriBuilder(uri) { Host = "127.0.0.1" };
+            return builder.Uri;
+        }
+
+        return uri;
     }
 }
 
@@ -145,7 +162,7 @@ public sealed class MeshServiceHostHandle : IAsyncDisposable
     }
 }
 
-internal static class MeshServiceHostServiceCollectionExtensions
+public static class MeshServiceHostServiceCollectionExtensions
 {
     public static void TryAddMeshServiceRegistryStub(this IServiceCollection services, MeshServiceOptions options, IHostEnvironment env)
     {

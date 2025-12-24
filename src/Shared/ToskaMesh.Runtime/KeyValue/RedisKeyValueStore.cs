@@ -130,12 +130,37 @@ public class RedisKeyValueOptions
 public static class MeshKeyValueServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a Redis-backed key/value store for mesh services.
+    /// Adds a key/value store for mesh services (provider selected via Mesh:KeyValue:Provider).
     /// </summary>
     public static IServiceCollection AddMeshKeyValueStore(
         this IServiceCollection services,
         IConfiguration configuration,
         Action<RedisKeyValueOptions>? configure = null)
+    {
+        return services.AddMeshKeyValueStore(configuration, configure, null);
+    }
+
+    /// <summary>
+    /// Adds a key/value store for mesh services with provider-specific options.
+    /// </summary>
+    public static IServiceCollection AddMeshKeyValueStore(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<RedisKeyValueOptions>? configureRedis,
+        Action<ToskaStoreKeyValueOptions>? configureToskaStore)
+    {
+        var provider = GetProvider(configuration);
+        return provider switch
+        {
+            MeshKeyValueProvider.ToskaStore => AddToskaStoreKeyValueStore(services, configuration, configureToskaStore),
+            _ => AddRedisKeyValueStore(services, configuration, configureRedis)
+        };
+    }
+
+    private static IServiceCollection AddRedisKeyValueStore(
+        IServiceCollection services,
+        IConfiguration configuration,
+        Action<RedisKeyValueOptions>? configure)
     {
         var options = configuration.GetSection("Mesh:KeyValue:Redis").Get<RedisKeyValueOptions>() ?? new RedisKeyValueOptions();
         configure?.Invoke(options);
@@ -153,6 +178,50 @@ public static class MeshKeyValueServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    private static IServiceCollection AddToskaStoreKeyValueStore(
+        IServiceCollection services,
+        IConfiguration configuration,
+        Action<ToskaStoreKeyValueOptions>? configure)
+    {
+        var options = configuration.GetSection("Mesh:KeyValue:ToskaStore").Get<ToskaStoreKeyValueOptions>()
+            ?? new ToskaStoreKeyValueOptions();
+        configure?.Invoke(options);
+
+        options.BaseUrl = NormalizeBaseUrl(options.BaseUrl);
+
+        services.AddSingleton(options);
+        services.AddSingleton<IKeyValueStore>(sp =>
+        {
+            var opts = sp.GetRequiredService<ToskaStoreKeyValueOptions>();
+            var meshOptions = sp.GetRequiredService<MeshServiceOptions>();
+            return new ToskaStoreKeyValueStore(opts, meshOptions);
+        });
+
+        return services;
+    }
+
+    private static MeshKeyValueProvider GetProvider(IConfiguration configuration)
+    {
+        var providerValue = configuration["Mesh:KeyValue:Provider"];
+        if (Enum.TryParse(providerValue, true, out MeshKeyValueProvider provider))
+        {
+            return provider;
+        }
+
+        return MeshKeyValueProvider.Redis;
+    }
+
+    private static string NormalizeBaseUrl(string baseUrl)
+    {
+        if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri))
+        {
+            throw new InvalidOperationException($"Invalid ToskaStore base URL: '{baseUrl}'");
+        }
+
+        var normalized = uri.ToString();
+        return normalized.EndsWith("/", StringComparison.Ordinal) ? normalized : $"{normalized}/";
     }
 
     private static string ApplyDatabase(string connectionString, int? database)

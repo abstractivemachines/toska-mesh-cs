@@ -117,7 +117,7 @@ public class MetricHistoryServiceTests
         var result = await service.QueryAsync(new MetricQuery
         {
             Name = "http_requests",
-            Labels = new Dictionary<string, string> { { "method", "GET" } },
+            LabelFilters = new Dictionary<string, string> { { "method", "GET" } },
             Aggregation = MetricAggregation.Sum
         }, CancellationToken.None);
 

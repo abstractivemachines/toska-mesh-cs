@@ -4,6 +4,12 @@ Distributed service mesh for .NET 8 with gateway, discovery, and runtime librari
 
 ## Quick start
 
+### Install .NET 8 SDK
+Install from https://dotnet.microsoft.com/download/dotnet/8.0 and confirm:
+```bash
+dotnet --version
+```
+
 ### Install the CLI
 ```bash
 cd tools/cli

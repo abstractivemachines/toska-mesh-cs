@@ -34,10 +34,7 @@ public class MeshServiceOptions
             ServiceId = $"{ServiceName}-{Guid.NewGuid():N}";
         }
 
-        if (Port <= 0)
-        {
-            Port = 8080;
-        }
+        // Port=0 is allowed for ephemeral ports in tests.
 
         Address = string.IsNullOrWhiteSpace(Address) ? "0.0.0.0" : Address;
         AdvertisedAddress = string.IsNullOrWhiteSpace(AdvertisedAddress) ? Address : AdvertisedAddress;
