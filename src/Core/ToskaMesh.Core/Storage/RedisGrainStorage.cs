@@ -78,8 +78,12 @@ return 1";
 
         if (!stateValue.IsNullOrEmpty)
         {
-            var deserialized = JsonSerializer.Deserialize<T>(stateValue!, _serializerOptions);
-            grainState.State = deserialized ?? Activator.CreateInstance<T>();
+            var json = stateValue.ToString();
+            if (!string.IsNullOrEmpty(json))
+            {
+                var deserialized = JsonSerializer.Deserialize<T>(json, _serializerOptions);
+                grainState.State = deserialized ?? Activator.CreateInstance<T>();
+            }
         }
 
         grainState.ETag = etag;

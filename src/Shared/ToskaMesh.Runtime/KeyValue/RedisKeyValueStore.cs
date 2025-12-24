@@ -37,7 +37,13 @@ public class RedisKeyValueStore : IKeyValueStore
     {
         var redisKey = BuildKey(key);
         var value = await _database.StringGetAsync(redisKey);
-        return value.IsNullOrEmpty ? default : JsonSerializer.Deserialize<T>(value!, _jsonOptions);
+        if (value.IsNullOrEmpty)
+        {
+            return default;
+        }
+
+        var json = value.ToString();
+        return string.IsNullOrEmpty(json) ? default : JsonSerializer.Deserialize<T>(json, _jsonOptions);
     }
 
     public async Task<bool> DeleteAsync(string key, CancellationToken cancellationToken = default)

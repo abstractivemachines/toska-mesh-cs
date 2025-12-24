@@ -33,13 +33,13 @@ public static class MeshSiloHostingExtensions
             {
                 config.AdvertisedIPAddress = options.AdvertisedIPAddress;
             }
-            config.ClusteringMode = options.ClusterProvider switch
+            config.ClusterProvider = options.ClusterProvider switch
             {
-                StatefulClusterProvider.Local => "localhost",
-                StatefulClusterProvider.Consul => "consul",
-                StatefulClusterProvider.AzureTable => "azuretable",
-                StatefulClusterProvider.AdoNet => "adonet",
-                _ => "localhost"
+                StatefulClusterProvider.Local => OrleansClusterProvider.Localhost,
+                StatefulClusterProvider.Consul => OrleansClusterProvider.Consul,
+                StatefulClusterProvider.AzureTable => OrleansClusterProvider.AzureTable,
+                StatefulClusterProvider.AdoNet => OrleansClusterProvider.AdoNet,
+                _ => OrleansClusterProvider.Localhost
             };
             config.ConsulAddress = options.ConsulAddress;
             config.ConsulToken = options.ConsulToken;
