@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-kv-store-demo
+  labels:
+    app.kubernetes.io/name: profile-kv-store-demo
+    app.kubernetes.io/instance: profile-kv-store-demo
+    app.kubernetes.io/component: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: profile-kv-store-demo
+      app.kubernetes.io/instance: profile-kv-store-demo
+      app.kubernetes.io/component: example
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: profile-kv-store-demo
+        app.kubernetes.io/instance: profile-kv-store-demo
+        app.kubernetes.io/component: example
+    spec:
+      containers:
+        - name: profile-kv-store-demo
+          image: 192.168.50.73:5000/profile-kv-store-demo:local
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+              name: http
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8084"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: profile-kv-store-demo
+            - name: Mesh__Identity__ServiceName
+              value: profile-kv-store-demo
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
+            - name: Mesh__Service__Port
+              value: "8084"
+            - name: Mesh__Service__Routing__HealthCheckEndpoint
+              value: /health
+            - name: Mesh__Service__RegisterAutomatically
+              value: "false"
+            - name: Mesh__Service__AllowNoopServiceRegistry
+              value: "true"
+            - name: Mesh__KeyValue__Provider
+              value: ToskaStore
+            - name: Mesh__KeyValue__ToskaStore__BaseUrl
+              value: http://toska-store.toskamesh.svc.cluster.local:4000
+            - name: Mesh__KeyValue__ToskaStore__KeyPrefix
+              value: profile-kv-store-demo
+            - name: Mesh__KeyValue__ToskaStore__AuthToken
+              valueFrom:
+                secretKeyRef:
+                  name: profile-kv-store-demo-secrets
+                  key: toskaStoreAuthToken
+            - name: Mesh__ServiceAuth__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: toskamesh-discovery-secrets
+                  key: mesh_service_auth_secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8084
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8084
+            initialDelaySeconds: 10
+            periodSeconds: 15

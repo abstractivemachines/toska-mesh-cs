@@ -1,0 +1,25 @@
+service:
+  name: profile-kv-store-demo
+  type: stateless
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh
+
+workloads:
+  - name: profile-kv-store-demo
+    type: stateless
+    manifests:
+      - ../../k8s/profile-kv-store-demo/service.yaml
+      - ../../k8s/profile-kv-store-demo/deployment.yaml
+    image:
+      repository: profile-kv-store-demo
+      tag: local
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    portForward:
+      service: profile-kv-store-demo
+      port: 8084
+      localPort: 8084
