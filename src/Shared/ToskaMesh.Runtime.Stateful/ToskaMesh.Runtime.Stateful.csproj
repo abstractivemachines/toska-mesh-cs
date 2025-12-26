@@ -8,7 +8,7 @@
     <Title>ToskaMesh Runtime Stateful</Title>
     <Description>Provider-agnostic stateful runtime host for Toska Mesh services. Uses Orleans by default while hiding provider details from consumers.</Description>
     <Authors>Toska Mesh</Authors>
-    <RepositoryUrl>https://github.com/abstractivemachines-com/toska-mesh-cs</RepositoryUrl>
+    <RepositoryUrl>https://github.com/abstractive-machines/toska-mesh-cs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>toska-mesh;runtime;stateful;service-host</PackageTags>
     <Version>0.1.0-preview</Version>

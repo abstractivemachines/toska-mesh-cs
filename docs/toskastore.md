@@ -3,7 +3,7 @@
 ToskaStore is a lightweight HTTP/JSON key/value service that can act as the `IKeyValueStore` provider for ToskaMesh services.
 It is a good fit when you want a language-agnostic store with a simple API surface, or when you prefer an HTTP-backed service
 over a direct Redis dependency.
-See the upstream [ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md) for deployment and API details.
+See the upstream [ToskaStore README](https://github.com/abstractive-machines/toska_store/blob/main/README.md) for deployment and API details.
 
 ## What ToskaStore provides
 - HTTP/JSON CRUD for keys with TTL support.

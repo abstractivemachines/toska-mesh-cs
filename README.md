@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-**Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractivemachines-com)**
+**Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractive-machines)**
 
 ToskaMesh is a distributed service mesh and runtime for .NET 8. It provides the gateway, discovery plane, runtime hosts, and
 operational services (auth, config, metrics, tracing) needed to build and run stateless or Orleans-backed stateful services with
@@ -80,7 +80,7 @@ ToskaStore is a lightweight HTTP/JSON key/value service that integrates with the
 `ToskaMesh.Runtime`. It is a first-class provider alongside Redis, enabling simple, language-agnostic storage for stateful
 workflows or lightweight persistence needs.
 For ToskaStore deployment details and API behavior, see the
-[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md).
+[ToskaStore README](https://github.com/abstractive-machines/toska_store/blob/main/README.md).
 
 **Benefits**
 - HTTP/JSON API makes it easy to consume across languages and environments.
@@ -121,7 +121,7 @@ Example configuration:
 ```
 
 Related guides: [docs/toskastore.md](docs/toskastore.md), the
-[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md), and the
+[ToskaStore README](https://github.com/abstractive-machines/toska_store/blob/main/README.md), and the
 [profile KV store demo](examples/profile-kv-store-demo/README.md).
 
 ## Quick start
