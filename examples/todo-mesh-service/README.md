@@ -10,6 +10,7 @@ Todos persist across restarts because state lives in the configured key/value st
 - .NET 8 SDK
 - Local runtime packages in `./artifacts/nuget`
 - Redis + Consul available (compose/Talos stacks already include both) or ToskaStore if configured
+  (see the [ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md))
 
 ## Build + run locally
 1) Pack runtime packages:
@@ -63,7 +64,8 @@ Notes:
 
 ## Using ToskaStore instead of Redis
 
-1) Start ToskaStore (from the `toska_store` repo):
+1) Start ToskaStore (from the `toska_store` repo; see the
+   [ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md)):
 ```bash
 cd ~/src/toska_store/apps/toska
 mix escript.build

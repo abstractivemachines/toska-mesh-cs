@@ -33,5 +33,6 @@ cd src/Core/ToskaMesh.Discovery && dotnet run
 
 ## Next docs
 - Runtime hosting: [MeshServiceHost quickstart](meshservicehost-quickstart.md) with stateless/stateful samples.
+- Key/value storage: [ToskaStore guide](toskastore.md) plus the [profile KV store demo](../examples/profile-kv-store-demo/README.md).
 - Deployments: [Talos quickstart](../deployments/QUICKSTART-TALOS.md) and [EKS quickstart](../deployments/QUICKSTART-EKS.md); Terraform under `deployments/terraform/eks/README.md`.
 - Examples: [examples/README.md](../examples/README.md) for runnable samples and per-example guides.
