@@ -3,12 +3,12 @@ using Serilog;
 namespace ToskaMesh.Telemetry.Logging;
 
 /// <summary>
-/// Helper extensions for standard Toska Mesh logging enrichment.
+/// Helper extensions for standard ToskaMesh logging enrichment.
 /// </summary>
 public static class MeshLoggingExtensions
 {
     /// <summary>
-    /// Adds the default Toska Mesh enrichers (service metadata + correlation id).
+    /// Adds the default ToskaMesh enrichers (service metadata + correlation id).
     /// </summary>
     public static LoggerConfiguration AddMeshEnrichers(
         this LoggerConfiguration loggerConfiguration,

@@ -13,7 +13,7 @@ namespace ToskaMesh.Common.Health;
 public static class HealthCheckExtensions
 {
     /// <summary>
-    /// Adds standard Toska Mesh health checks to the service collection.
+    /// Adds standard ToskaMesh health checks to the service collection.
     /// </summary>
     public static IHealthChecksBuilder AddMeshHealthChecks(this IServiceCollection services)
     {

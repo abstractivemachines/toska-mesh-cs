@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-This directory contains Architecture Decision Records for the Toska Mesh C# implementation (see `docs/README.md` for the full docs index).
+This directory contains Architecture Decision Records for the ToskaMesh C# implementation (see `docs/README.md` for the full docs index).
 
 ## What is an ADR?
 

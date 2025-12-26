@@ -1,4 +1,4 @@
-# Orleans grains in Toska Mesh
+# Orleans grains in ToskaMesh
 
 - Orleans gives us virtual actors (grains) with single-threaded execution per activation, persistence, and reminders. It is not a “spawn more threads per request” model; the runtime activates grains on demand, routes calls to the right silo, and handles placement/failover.
 - Default storage provider name is `Default` (wired by `UseMeshSilo`): ADO.NET storage when `DatabaseConnectionString` is set, in-memory otherwise. Reminders use the same database when configured.

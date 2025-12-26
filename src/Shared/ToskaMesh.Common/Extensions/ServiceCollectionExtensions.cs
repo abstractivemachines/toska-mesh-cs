@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers the standard Toska Mesh infrastructure components (common utilities, Consul, MassTransit, Redis, health checks).
+    /// Registers the standard ToskaMesh infrastructure components (common utilities, Consul, MassTransit, Redis, health checks).
     /// </summary>
     public static IServiceCollection AddMeshInfrastructure(
         this IServiceCollection services,

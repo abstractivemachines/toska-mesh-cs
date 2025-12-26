@@ -1,6 +1,6 @@
 # Getting Started
 
-Single-page quickstart for running Toska Mesh locally.
+Single-page quickstart for running ToskaMesh locally.
 
 ## Local demo with Docker Compose
 - Prereqs: Docker, .NET 8 SDK (for building/running services).

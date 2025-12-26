@@ -7,7 +7,7 @@ using ToskaMesh.Telemetry;
 namespace ToskaMesh.Runtime.Orleans;
 
 /// <summary>
-/// Convenience methods for wiring an Orleans silo with Toska Mesh defaults.
+/// Convenience methods for wiring an Orleans silo with ToskaMesh defaults.
 /// </summary>
 public static class MeshSiloHostingExtensions
 {

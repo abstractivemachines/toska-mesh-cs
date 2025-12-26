@@ -1,6 +1,6 @@
-# Contributing to Toska Mesh
+# Contributing to ToskaMesh
 
-Thank you for your interest in Toska Mesh.
+Thank you for your interest in ToskaMesh.
 
 ## Contribution Policy
 

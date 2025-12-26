@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Toska Mesh, please report it through GitHub's private vulnerability reporting feature:
+If you discover a security vulnerability in ToskaMesh, please report it through GitHub's private vulnerability reporting feature:
 
 1. Go to the repository's **Security** tab
 2. Click **Report a vulnerability**
@@ -16,7 +16,7 @@ Security updates are provided for the latest release only.
 
 ## Security Best Practices
 
-When deploying Toska Mesh:
+When deploying ToskaMesh:
 
 - Keep `MESH_SERVICE_AUTH_SECRET` confidential and use a strong 32+ character value
 - Store secrets (JWT keys, connection strings, TLS certificates) outside of source control

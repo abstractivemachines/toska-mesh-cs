@@ -3,7 +3,7 @@ using System.Diagnostics.Metrics;
 namespace ToskaMesh.Telemetry;
 
 /// <summary>
-/// Custom metrics for Toska Mesh
+/// Custom metrics for ToskaMesh
 /// </summary>
 public class MeshMetrics
 {

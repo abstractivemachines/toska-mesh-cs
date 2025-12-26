@@ -6,8 +6,8 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>ToskaMesh.Runtime.Orleans</PackageId>
     <Title>ToskaMesh Runtime Orleans</Title>
-    <Description>Stateful runtime host for Toska Mesh services using Orleans, aligned with MeshServiceHost API.</Description>
-    <Authors>Toska Mesh</Authors>
+    <Description>Stateful runtime host for ToskaMesh services using Orleans, aligned with MeshServiceHost API.</Description>
+    <Authors>ToskaMesh</Authors>
     <RepositoryUrl>https://github.com/abstractivemachines/toska-mesh-cs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>toska-mesh;runtime;stateful;orleans</PackageTags>

@@ -21,7 +21,7 @@ builder.Services.AddGrpc();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Toska Mesh Discovery Service", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "ToskaMesh Discovery Service", Version = "v1" });
 });
 
 builder.Services.AddMeshInfrastructure(
@@ -97,6 +97,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<DiscoveryGrpcService>();
 
-app.Logger.LogInformation("Toska Mesh Discovery Service starting...");
+app.Logger.LogInformation("ToskaMesh Discovery Service starting...");
 
 app.Run();

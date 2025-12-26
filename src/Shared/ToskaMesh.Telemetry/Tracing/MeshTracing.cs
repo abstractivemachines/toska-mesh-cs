@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace ToskaMesh.Telemetry.Tracing;
 
 /// <summary>
-/// Helper methods for starting activities with consistent Toska Mesh conventions.
+/// Helper methods for starting activities with consistent ToskaMesh conventions.
 /// </summary>
 public static class MeshTracing
 {

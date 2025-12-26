@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "toska-mesh-cli"
 version = "0.1.0"
-description = "Python CLI placeholder for the Toska Mesh workspace."
+description = "Python CLI placeholder for the ToskaMesh workspace."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Toska Mesh Team" }]
+authors = [{ name = "ToskaMesh Team" }]
 dependencies = [
   "PyYAML>=6.0",
   "rich>=13.7",

@@ -6,7 +6,7 @@ using ToskaMesh.Runtime.Orleans;
 namespace ToskaMesh.Runtime.Stateful;
 
 /// <summary>
-/// Provider-agnostic entry points for hosting stateful Toska Mesh services.
+/// Provider-agnostic entry points for hosting stateful ToskaMesh services.
 /// </summary>
 public static class StatefulMeshHost
 {

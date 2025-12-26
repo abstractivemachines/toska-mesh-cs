@@ -1,6 +1,6 @@
-# Toska Mesh CLI (Python)
+# ToskaMesh CLI (Python)
 
-This is the isolated Python command-line interface for the Toska Mesh repository. It is scaffolded as a standalone package under `tools/cli` so it can evolve independently from the .NET services.
+This is the isolated Python command-line interface for the ToskaMesh repository. It is scaffolded as a standalone package under `tools/cli` so it can evolve independently from the .NET services.
 
 ## Layout
 - `pyproject.toml` – packaging metadata and entry point declaration.
@@ -129,7 +129,7 @@ toska status [--namespace toskamesh] [-l component=example] [--all] [--json] [--
 ```
 
 ## Services
-List deployed Toska Mesh user services (defaults to namespace `toskamesh` and selector `component=example`):
+List deployed ToskaMesh user services (defaults to namespace `toskamesh` and selector `component=example`):
 
 ```bash
 toska services [--namespace toskamesh] [-l component=example] [--all] [--json] [--kubeconfig ~/.kube/config] [--context my-cluster]
@@ -138,7 +138,7 @@ toska services [--namespace toskamesh] [-l component=example] [--all] [--json] [
 - `--json` prints raw data for scripting.
 
 ## Deployments
-List Toska Mesh user deployments (defaults to namespace `toskamesh` and selector `component=example`):
+List ToskaMesh user deployments (defaults to namespace `toskamesh` and selector `component=example`):
 
 ```bash
 toska deployments [--namespace toskamesh] [-l component=example] [--all] [--json] [--kubeconfig ~/.kube/config] [--context my-cluster]

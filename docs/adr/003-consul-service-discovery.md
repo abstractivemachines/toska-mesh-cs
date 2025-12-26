@@ -16,7 +16,7 @@ Options considered:
 2. **Netflix Eureka** - Service registry (Java-centric)
 3. **Kubernetes DNS** - Native K8s service discovery
 4. **etcd** - Distributed key-value store
-5. **Custom gRPC registry** - Purpose-built for Toska Mesh
+5. **Custom gRPC registry** - Purpose-built for ToskaMesh
 
 ## Decision
 

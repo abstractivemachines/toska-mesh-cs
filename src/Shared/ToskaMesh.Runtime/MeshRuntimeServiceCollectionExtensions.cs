@@ -12,12 +12,12 @@ using ToskaMesh.Telemetry;
 namespace ToskaMesh.Runtime;
 
 /// <summary>
-/// Entry points for configuring a Toska Mesh-aware service.
+/// Entry points for configuring a ToskaMesh-aware service.
 /// </summary>
 public static class MeshRuntimeServiceCollectionExtensions
 {
     /// <summary>
-    /// Register Toska Mesh infrastructure, telemetry, and auto-registration for a stateless HTTP service.
+    /// Register ToskaMesh infrastructure, telemetry, and auto-registration for a stateless HTTP service.
     /// </summary>
     public static IServiceCollection AddMeshService(
         this IServiceCollection services,

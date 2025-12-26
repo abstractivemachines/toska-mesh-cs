@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ToskaMesh.Security;
 
 /// <summary>
-/// Defines authorization policies for Toska Mesh.
+/// Defines authorization policies for ToskaMesh.
 /// </summary>
 public static class MeshAuthorizationPolicies
 {
@@ -25,7 +25,7 @@ public static class MeshAuthorizationPolicies
     public const string ApiKeyClaim = "api_key";
 
     /// <summary>
-    /// Adds Toska Mesh authorization policies to the service collection.
+    /// Adds ToskaMesh authorization policies to the service collection.
     /// </summary>
     public static IServiceCollection AddMeshAuthorizationPolicies(this IServiceCollection services)
     {

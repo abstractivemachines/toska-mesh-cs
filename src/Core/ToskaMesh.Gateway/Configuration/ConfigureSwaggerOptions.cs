@@ -23,9 +23,9 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         {
             options.SwaggerDoc(description.GroupName, new OpenApiInfo
             {
-                Title = "Toska Mesh Gateway",
+                Title = "ToskaMesh Gateway",
                 Version = description.ApiVersion.ToString(),
-                Description = "API Gateway for Toska Mesh microservices."
+                Description = "API Gateway for ToskaMesh microservices."
             });
         }
     }

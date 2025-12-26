@@ -15,7 +15,7 @@ namespace ToskaMesh.Core.Configuration;
 public static class OrleansHostingExtensions
 {
     /// <summary>
-    /// Adds Orleans silo to the host builder with standard Toska Mesh configuration.
+    /// Adds Orleans silo to the host builder with standard ToskaMesh configuration.
     /// </summary>
     public static IHostBuilder UseOrleansSilo(
         this IHostBuilder builder,
@@ -152,7 +152,7 @@ public static class OrleansHostingExtensions
     }
 
     /// <summary>
-    /// Adds Orleans client to the service collection with standard Toska Mesh configuration.
+    /// Adds Orleans client to the service collection with standard ToskaMesh configuration.
     /// </summary>
     public static IServiceCollection AddOrleansClient(
         this IServiceCollection services,

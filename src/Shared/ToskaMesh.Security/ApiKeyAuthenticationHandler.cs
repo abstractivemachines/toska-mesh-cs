@@ -84,7 +84,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
     protected override Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        Response.Headers["WWW-Authenticate"] = $"{Options.Scheme} realm=\"Toska Mesh\"";
+        Response.Headers["WWW-Authenticate"] = $"{Options.Scheme} realm=\"ToskaMesh\"";
         Response.StatusCode = 401;
         return Task.CompletedTask;
     }

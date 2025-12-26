@@ -22,7 +22,7 @@ def _require_commands(commands: Sequence[str], action: str) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="toska",
-        description="Command-line interface for Toska Mesh (placeholder scaffold).",
+        description="Command-line interface for ToskaMesh (placeholder scaffold).",
     )
     parser.add_argument(
         "--version",
@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     init_parser = subparsers.add_parser(
         "init",
-        help="Scaffold a new Toska Mesh service project.",
+        help="Scaffold a new ToskaMesh service project.",
         description="Generate a service scaffold from built-in templates.",
     )
     init_parser.add_argument(
@@ -168,8 +168,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate_parser = subparsers.add_parser(
         "validate",
-        help="Validate a Toska Mesh manifest.",
-        description="Validate a Toska Mesh deploy manifest and report errors/warnings.",
+        help="Validate a ToskaMesh manifest.",
+        description="Validate a ToskaMesh deploy manifest and report errors/warnings.",
     )
     validate_parser.add_argument(
         "-f",
@@ -187,7 +187,7 @@ def build_parser() -> argparse.ArgumentParser:
         "deploy",
         help="Deploy a user service to a target environment.",
         description=(
-            "Deploy a Toska Mesh user service (stateless or stateful) using a manifest in the current directory."
+            "Deploy a ToskaMesh user service (stateless or stateful) using a manifest in the current directory."
         ),
     )
     deploy_parser.add_argument(
@@ -236,7 +236,7 @@ def build_parser() -> argparse.ArgumentParser:
     destroy_parser = subparsers.add_parser(
         "destroy",
         help="Delete a user service from the target environment.",
-        description="Delete Toska Mesh user service resources defined in the manifest.",
+        description="Delete ToskaMesh user service resources defined in the manifest.",
     )
     destroy_parser.add_argument(
         "-f",
@@ -362,7 +362,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     services_parser = subparsers.add_parser(
         "services",
-        help="List deployed Toska Mesh user services.",
+        help="List deployed ToskaMesh user services.",
     )
     services_parser.add_argument(
         "--namespace",
@@ -397,7 +397,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     deployments_parser = subparsers.add_parser(
         "deployments",
-        help="List Toska Mesh user deployments.",
+        help="List ToskaMesh user deployments.",
     )
     deployments_parser.add_argument(
         "--namespace",
@@ -432,7 +432,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     status_parser = subparsers.add_parser(
         "status",
-        help="Show deployments, services, and pods for Toska Mesh workloads.",
+        help="Show deployments, services, and pods for ToskaMesh workloads.",
     )
     status_parser.add_argument(
         "--namespace",
@@ -477,7 +477,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "info":
         with reporter.step("Info"):
             pass
-        print(f"Toska Mesh CLI v{__version__} placeholder: define commands next.")
+        print(f"ToskaMesh CLI v{__version__} placeholder: define commands next.")
         reporter.summarize()
         return 0
 
