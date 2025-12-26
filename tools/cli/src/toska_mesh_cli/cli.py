@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"%(prog)s {__version__}",
+        version=f"%(prog)s {__version__}\nCopyright 2025 Abstractive Machines LLC",
     )
 
     subparsers = parser.add_subparsers(
