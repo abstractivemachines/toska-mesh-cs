@@ -31,4 +31,4 @@ Gateway is accessible via:
 {{- end }}
 {{- end }}
 
-For more information, visit: https://github.com/abstractive-machines/toska-mesh-cs
+For more information, visit: https://github.com/abstractivemachines/toska-mesh-cs

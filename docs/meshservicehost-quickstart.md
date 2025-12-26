@@ -12,7 +12,7 @@ Runnable sample (NuGet consumer): `examples/hello-mesh-service` packs `ToskaMesh
 - ToskaStore config: `Mesh:KeyValue:ToskaStore:BaseUrl` plus optional `AuthToken`, `KeyPrefix`. `ListKeysAsync`/`ListAsync` use `/kv/keys` when available; set `EnableKeyIndex=true` to fall back on a local key index if the endpoint is unavailable.
 - API: inject `IKeyValueStore` and call `SetAsync(key, value, ttl)`, `GetAsync<T>(key)`, `ListKeysAsync(prefix)`, `ListAsync<T>(prefix)`, `DeleteAsync(key)`.
 - ToskaStore guide: [docs/toskastore.md](toskastore.md) and the
-  [ToskaStore README](https://github.com/abstractive-machines/toska_store/blob/main/README.md).
+  [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md).
 
 ## Stateless service (Lambda-style)
 

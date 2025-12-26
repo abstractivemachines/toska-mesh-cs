@@ -6,5 +6,5 @@ See [docs/README.md](../docs/README.md) for a full docs index and [MeshServiceHo
 - `adder-mesh-service` – minimal stateless sample that uses the `MeshService` base class API and exposes a simple `/add` endpoint. See `examples/adder-mesh-service/README.md` for usage.
 - `todo-mesh-service` – stateful Orleans silo + HTTP API front-end. State persists in Redis via `IKeyValueStore`, clustering via Consul. See `examples/todo-mesh-service/README.md` (includes Kubernetes/Talos deployment notes).
 - `profile-kv-store-demo` – simple profile API that persists data through `IKeyValueStore` backed by ToskaStore. See
-  `examples/profile-kv-store-demo/README.md` and the [ToskaStore README](https://github.com/abstractive-machines/toska_store/blob/main/README.md).
+  `examples/profile-kv-store-demo/README.md` and the [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md).
 - `redis-grain-storage-demo` – stateful Orleans silo using Redis as the grain storage provider plus a local HTTP API front-end. Uses local clustering (no Consul) and disables mesh registration for easy local testing. See `examples/redis-grain-storage-demo/README.md`.

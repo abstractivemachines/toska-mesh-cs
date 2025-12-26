@@ -25,7 +25,7 @@ dotnet nuget push ./artifacts/nuget/*.nupkg -k $NUGET_API_KEY -s https://api.nug
 # GitHub Packages example (replace OWNER/REPO and token)
 dotnet nuget push ./artifacts/nuget/*.nupkg \
   -k $GITHUB_TOKEN \
-  -s https://nuget.pkg.github.com/abstractive-machines/index.json \
+  -s https://nuget.pkg.github.com/abstractivemachines/index.json \
   --skip-duplicate
 ```
 

@@ -480,5 +480,5 @@ kubectl delete namespace toskamesh-prod
 ## Support
 
 For issues and questions:
-- GitHub Issues: https://github.com/abstractive-machines/toska-mesh-cs/issues
-- Documentation: https://github.com/abstractive-machines/toska-mesh-cs/tree/main/docs
+- GitHub Issues: https://github.com/abstractivemachines/toska-mesh-cs/issues
+- Documentation: https://github.com/abstractivemachines/toska-mesh-cs/tree/main/docs
