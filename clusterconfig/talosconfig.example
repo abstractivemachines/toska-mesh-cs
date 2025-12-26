@@ -1,0 +1,10 @@
+context: <CONTEXT_NAME>
+contexts:
+    <CONTEXT_NAME>:
+        endpoints:
+            - <CONTROL_PLANE_IP>
+        nodes:
+            - <NODE_IP>
+        ca: <REDACTED>
+        crt: <REDACTED>
+        key: <REDACTED>

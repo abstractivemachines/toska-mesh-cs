@@ -198,6 +198,12 @@ PublishScripts/
 *.nuget.props
 *.nuget.targets
 
+# Talos configs (keep sanitized *.example templates in repo)
+clusterconfig/controlplane.yaml
+clusterconfig/worker.yaml
+clusterconfig/talosconfig
+talos-minimal/
+
 # Microsoft Azure Build Output
 csx/
 *.build.csdef
