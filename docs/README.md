@@ -13,7 +13,7 @@
   - [Evented communication](evented-communication.md) patterns; [runtime packaging](runtime-packaging.md) layout.
   - [Toska manifest reference](toska-manifest.md) for `toska.yaml`.
   - [ToskaStore integration](toskastore.md) for mesh key/value usage (see the
-    [ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md)).
+    [ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md)).
 
 - **Operations & Security**
   - [Monitoring setup](monitoring-setup.md) for metrics, tracing, and alerting.

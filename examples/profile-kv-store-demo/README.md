@@ -3,7 +3,7 @@
 Minimal profile API that stores profile data in `IKeyValueStore` using ToskaStore as the backing provider. It persists profiles across restarts and keeps the HTTP surface small for easy local testing.
 
 Related guide: [docs/toskastore.md](../../docs/toskastore.md) and the
-[ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md).
+[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md).
 
 ## Prerequisites
 - .NET 8 SDK
@@ -19,7 +19,7 @@ dotnet pack src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Release -o 
 
 ## 2) Start ToskaStore
 From the `toska_store` repo (see the
-[ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md)):
+[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md)):
 
 ```bash
 cd ~/src/toska_store/apps/toska

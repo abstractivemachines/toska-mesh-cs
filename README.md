@@ -1,5 +1,9 @@
 # Toska Mesh - C# Implementation
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+**Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractivemachines-com)**
+
 ToskaMesh is a distributed service mesh and runtime for .NET 8. It provides the gateway, discovery plane, runtime hosts, and
 operational services (auth, config, metrics, tracing) needed to build and run stateless or Orleans-backed stateful services with
 consistent routing, security, and observability. This repo is the C# implementation ported from the original Elixir project and
@@ -76,7 +80,7 @@ ToskaStore is a lightweight HTTP/JSON key/value service that integrates with the
 `ToskaMesh.Runtime`. It is a first-class provider alongside Redis, enabling simple, language-agnostic storage for stateful
 workflows or lightweight persistence needs.
 For ToskaStore deployment details and API behavior, see the
-[ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md).
+[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md).
 
 **Benefits**
 - HTTP/JSON API makes it easy to consume across languages and environments.
@@ -117,7 +121,7 @@ Example configuration:
 ```
 
 Related guides: [docs/toskastore.md](docs/toskastore.md), the
-[ToskaStore README](https://github.com/nullsync/toska_store/blob/main/README.md), and the
+[ToskaStore README](https://github.com/abstractivemachines-com/toska_store/blob/main/README.md), and the
 [profile KV store demo](examples/profile-kv-store-demo/README.md).
 
 ## Quick start
@@ -232,11 +236,11 @@ dotnet format
 
 ## Contributing
 
-1. Follow C# coding conventions
-2. Add XML documentation comments
-3. Write unit tests for new features
-4. Update this README for significant changes
-5. Use `dotnet format` before committing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## License
 
