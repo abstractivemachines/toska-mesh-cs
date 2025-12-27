@@ -16,7 +16,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableMassTransit = false;
     options.EnableRedisCache = false;
 });
-builder.Services.AddMeshTelemetry("HealthMonitor");
+builder.Services.AddMeshTelemetry(builder.Configuration, "HealthMonitor");
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<HealthReportCache>();
 builder.Services.AddHostedService<HealthProbeWorker>();

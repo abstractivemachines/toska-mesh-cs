@@ -1,6 +1,6 @@
 {{- if .Values.networkPolicy.enabled }}
 {{- $nsSelector := dict "matchLabels" (dict "kubernetes.io/metadata.name" .Release.Namespace) }}
-{{- range $name, $enabled := dict "gateway" .Values.gateway.enabled "discovery" .Values.discovery.enabled "auth-service" .Values.authService.enabled "config-service" .Values.configService.enabled "metrics-service" .Values.metricsService.enabled "tracing-service" .Values.tracingService.enabled "core" .Values.core.enabled "health-monitor" .Values.healthMonitor.enabled }}
+{{- range $name, $enabled := dict "gateway" .Values.gateway.enabled "dashboard" .Values.dashboard.enabled "discovery" .Values.discovery.enabled "auth-service" .Values.authService.enabled "config-service" .Values.configService.enabled "metrics-service" .Values.metricsService.enabled "tracing-service" .Values.tracingService.enabled "core" .Values.core.enabled "health-monitor" .Values.healthMonitor.enabled }}
 {{- if $enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -23,7 +23,7 @@ spec:
       ports:
         - port: 80
           protocol: TCP
-    {{- if eq $name "gateway" }}
+    {{- if or (eq $name "gateway") (eq $name "dashboard") }}
     - from:
         - ipBlock:
             cidr: 0.0.0.0/0

@@ -50,6 +50,40 @@ gateway:
     # TODO: Replace with AWS Secrets Manager reference
     jwtSecretKey: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-MIN-32-CHARS-LONG"
 
+dashboard:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: dashboard-latest
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 80
+  ingress:
+    enabled: false
+    className: ""
+    hosts:
+      - host: "dashboard.toskamesh.local"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  gatewayBaseUrl: "http://toskamesh.local"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
 discovery:
   enabled: true
   replicaCount: 2

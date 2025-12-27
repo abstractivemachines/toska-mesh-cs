@@ -37,6 +37,8 @@ var tlsOptions = builder.Configuration.GetSection(GatewayTlsOptions.SectionName)
 var consulHealthConfig = builder.Configuration.GetSection(ConsulHealthCheckOptions.SectionName).Get<ConsulHealthCheckOptions>()
     ?? new ConsulHealthCheckOptions();
 var forceHttpsRedirect = builder.Configuration.GetValue<bool?>("Mesh:Gateway:ForceHttpsRedirect") ?? true;
+var dashboardProxyOptions = builder.Configuration.GetSection(DashboardProxyOptions.SectionName).Get<DashboardProxyOptions>()
+    ?? new DashboardProxyOptions();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -78,7 +80,7 @@ builder.Services.AddMeshInfrastructure(
         });
     });
 
-builder.Services.AddMeshTelemetry("Gateway");
+builder.Services.AddMeshTelemetry(builder.Configuration, "Gateway");
 
 // Add health checks
 // Configure JWT Authentication
@@ -142,6 +144,24 @@ builder.Services.AddSingleton(resilienceOptions);
 builder.Services.AddSingleton(tlsOptions);
 builder.Services.AddSingleton<IForwarderHttpClientFactory, ResilientForwarderHttpClientFactory>();
 builder.Services.AddTelemetryConsumer<GatewayProxyMetricsConsumer>();
+builder.Services.AddSingleton(dashboardProxyOptions);
+builder.Services.AddSingleton<IDashboardProxyService, DashboardProxyService>();
+builder.Services.AddHttpClient(DashboardProxyService.PrometheusClientName, client =>
+{
+    client.BaseAddress = new Uri(dashboardProxyOptions.PrometheusBaseUrl);
+});
+builder.Services.AddHttpClient(DashboardProxyService.TracingClientName, client =>
+{
+    client.BaseAddress = new Uri(dashboardProxyOptions.TracingBaseUrl);
+});
+builder.Services.AddHttpClient(DashboardProxyService.DiscoveryClientName, client =>
+{
+    client.BaseAddress = new Uri(dashboardProxyOptions.DiscoveryBaseUrl);
+});
+builder.Services.AddHttpClient(DashboardProxyService.HealthClientName, client =>
+{
+    client.BaseAddress = new Uri(dashboardProxyOptions.HealthMonitorBaseUrl);
+});
 
 // Add CORS
 builder.Services.AddCors(options =>

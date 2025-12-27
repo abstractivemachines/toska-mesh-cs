@@ -47,6 +47,26 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-gateway-config
               key: discovery_grpc_address
+        - name: Dashboard__PrometheusBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_prometheus_base_url
+        - name: Dashboard__TracingBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_tracing_base_url
+        - name: Dashboard__DiscoveryBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_discovery_base_url
+        - name: Dashboard__HealthMonitorBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_health_base_url
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:

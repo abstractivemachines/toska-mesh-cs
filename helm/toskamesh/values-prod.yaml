@@ -88,6 +88,44 @@ gateway:
     targetCPUUtilizationPercentage: 65
     targetMemoryUtilizationPercentage: 75
 
+# Dashboard configuration
+dashboard:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: your-registry.example.com/toskamesh-dashboard
+    tag: "1.0.0"
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 80
+  ingress:
+    enabled: true
+    className: ""
+    hosts:
+      - host: "dashboard.example.com"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: toskamesh-dashboard-tls
+        hosts:
+          - "dashboard.example.com"
+  gatewayBaseUrl: "https://gateway.example.com"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
+
 # Discovery service configuration
 discovery:
   enabled: true

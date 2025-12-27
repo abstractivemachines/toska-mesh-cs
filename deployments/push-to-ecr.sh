@@ -30,6 +30,7 @@ echo ""
 # Services to push
 SERVICES=(
   "gateway"
+  "dashboard"
   "discovery"
   "auth-service"
   "config-service"

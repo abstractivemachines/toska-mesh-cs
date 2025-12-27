@@ -50,7 +50,7 @@ public static class MeshRuntimeServiceCollectionExtensions
 
         if (options.EnableTelemetry)
         {
-            services.AddMeshTelemetry(options.ServiceName);
+            services.AddMeshTelemetry(configuration, options.ServiceName);
         }
 
         if (options.EnableAuth)

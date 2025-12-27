@@ -23,7 +23,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<ConfigDbContext>(configuration);
 });
-builder.Services.AddMeshTelemetry("ConfigService");
+builder.Services.AddMeshTelemetry(builder.Configuration, "ConfigService");
 builder.Services.AddMeshHealthChecks();
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtTokenOptions>() ?? new JwtTokenOptions();

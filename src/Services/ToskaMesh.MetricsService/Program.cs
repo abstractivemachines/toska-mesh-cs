@@ -24,7 +24,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<MetricsDbContext>(configuration);
 });
-builder.Services.AddMeshTelemetry("MetricsService");
+builder.Services.AddMeshTelemetry(builder.Configuration, "MetricsService");
 builder.Services.AddMeshHealthChecks();
 builder.Services.AddSingleton<IMetricsRegistry, MetricsRegistry>();
 builder.Services.AddScoped<IMetricHistoryService, MetricHistoryService>();

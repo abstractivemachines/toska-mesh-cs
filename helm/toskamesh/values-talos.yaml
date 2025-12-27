@@ -43,6 +43,20 @@ gateway:
   secrets:
     jwtSecretKey: "CHANGE-ME-32-CHARS-MINIMUM"
 
+dashboard:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-dashboard"
+    tag: "local"
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30081
+  ingress:
+    enabled: false
+  gatewayBaseUrl: "http://192.168.50.73:30080"
+
 discovery:
   replicaCount: 1
   image:

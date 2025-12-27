@@ -53,9 +53,9 @@ public static class MeshSiloHostingExtensions
             config.RedisStorageKeyPrefix = options.RedisStorageKeyPrefix;
         });
 
-        builder.ConfigureServices(services =>
+        builder.ConfigureServices((context, services) =>
         {
-            services.AddMeshTelemetry(serviceName);
+            services.AddMeshTelemetry(context.Configuration, serviceName);
             services.AddMeshAuthorizationPolicies();
             services.AddSingleton(options);
         });

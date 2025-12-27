@@ -81,10 +81,35 @@ services:
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Dashboard__PrometheusBaseUrl=http://prometheus:9090
+      - Dashboard__TracingBaseUrl=http://tracing-service:80
+      - Dashboard__DiscoveryBaseUrl=http://discovery:80
+      - Dashboard__HealthMonitorBaseUrl=http://health-monitor:80
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - consul
       - discovery
       - prometheus
+    networks:
+      - toksa-mesh
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.Dashboard
+      args:
+        VITE_GATEWAY_BASE_URL: "http://localhost:5000"
+    ports:
+      - "5006:80"
+    environment:
+      - DASHBOARD_GATEWAY_BASE_URL=http://localhost:5000
+    depends_on:
+      - gateway
+      - prometheus
+      - tracing-service
+      - discovery
+      - health-monitor
     networks:
       - toksa-mesh
 
@@ -101,6 +126,8 @@ services:
       - Messaging__RabbitMqHost=rabbitmq
       - Consul__Address=http://consul:8500
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - consul
       - rabbitmq
@@ -145,6 +172,8 @@ services:
       - Consul__Address=http://consul:8500
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - discovery
       - consul
@@ -167,6 +196,8 @@ services:
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul
@@ -189,6 +220,8 @@ services:
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul
@@ -211,6 +244,8 @@ services:
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - prometheus
@@ -234,6 +269,8 @@ services:
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul

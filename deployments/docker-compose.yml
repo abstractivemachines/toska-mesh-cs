@@ -111,6 +111,12 @@ services:
       - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
       - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
       - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Dashboard__PrometheusBaseUrl=http://prometheus:9090
+      - Dashboard__TracingBaseUrl=http://tracing-service:80
+      - Dashboard__DiscoveryBaseUrl=http://discovery:80
+      - Dashboard__HealthMonitorBaseUrl=http://health-monitor:80
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
       - Mesh__Gateway__Tls__ClientCertificatePath=/etc/tls/gateway-client.pfx
       - Mesh__Gateway__Tls__ClientCertificatePassword=${GATEWAY_CLIENT_CERT_PASSWORD:-}
     depends_on:
@@ -121,6 +127,25 @@ services:
       - toksa-mesh
     volumes:
       - ./certs/gateway:/etc/tls:ro
+
+  dashboard:
+    build:
+      context: ../
+      dockerfile: deployments/Dockerfile.Dashboard
+      args:
+        VITE_GATEWAY_BASE_URL: "http://localhost:${GATEWAY_PORT:-15000}"
+    ports:
+      - "${DASHBOARD_PORT:-15020}:80"
+    environment:
+      - DASHBOARD_GATEWAY_BASE_URL=http://localhost:${GATEWAY_PORT:-15000}
+    depends_on:
+      - gateway
+      - prometheus
+      - tracing-service
+      - discovery
+      - health-monitor
+    networks:
+      - toksa-mesh
 
   discovery:
     build:
@@ -136,6 +161,8 @@ services:
       - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
       - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
       - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - consul
       - rabbitmq
@@ -174,6 +201,11 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
       - Consul__Address=http://consul:8500
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - discovery
       - consul
@@ -193,6 +225,11 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Consul__Address=http://consul:8500
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul
@@ -212,6 +249,11 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Consul__Address=http://consul:8500
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul
@@ -231,6 +273,11 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Consul__Address=http://consul:8500
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - prometheus
@@ -251,6 +298,11 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Consul__Address=http://consul:8500
       - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceAuth__Secret=${MESH_SERVICE_AUTH_SECRET:-local-dev-mesh-service-secret-32chars}
+      - Mesh__ServiceAuth__Issuer=${MESH_SERVICE_AUTH_ISSUER:-ToskaMesh.Services}
+      - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:80/api/traces/ingest
     depends_on:
       - postgres
       - consul

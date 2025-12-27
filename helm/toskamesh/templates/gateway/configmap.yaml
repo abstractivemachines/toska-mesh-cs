@@ -9,4 +9,8 @@ metadata:
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
   discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+  dashboard_prometheus_base_url: {{ .Values.gateway.dashboardProxy.prometheusBaseUrl | quote }}
+  dashboard_tracing_base_url: "http://{{ include "toskamesh.fullname" . }}-tracing-service:80"
+  dashboard_discovery_base_url: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+  dashboard_health_base_url: "http://{{ include "toskamesh.fullname" . }}-health-monitor:80"
 {{- end }}

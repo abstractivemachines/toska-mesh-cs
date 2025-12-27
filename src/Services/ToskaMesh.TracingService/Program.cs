@@ -26,7 +26,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<TracingDbContext>(configuration);
 });
-builder.Services.AddMeshTelemetry("TracingService");
+builder.Services.AddMeshTelemetry(builder.Configuration, "TracingService");
 builder.Services.AddMeshHealthChecks();
 
 builder.Services.AddScoped<ITraceStorageService, TraceStorageService>();
@@ -67,9 +67,8 @@ builder.Services.AddOpenTelemetry()
         }
     });
 
-var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtTokenOptions>() ?? new JwtTokenOptions();
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret));
-builder.Services.AddSingleton(new JwtTokenService(jwtOptions));
+var serviceAuthOptions = builder.Configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(serviceAuthOptions.Secret));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -80,8 +79,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOptions.Issuer,
-            ValidAudience = jwtOptions.Audience,
+            ValidIssuer = serviceAuthOptions.Issuer,
+            ValidAudience = serviceAuthOptions.Audience,
             IssuerSigningKey = signingKey
         };
     });
