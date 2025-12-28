@@ -35,8 +35,7 @@ public static class DatabaseBootstrapper
             {
                 using var scope = services.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<TContext>();
-                var migrations = await context.Database.GetMigrationsAsync(cancellationToken);
-
+                var migrations = context.Database.GetMigrations();
                 if (migrations.Any())
                 {
                     await context.Database.MigrateAsync(cancellationToken);
