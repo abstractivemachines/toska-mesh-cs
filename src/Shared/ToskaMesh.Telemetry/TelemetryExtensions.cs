@@ -53,6 +53,7 @@ public static class TelemetryExtensions
             .WithTracing(tracing =>
             {
                 tracing
+                    .SetSampler(CreateSampler(telemetryOptions.Sampling))
                     .AddSource(activitySource.Name)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
@@ -129,5 +130,34 @@ public static class TelemetryExtensions
         // Serilog configuration will be added in Program.cs
         // This method is a placeholder for additional logging configuration
         return services;
+    }
+
+    private static Sampler CreateSampler(TracingSamplingOptions? options)
+    {
+        if (options == null)
+        {
+            return new ParentBasedSampler(new AlwaysOnSampler());
+        }
+
+        var ratio = Math.Clamp(options.Ratio, 0.0, 1.0);
+        var strategy = options.Strategy?.Trim();
+        if (string.IsNullOrWhiteSpace(strategy))
+        {
+            return new ParentBasedSampler(new AlwaysOnSampler());
+        }
+
+        var normalized = new string(strategy.Where(char.IsLetterOrDigit).ToArray())
+            .ToLowerInvariant();
+
+        return normalized switch
+        {
+            "alwayson" => new AlwaysOnSampler(),
+            "alwaysoff" => new AlwaysOffSampler(),
+            "traceidratiobased" => new TraceIdRatioBasedSampler(ratio),
+            "parentbasedalwayson" => new ParentBasedSampler(new AlwaysOnSampler()),
+            "parentbasedalwaysoff" => new ParentBasedSampler(new AlwaysOffSampler()),
+            "parentbasedtraceidratiobased" => new ParentBasedSampler(new TraceIdRatioBasedSampler(ratio)),
+            _ => new ParentBasedSampler(new AlwaysOnSampler())
+        };
     }
 }

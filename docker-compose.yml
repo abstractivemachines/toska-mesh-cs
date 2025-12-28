@@ -88,6 +88,8 @@ services:
       - Dashboard__HealthMonitorBaseUrl=http://health-monitor:8080
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - consul
       - discovery
@@ -129,6 +131,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - consul
       - rabbitmq
@@ -153,6 +157,10 @@ services:
       - Orleans__ConsulAddress=http://consul:8500
       - Orleans__AdvertisedIPAddress=${ORLEANS_ADVERTISED_IP:-}
       - Consul__Address=http://consul:8500
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
       - Orleans__DatabaseConnectionString=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
     depends_on:
@@ -176,6 +184,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - discovery
       - consul
@@ -200,6 +210,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul
@@ -225,6 +237,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul
@@ -250,6 +264,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - prometheus
@@ -276,6 +292,8 @@ services:
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul

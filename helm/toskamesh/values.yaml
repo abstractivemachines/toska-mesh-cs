@@ -56,9 +56,14 @@ serviceDiscovery:
 
 # Tracing pipeline (defaults to tracing-service ingest)
 telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
   tracingIngest:
     enabled: true
     endpoint: ""
+    # Header keys must be valid env var names when supplied via Helm.
+    headers: {}
 
 # External services configuration
 externalServices:

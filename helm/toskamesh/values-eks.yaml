@@ -21,6 +21,16 @@ secrets:
 networkPolicy:
   enabled: true
 
+# Telemetry pipeline
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
+
 # Use ECR images with auto-pull policy
 gateway:
   enabled: true

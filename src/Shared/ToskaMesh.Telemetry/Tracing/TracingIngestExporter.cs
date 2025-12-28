@@ -82,6 +82,8 @@ public sealed class TracingIngestExporter : BaseExporter<Activity>
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
 
+            ApplyCustomHeaders(request);
+
             if (_options.UseMeshServiceAuth && _tokenProvider != null)
             {
                 var token = _tokenProvider.GetTokenAsync().GetAwaiter().GetResult();
@@ -102,6 +104,33 @@ public sealed class TracingIngestExporter : BaseExporter<Activity>
         {
             _logger.LogWarning(ex, "Tracing ingest exporter failed");
             return ExportResult.Failure;
+        }
+    }
+
+    private void ApplyCustomHeaders(HttpRequestMessage request)
+    {
+        if (_options.Headers.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var header in _options.Headers)
+        {
+            if (string.IsNullOrWhiteSpace(header.Key) || header.Value is null)
+            {
+                continue;
+            }
+
+            if (_options.UseMeshServiceAuth &&
+                string.Equals(header.Key, "Authorization", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!request.Headers.TryAddWithoutValidation(header.Key, header.Value))
+            {
+                request.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
         }
     }
 

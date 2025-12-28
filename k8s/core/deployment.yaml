@@ -85,6 +85,14 @@ spec:
             configMapKeyRef:
               name: toskamesh-core-config
               key: consul_address
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: "true"
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: "http://toskamesh-tracing-service:8080/api/traces/ingest"
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: "ParentBasedAlwaysOn"
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: "1"
         - name: Orleans__DatabaseConnectionString
           valueFrom:
             secretKeyRef:

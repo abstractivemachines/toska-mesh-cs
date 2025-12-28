@@ -83,6 +83,16 @@ spec:
           value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
         - name: Mesh__Telemetry__TracingIngest__Endpoint
           value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        {{- with .Values.telemetry.tracingIngest.headers }}
+        {{- range $name, $value := . }}
+        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:

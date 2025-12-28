@@ -53,6 +53,16 @@ externalServices:
     host: "redis.production.example.com"
     port: 6379
 
+# Telemetry pipeline
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
+
 # Gateway configuration
 gateway:
   enabled: true

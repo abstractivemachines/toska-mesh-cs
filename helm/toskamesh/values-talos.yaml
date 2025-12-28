@@ -11,6 +11,15 @@ serviceDiscovery:
   grpc:
     allowInsecureTransport: true
 
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
+
 externalServices:
   consul:
     address: "http://consul-server.toskamesh-infra.svc.cluster.local:8500"
