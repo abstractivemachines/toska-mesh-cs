@@ -14,6 +14,9 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # e.g., gateway-jwt (synced from AWS Secrets Manager)
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # e.g., service-jwt (synced from AWS Secrets Manager)
+    key: jwt_secret
 
 networkPolicy:
   enabled: true
@@ -197,8 +200,9 @@ core:
     tag: core-latest
     pullPolicy: Always
   orleans:
-    serviceName: "ToskaMesh-Production"
+    serviceId: "ToskaMesh-Production"
     clusterId: "prod-eks"
+    clusterProvider: "Consul"
   resources:
     requests:
       cpu: 500m
@@ -279,6 +283,7 @@ externalServices:
 # TODO: Replace with AWS Secrets Manager or Kubernetes secrets
 global:
   meshServiceAuthSecret: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-SUPER-SECRET-KEY"
+  jwtSecret: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-MIN-32-CHARS-LONG"
 
 # Service Account configuration
 # Enable IRSA (IAM Roles for Service Accounts) for AWS service access

@@ -14,6 +14,9 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # e.g., gateway-jwt-secret from cloud secret manager
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # e.g., service-jwt-secret from cloud secret manager
+    key: jwt_secret
 
 networkPolicy:
   enabled: true
@@ -29,6 +32,7 @@ mesh:
 # Global secrets (MUST be changed in production!)
 global:
   meshServiceAuthSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
+  jwtSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
 
 # External services configuration (use managed cloud services in production)
 externalServices:
@@ -245,8 +249,9 @@ core:
     tag: "1.0.0"
     pullPolicy: Always
   orleans:
-    serviceName: "ToskaMesh"
+    serviceId: "ToskaMesh"
     clusterId: "prod"
+    clusterProvider: "Consul"
   resources:
     requests:
       cpu: 1000m

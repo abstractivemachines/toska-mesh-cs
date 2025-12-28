@@ -16,9 +16,26 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # If set, use this secret/key for gateway JWT signing key
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # If set, use this secret for Jwt__Secret
+    key: jwt_secret
 
 networkPolicy:
   enabled: false
+
+podSecurityContext:
+  enabled: false
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
 
 # Service mesh integration (optional)
 mesh:
@@ -31,6 +48,11 @@ mesh:
 # Global secrets
 global:
   meshServiceAuthSecret: "super-secret-mesh-key-change-me"
+  jwtSecret: "your-jwt-secret-min-32-chars-long-change-in-production"
+
+serviceDiscovery:
+  grpc:
+    allowInsecureTransport: false
 
 # External services configuration
 externalServices:
@@ -243,8 +265,22 @@ core:
     tag: latest
     pullPolicy: IfNotPresent
   orleans:
-    serviceName: "ToskaMesh"
+    serviceId: "ToskaMesh"
     clusterId: "dev"
+    clusterProvider: "Consul"
+    migrations:
+      enabled: true
+      image:
+        repository: postgres
+        tag: "16-alpine"
+        pullPolicy: IfNotPresent
+      backoffLimit: 3
+      ttlSecondsAfterFinished: 300
+      skipIfExists: true
+      hook:
+        enabled: true
+        types: "post-install,post-upgrade"
+        deletePolicy: "before-hook-creation,hook-succeeded"
   resources:
     requests:
       cpu: 200m

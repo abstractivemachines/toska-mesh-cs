@@ -24,10 +24,18 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: tracing-service
         image: "{{ .Values.tracingService.image.repository }}:{{ .Values.tracingService.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.tracingService.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
         - containerPort: 80
           name: http

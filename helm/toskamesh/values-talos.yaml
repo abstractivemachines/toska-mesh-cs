@@ -5,6 +5,11 @@ environment: Development
 # Global secrets (replace with strong values)
 global:
   meshServiceAuthSecret: "CHANGE-ME-32-CHARS-MINIMUM"
+  jwtSecret: "CHANGE-ME-32-CHARS-MINIMUM"
+
+serviceDiscovery:
+  grpc:
+    allowInsecureTransport: true
 
 externalServices:
   consul:
@@ -99,8 +104,9 @@ core:
     tag: "local"
     pullPolicy: IfNotPresent
   orleans:
-    serviceName: "ToskaMesh-Local"
+    serviceId: "ToskaMesh-Local"
     clusterId: "talos-local"
+    clusterProvider: "Consul"
 
 healthMonitor:
   replicaCount: 1

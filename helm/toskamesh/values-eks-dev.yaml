@@ -15,6 +15,9 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # e.g., gateway-jwt-dev
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # e.g., service-jwt-dev
+    key: jwt_secret
 
 networkPolicy:
   enabled: true
@@ -191,8 +194,9 @@ core:
     tag: core-latest
     pullPolicy: Always
   orleans:
-    serviceName: "ToskaMesh-Dev"
+    serviceId: "ToskaMesh-Dev"
     clusterId: "dev-eks"
+    clusterProvider: "Consul"
   resources:
     requests:
       cpu: 200m  # Core needs more resources

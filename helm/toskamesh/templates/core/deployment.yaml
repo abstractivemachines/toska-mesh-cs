@@ -24,10 +24,18 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: core
         image: "{{ .Values.core.image.repository }}:{{ .Values.core.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
         - containerPort: 80
           name: http
@@ -40,32 +48,46 @@ spec:
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
           value: "http://+:80"
-        - name: Orleans__Clustering__ServiceName
-          value: {{ .Values.core.orleans.serviceName | quote }}
-        - name: Orleans__Clustering__ClusterId
+        - name: Orleans__ServiceId
+          value: {{ default .Values.core.orleans.serviceName .Values.core.orleans.serviceId | quote }}
+        - name: Orleans__ClusterId
           value: {{ .Values.core.orleans.clusterId | quote }}
+        - name: Orleans__ClusterProvider
+          value: {{ .Values.core.orleans.clusterProvider | quote }}
+        - name: Orleans__ConsulAddress
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-core-config
+              key: consul_address
+        - name: Orleans__AdvertisedIPAddress
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-core-config
               key: consul_address
-        - name: ConnectionStrings__OrleansStorage
+        - name: Orleans__DatabaseConnectionString
           valueFrom:
             secretKeyRef:
               name: {{ default (printf "%s-core-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
               key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-core-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
         resources:
           {{- toYaml .Values.core.resources | nindent 10 }}
         livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 80
+          tcpSocket:
+            port: 11111
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 80
+          tcpSocket:
+            port: 11111
           initialDelaySeconds: 20
           periodSeconds: 5
 {{- end }}

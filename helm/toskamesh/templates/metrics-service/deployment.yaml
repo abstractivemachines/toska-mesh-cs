@@ -27,10 +27,18 @@ spec:
         {{- end }}
         {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: metrics-service
         image: "{{ .Values.metricsService.image.repository }}:{{ .Values.metricsService.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.metricsService.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
         - containerPort: 80
           name: http
@@ -59,6 +67,11 @@ spec:
             secretKeyRef:
               name: {{ default (printf "%s-metrics-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
               key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-metrics-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.jwt.existingSecret }}
+              key: {{ default "jwt_secret" .Values.secrets.jwt.key }}
         resources:
           {{- toYaml .Values.metricsService.resources | nindent 10 }}
         livenessProbe:

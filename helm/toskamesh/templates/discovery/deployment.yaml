@@ -24,10 +24,18 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: discovery
         image: "{{ .Values.discovery.image.repository }}:{{ .Values.discovery.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.discovery.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
         - containerPort: 80
           name: http
@@ -36,6 +44,8 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: Urls
           value: "http://+:80"
         - name: Consul__Address
           valueFrom:
