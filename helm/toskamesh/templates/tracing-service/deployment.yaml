@@ -54,6 +54,10 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-tracing-service-config
               key: discovery_grpc_address
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:

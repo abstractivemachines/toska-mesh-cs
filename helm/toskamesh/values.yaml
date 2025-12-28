@@ -54,6 +54,12 @@ serviceDiscovery:
   grpc:
     allowInsecureTransport: false
 
+# Tracing pipeline (defaults to tracing-service ingest)
+telemetry:
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+
 # External services configuration
 externalServices:
   consul:

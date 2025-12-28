@@ -119,6 +119,10 @@ spec:
             secretKeyRef:
               name: toskamesh-discovery-secrets
               key: rabbitmq_password
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: "true"
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: "http://toskamesh-tracing-service:8080/api/traces/ingest"
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
