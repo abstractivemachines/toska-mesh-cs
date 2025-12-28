@@ -28,7 +28,7 @@ spec:
       - name: core
         image: 192.168.50.73:5000/toskamesh-core:local-20251202-corefix
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
           protocol: TCP
         - containerPort: 8443
@@ -44,9 +44,9 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
           valueFrom:
             secretKeyRef:
@@ -74,8 +74,10 @@ spec:
           value: "talos-local"
         - name: Orleans__ServiceId
           value: "ToskaMesh-Local"
-        - name: Orleans__ClusterMembership__Provider
-          value: "Consul"
+        - name: Orleans__AdvertisedIPAddress
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
           value: "true"
         - name: Consul__Address
@@ -83,11 +85,16 @@ spec:
             configMapKeyRef:
               name: toskamesh-core-config
               key: consul_address
-        - name: ConnectionStrings__OrleansStorage
+        - name: Orleans__DatabaseConnectionString
           valueFrom:
             secretKeyRef:
               name: toskamesh-core-secrets
               key: db_connection_string
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-core-secrets
+              key: mesh_service_auth_secret
         resources:
           requests:
             cpu: 200m

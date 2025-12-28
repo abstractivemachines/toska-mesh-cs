@@ -37,7 +37,7 @@ spec:
           {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
         - containerPort: 11111
           name: silo
@@ -47,7 +47,7 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: Orleans__ServiceId
           value: {{ default .Values.core.orleans.serviceName .Values.core.orleans.serviceId | quote }}
         - name: Orleans__ClusterId

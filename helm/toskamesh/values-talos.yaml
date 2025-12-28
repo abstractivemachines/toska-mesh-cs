@@ -29,6 +29,9 @@ externalServices:
     host: "redis-master.toskamesh-infra.svc.cluster.local"
     port: 6379
 
+database:
+  autoMigrate: true
+
 # Point all services at the local registry on the laptop (adjust if your host IP changes)
 registry: "192.168.50.73:5000"
 tag: "local"
@@ -41,7 +44,7 @@ gateway:
     pullPolicy: IfNotPresent
   service:
     type: NodePort
-    port: 80
+    port: 8080
     nodePort: 30080
   ingress:
     enabled: false
@@ -56,11 +59,11 @@ dashboard:
     pullPolicy: IfNotPresent
   service:
     type: NodePort
-    port: 80
+    port: 8080
     nodePort: 30081
   ingress:
     enabled: false
-  gatewayBaseUrl: "http://192.168.50.73:30080"
+  gatewayBaseUrl: "http://talos:30080"
 
 discovery:
   replicaCount: 1

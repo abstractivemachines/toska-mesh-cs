@@ -31,7 +31,7 @@ spec:
       - name: metrics-service
         image: 192.168.50.73:5000/toskamesh-metrics-service:local-20251202
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
           protocol: TCP
         - containerPort: 8443
@@ -41,9 +41,9 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
           valueFrom:
             secretKeyRef:
@@ -87,11 +87,18 @@ spec:
             secretKeyRef:
               name: toskamesh-metrics-service-secrets
               key: db_connection_string
+        - name: Database__AutoMigrate
+          value: "true"
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
               name: toskamesh-metrics-service-secrets
               key: mesh_service_auth_secret
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: toskamesh-metrics-service-secrets
+              key: jwt_secret
         resources:
           requests:
             cpu: 100m
@@ -102,13 +109,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 5
         volumeMounts:

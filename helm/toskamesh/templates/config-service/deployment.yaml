@@ -37,13 +37,13 @@ spec:
           {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -59,6 +59,8 @@ spec:
             secretKeyRef:
               name: {{ default (printf "%s-config-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
               key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
+        - name: Database__AutoMigrate
+          value: {{ default false .Values.database.autoMigrate | quote }}
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
@@ -74,13 +76,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 5
 {{- end }}

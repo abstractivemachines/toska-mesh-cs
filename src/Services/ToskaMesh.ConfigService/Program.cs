@@ -63,4 +63,9 @@ app.UseAuthorization();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.MapControllers();
 
+await app.Services.EnsureDatabaseAsync<ConfigDbContext>(
+    app.Configuration,
+    app.Logger,
+    app.Lifetime.ApplicationStopping);
+
 app.Run();

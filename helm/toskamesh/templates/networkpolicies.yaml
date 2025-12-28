@@ -21,14 +21,14 @@ spec:
     - from:
         - namespaceSelector: {{- toYaml $nsSelector | nindent 10 }}
       ports:
-        - port: 80
+        - port: 8080
           protocol: TCP
     {{- if or (eq $name "gateway") (eq $name "dashboard") }}
     - from:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
-        - port: 80
+        - port: 8080
           protocol: TCP
         - port: 443
           protocol: TCP
@@ -39,7 +39,7 @@ spec:
               {{- include "toskamesh.selectorLabels" $ | nindent 14 }}
               app.kubernetes.io/component: gateway
       ports:
-        - port: 80
+        - port: 8080
           protocol: TCP
     {{- end }}
   egress:

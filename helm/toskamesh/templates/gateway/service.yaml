@@ -10,7 +10,7 @@ spec:
   type: {{ .Values.gateway.service.type }}
   ports:
   - port: {{ .Values.gateway.service.port }}
-    targetPort: 80
+    targetPort: 8080
     protocol: TCP
     name: http
   selector:

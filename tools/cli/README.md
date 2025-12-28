@@ -68,7 +68,7 @@ Options:
 ## Kubeconfig (Talos)
 Generate a Kubernetes kubeconfig using a Talos cluster (uses `talosctl` under the hood):
 ```bash
-toska kubeconfig --talosconfig ./clusterconfig/talosconfig -e 192.168.50.229 --out ~/.kube/config --force
+toska kubeconfig --talosconfig ./clusterconfig/talosconfig -e talos --out ~/.kube/config --force
 ```
 Options:
 - `--talosconfig` path to the Talos client config (defaults to `clusterconfig/talosconfig`).
