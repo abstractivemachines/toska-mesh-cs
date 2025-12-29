@@ -8,7 +8,7 @@
     <PackageReference Include="ToskaMesh.Runtime" Version="0.1.0-preview" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Client" Version="8.2.0" />
-    <PackageReference Include="Microsoft.Orleans.Clustering.Consul" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="9.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Clustering.Consul" Version="9.2.1" />
   </ItemGroup>
 </Project>
