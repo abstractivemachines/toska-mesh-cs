@@ -13,6 +13,9 @@ spec:
       targetPort: 8080
       protocol: TCP
       name: http
+      {{- if and (eq .Values.dashboard.service.type "NodePort") .Values.dashboard.service.nodePort }}
+      nodePort: {{ .Values.dashboard.service.nodePort }}
+      {{- end }}
   selector:
     {{- include "toskamesh.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: dashboard

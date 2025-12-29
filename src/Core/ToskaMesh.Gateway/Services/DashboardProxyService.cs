@@ -57,6 +57,9 @@ public sealed class DashboardProxyService : IDashboardProxyService
             cancellationToken);
     }
 
+    // Metadata key that identifies a ToskaMesh-registered service
+    private const string MeshServiceMarker = "health_check_endpoint";
+
     public async Task<IReadOnlyCollection<DashboardServiceCatalogItem>> GetServiceCatalogAsync(CancellationToken cancellationToken)
     {
         var serviceNames = await GetServiceNamesAsync(cancellationToken);
@@ -72,6 +75,17 @@ public sealed class DashboardProxyService : IDashboardProxyService
 
             var instances = instancesTask.Result;
             var metadata = metadataTask.Result;
+
+            // Only include services registered via ToskaMesh SDK (have mesh metadata)
+            var isMeshService = instances.Any(i =>
+                i.Metadata.ContainsKey(MeshServiceMarker));
+
+            if (!isMeshService)
+            {
+                _logger.LogDebug("Excluding service {ServiceName} from catalog - not a ToskaMesh service", serviceName);
+                continue;
+            }
+
             var serviceHealth = healthSnapshots
                 .Where(snapshot => snapshot.ServiceName.Equals(serviceName, StringComparison.OrdinalIgnoreCase))
                 .ToList();

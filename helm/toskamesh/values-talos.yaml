@@ -4,8 +4,8 @@ environment: Development
 
 # Global secrets (replace with strong values)
 global:
-  meshServiceAuthSecret: "CHANGE-ME-32-CHARS-MINIMUM"
-  jwtSecret: "CHANGE-ME-32-CHARS-MINIMUM"
+  meshServiceAuthSecret: "ToskaMesh-Dev-Secret-32-Chars-Min"
+  jwtSecret: "ToskaMesh-Dev-JWT-Secret-32-Chars"
 
 serviceDiscovery:
   grpc:
@@ -49,7 +49,7 @@ gateway:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-gateway"
-    tag: "local"
+    tag: "v1.3.0"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -58,13 +58,13 @@ gateway:
   ingress:
     enabled: false
   secrets:
-    jwtSecretKey: "CHANGE-ME-32-CHARS-MINIMUM"
+    jwtSecretKey: "ToskaMesh-Dev-JWT-Secret-32-Chars"
 
 dashboard:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-dashboard"
-    tag: "local"
+    tag: "v2.9.0"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -78,7 +78,7 @@ discovery:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-discovery"
-    tag: "local"
+    tag: "v1.2.0"
     pullPolicy: IfNotPresent
 
 authService:
@@ -99,14 +99,14 @@ metricsService:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-metrics-service"
-    tag: "local"
+    tag: "v1.1.0"
     pullPolicy: IfNotPresent
 
 tracingService:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-tracing-service"
-    tag: "local"
+    tag: "v1.3.0"
     pullPolicy: IfNotPresent
 
 core:
@@ -124,5 +124,5 @@ healthMonitor:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-health-monitor"
-    tag: "local"
+    tag: "v1.1.0"
     pullPolicy: IfNotPresent

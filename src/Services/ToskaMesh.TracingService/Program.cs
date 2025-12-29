@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using System.Text;
 using ToskaMesh.Common.Data;
 using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
 using ToskaMesh.Security;
-using ToskaMesh.Telemetry;
 using ToskaMesh.TracingService.Data;
 using ToskaMesh.TracingService.Models;
 using ToskaMesh.TracingService.Services;
@@ -26,46 +23,17 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<TracingDbContext>(configuration);
 });
-builder.Services.AddMeshTelemetry(builder.Configuration, "TracingService");
+// TracingService is infrastructure - don't trace itself to avoid feedback loop
+// builder.Services.AddMeshTelemetry(builder.Configuration, "TracingService");
 builder.Services.AddMeshHealthChecks();
 
 builder.Services.AddScoped<ITraceStorageService, TraceStorageService>();
 builder.Services.AddScoped<ITraceAnalyticsService, TraceAnalyticsService>();
 
+// TracingService is infrastructure - it stores traces but doesn't generate its own
+// to avoid feedback loops and noise in the trace data
 var tracingOptions = builder.Configuration.GetSection("Tracing").Get<TracingExporterOptions>() ?? new TracingExporterOptions();
 builder.Services.AddSingleton(tracingOptions);
-
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracerProviderBuilder =>
-    {
-        tracerProviderBuilder
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("TracingService"))
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .SetSampler(new TraceIdRatioBasedSampler(Math.Clamp(tracingOptions.SamplingRatio, 0.0, 1.0)));
-
-        if (tracingOptions.EnableConsoleExporter)
-        {
-            tracerProviderBuilder.AddConsoleExporter();
-        }
-
-        if (tracingOptions.Jaeger?.Enabled == true)
-        {
-            tracerProviderBuilder.AddJaegerExporter(options =>
-            {
-                options.AgentHost = tracingOptions.Jaeger.Host;
-                options.AgentPort = tracingOptions.Jaeger.Port;
-            });
-        }
-
-        if (tracingOptions.Zipkin?.Enabled == true)
-        {
-            tracerProviderBuilder.AddZipkinExporter(options =>
-            {
-                options.Endpoint = new Uri(tracingOptions.Zipkin.Endpoint);
-            });
-        }
-    });
 
 var serviceAuthOptions = builder.Configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(serviceAuthOptions.Secret));
@@ -99,7 +67,6 @@ app.UseRouting();
 app.UseMeshHealthChecks();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.MapControllers();
 
 await app.Services.EnsureDatabaseAsync<TracingDbContext>(

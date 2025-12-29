@@ -1,0 +1,54 @@
+service:
+  name: mesh-rpc-demo
+  type: stateless
+
+deploy:
+  target: kubernetes
+  namespace: toskamesh-example
+
+workloads:
+  - name: mesh-rpc-a
+    type: stateless
+    manifests:
+      - ../../k8s/mesh-rpc-demo/configmap.yaml
+      - ../../k8s/mesh-rpc-demo/service-a.yaml
+      - ../../k8s/mesh-rpc-demo/deployment-a.yaml
+    image:
+      repository: mesh-rpc-a
+      tag: local
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: service-a/Dockerfile
+    portForward:
+      service: mesh-rpc-a
+      port: 8081
+      localPort: 8081
+
+  - name: mesh-rpc-b
+    type: stateless
+    manifests:
+      - ../../k8s/mesh-rpc-demo/configmap.yaml
+      - ../../k8s/mesh-rpc-demo/service-b.yaml
+      - ../../k8s/mesh-rpc-demo/deployment-b.yaml
+    image:
+      repository: mesh-rpc-b
+      tag: local
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: service-b/Dockerfile
+
+  - name: mesh-rpc-c
+    type: stateless
+    manifests:
+      - ../../k8s/mesh-rpc-demo/configmap.yaml
+      - ../../k8s/mesh-rpc-demo/service-c.yaml
+      - ../../k8s/mesh-rpc-demo/deployment-c.yaml
+    image:
+      repository: mesh-rpc-c
+      tag: local
+      registry: 192.168.50.73:5000
+    build:
+      context: ../..
+      dockerfile: service-c/Dockerfile

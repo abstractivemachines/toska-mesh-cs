@@ -1,4 +1,7 @@
 #!/bin/sh
+# Inject runtime configuration into config.js
+# This script runs as part of nginx docker-entrypoint.d
+
 set -e
 
 GATEWAY_BASE_URL=${DASHBOARD_GATEWAY_BASE_URL:-}
@@ -9,4 +12,4 @@ window.__DASHBOARD_CONFIG__ = {
 };
 CONFIG
 
-exec nginx -g 'daemon off;'
+echo "Dashboard config injected: gatewayBaseUrl=${GATEWAY_BASE_URL:-'(empty)'}"

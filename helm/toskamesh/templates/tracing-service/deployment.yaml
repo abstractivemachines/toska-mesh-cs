@@ -24,7 +24,10 @@ spec:
         {{- end }}
       {{- end }}
     spec:
-      {{- if .Values.podSecurityContext.enabled }}
+      {{- if .Values.tracingService.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.tracingService.podSecurityContext | nindent 8 }}
+      {{- else if .Values.podSecurityContext.enabled }}
       securityContext:
         {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
@@ -32,7 +35,10 @@ spec:
       - name: tracing-service
         image: "{{ .Values.tracingService.image.repository }}:{{ .Values.tracingService.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.tracingService.image.pullPolicy }}
-        {{- if .Values.containerSecurityContext.enabled }}
+        {{- if .Values.tracingService.containerSecurityContext }}
+        securityContext:
+          {{- toYaml .Values.tracingService.containerSecurityContext | nindent 10 }}
+        {{- else if .Values.containerSecurityContext.enabled }}
         securityContext:
           {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}

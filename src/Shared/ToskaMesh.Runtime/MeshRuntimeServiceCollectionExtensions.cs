@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Metrics;
 using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
 using ToskaMesh.Protocols;
@@ -84,7 +85,10 @@ public static class MeshRuntimeServiceCollectionExtensions
     public static WebApplication UseMeshDefaults(this WebApplication app)
     {
         app.UseMeshHealthChecks();
-        app.UseOpenTelemetryPrometheusScrapingEndpoint();
+        if (app.Services.GetService<MeterProvider>() != null)
+        {
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+        }
         return app;
     }
 }

@@ -55,6 +55,7 @@ public static class TelemetryExtensions
                 tracing
                     .SetSampler(CreateSampler(telemetryOptions.Sampling))
                     .AddSource(activitySource.Name)
+                    .AddSource("MassTransit")
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
 

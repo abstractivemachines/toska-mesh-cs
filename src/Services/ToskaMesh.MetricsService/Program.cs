@@ -8,7 +8,6 @@ using ToskaMesh.Common.Health;
 using ToskaMesh.MetricsService.Data;
 using ToskaMesh.MetricsService.Services;
 using ToskaMesh.Security;
-using ToskaMesh.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +23,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableHealthChecks = false;
     options.ConfigureDatabase = (services, configuration) => services.AddPostgres<MetricsDbContext>(configuration);
 });
-builder.Services.AddMeshTelemetry(builder.Configuration, "MetricsService");
+// MetricsService is infrastructure - don't trace metric scraping operations
 builder.Services.AddMeshHealthChecks();
 builder.Services.AddSingleton<IMetricsRegistry, MetricsRegistry>();
 builder.Services.AddScoped<IMetricHistoryService, MetricHistoryService>();
@@ -64,7 +63,6 @@ app.UseRouting();
 app.UseMeshHealthChecks();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.MapControllers();
 app.MapMetrics();
 

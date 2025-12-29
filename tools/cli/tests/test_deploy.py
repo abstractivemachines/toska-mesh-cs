@@ -150,6 +150,20 @@ def test_port_forward_dry_run_adds_command(tmp_path):
     assert any("port-forward" in cmd for cmd in result.commands)
 
 
+def test_port_forward_override_local_port(tmp_path):
+    manifest = _write_manifest(tmp_path, with_port_forward=True)
+    config = load_deploy_config(manifest)
+
+    result = deploy(
+        config,
+        dry_run=True,
+        port_forward=True,
+        port_forward_local_port=19090,
+    )
+
+    assert any("19090:8080" in cmd for cmd in result.commands)
+
+
 def test_filter_workloads_limits_selection(tmp_path):
     manifest = _write_manifest(tmp_path)
     config = load_deploy_config(manifest)

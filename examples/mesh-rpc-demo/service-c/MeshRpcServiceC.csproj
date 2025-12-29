@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../contracts/MeshRpcDemo.Contracts.csproj" />
+    <ProjectReference Include="../../../src/Shared/ToskaMesh.Common/ToskaMesh.Common.csproj" />
+    <ProjectReference Include="../../../src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj" />
+  </ItemGroup>
+</Project>
