@@ -12,6 +12,7 @@ public interface ITraceStorageService
     Task<TraceQueryResponse> QueryAsync(TraceQueryParameters query, CancellationToken cancellationToken);
     Task<TraceDetailDto?> GetTraceAsync(string traceId, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<TraceSummaryDto>> GetByCorrelationIdAsync(string correlationId, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<string>> GetDistinctServiceNamesAsync(CancellationToken cancellationToken);
 }
 
 public class TraceStorageService : ITraceStorageService
@@ -35,17 +36,24 @@ public class TraceStorageService : ITraceStorageService
         var spanEntities = new List<TraceSpan>(request.Spans.Count);
         var traceIds = request.Spans.Select(span => span.TraceId).Distinct().ToList();
 
-        var existing = await _dbContext.TraceSpans
+        var existingKeys = await _dbContext.TraceSpans
             .Where(span => traceIds.Contains(span.TraceId))
+            .Select(span => new { span.TraceId, span.SpanId })
             .ToListAsync(cancellationToken);
 
-        if (existing.Count > 0)
-        {
-            _dbContext.TraceSpans.RemoveRange(existing);
-        }
+        var existing = new HashSet<string>(
+            existingKeys.Select(span => $"{span.TraceId}:{span.SpanId}"),
+            StringComparer.OrdinalIgnoreCase);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var span in request.Spans)
         {
+            var key = $"{span.TraceId}:{span.SpanId}";
+            if (!seen.Add(key) || existing.Contains(key))
+            {
+                continue;
+            }
+
             spanEntities.Add(new TraceSpan
             {
                 TraceId = span.TraceId,
@@ -65,6 +73,11 @@ public class TraceStorageService : ITraceStorageService
                 EventsJson = SerializeDictionary(span.Events),
                 ResourceAttributesJson = SerializeDictionary(span.ResourceAttributes)
             });
+        }
+
+        if (spanEntities.Count == 0)
+        {
+            return;
         }
 
         await _dbContext.TraceSpans.AddRangeAsync(spanEntities, cancellationToken);
@@ -186,11 +199,23 @@ public class TraceStorageService : ITraceStorageService
         return items;
     }
 
+    public async Task<IReadOnlyCollection<string>> GetDistinctServiceNamesAsync(CancellationToken cancellationToken)
+    {
+        var serviceNames = await _dbContext.TraceSpans.AsNoTracking()
+            .Select(span => span.ServiceName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToListAsync(cancellationToken);
+
+        return serviceNames;
+    }
+
     private static IQueryable<TraceSpan> ApplyFilters(IQueryable<TraceSpan> query, TraceQueryParameters parameters)
     {
         if (!string.IsNullOrWhiteSpace(parameters.ServiceName))
         {
-            query = query.Where(span => span.ServiceName == parameters.ServiceName);
+            var serviceNameFilter = parameters.ServiceName.ToLowerInvariant();
+            query = query.Where(span => span.ServiceName.ToLower().Contains(serviceNameFilter));
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.OperationName))

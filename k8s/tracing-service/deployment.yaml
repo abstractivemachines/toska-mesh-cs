@@ -19,47 +19,32 @@ spec:
         app.kubernetes.io/name: toskamesh
         app.kubernetes.io/instance: toskamesh
         app.kubernetes.io/component: tracing-service
-      annotations:
-        sidecar.istio.io/inject: "true"
-        traffic.sidecar.istio.io/includeInboundPorts: "*"
-        security.istio.io/tlsMode: "istio"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: tracing-service
-        image: 192.168.50.73:5000/toskamesh-tracing-service:local-20251202
+        image: 192.168.50.73:5000/toskamesh-tracing-service:local-20251229
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
-          protocol: TCP
-        - containerPort: 8443
-          name: https
           protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
-        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:80"
-        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
-          valueFrom:
-            secretKeyRef:
-              name: toskamesh-mtls
-              key: https_url
-        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
-          value: "RequireCertificate"
-        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
-          valueFrom:
-            secretKeyRef:
-              name: toskamesh-mtls
-              key: server_pfx_path
-        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
-          valueFrom:
-            secretKeyRef:
-              name: toskamesh-mtls
-              key: server_pfx_password
-        - name: SSL_CERT_FILE
-          value: "/etc/tls/ca.crt"
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -70,20 +55,21 @@ spec:
             configMapKeyRef:
               name: toskamesh-tracing-service-config
               key: discovery_grpc_address
-        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
-          value: "false"
-        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
-          value: "/etc/tls/client.pfx"
-        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
-          valueFrom:
-            secretKeyRef:
-              name: toskamesh-mtls
-              key: client_pfx_password
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: "true"
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: "http://toskamesh-tracing-service:8080/api/traces/ingest"
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: "ParentBasedAlwaysOn"
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: "1"
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
               name: toskamesh-tracing-service-secrets
               key: db_connection_string
+        - name: Database__AutoMigrate
+          value: "true"
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
@@ -99,20 +85,12 @@ spec:
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 5
-        volumeMounts:
-        - name: mesh-tls
-          mountPath: /etc/tls
-          readOnly: true
-      volumes:
-      - name: mesh-tls
-        secret:
-          secretName: toskamesh-mtls

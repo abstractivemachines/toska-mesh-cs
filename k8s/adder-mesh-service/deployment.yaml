@@ -22,37 +22,16 @@ spec:
     spec:
       containers:
         - name: adder-mesh-service
-          image: 192.168.50.73:5000/adder-mesh-service:local-20251202
+          image: 192.168.50.73:5000/adder-mesh-service:local
           imagePullPolicy: Always
           ports:
             - containerPort: 8083
               name: http
-            - containerPort: 8443
-              name: https
           env:
             - name: ASPNETCORE_URLS
               value: http://+:8083
             - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
               value: "http://+:8083"
-            - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
-              valueFrom:
-                secretKeyRef:
-                  name: toskamesh-mtls
-                  key: https_url
-            - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
-              value: "RequireCertificate"
-            - name: ASPNETCORE_Kestrel__Certificates__Default__Path
-              valueFrom:
-                secretKeyRef:
-                  name: toskamesh-mtls
-                  key: server_pfx_path
-            - name: ASPNETCORE_Kestrel__Certificates__Default__Password
-              valueFrom:
-                secretKeyRef:
-                  name: toskamesh-mtls
-                  key: server_pfx_password
-            - name: SSL_CERT_FILE
-              value: "/etc/tls/ca.crt"
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
             - name: POD_NAME
@@ -78,16 +57,9 @@ spec:
             - name: Mesh__Service__ServiceRegistryProvider
               value: consul
             - name: Mesh__ServiceDiscovery__Grpc__Address
-              value: https://toskamesh-internal.toskamesh.svc.cluster.local:50051
+              value: http://toskamesh-discovery.toskamesh.svc.cluster.local:8080
             - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
-              value: "false"
-            - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
-              value: /etc/tls/client.pfx
-            - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
-              valueFrom:
-                secretKeyRef:
-                  name: toskamesh-mtls
-                  key: client_pfx_password
+              value: "true"
             - name: Consul__Address
               value: http://consul-server.toskamesh-infra.svc.cluster.local:8500
             - name: Mesh__ServiceAuth__Secret
@@ -113,11 +85,3 @@ spec:
               port: 8083
             initialDelaySeconds: 10
             periodSeconds: 15
-          volumeMounts:
-            - name: mesh-tls
-              mountPath: /etc/tls
-              readOnly: true
-      volumes:
-        - name: mesh-tls
-          secret:
-            secretName: toskamesh-mtls

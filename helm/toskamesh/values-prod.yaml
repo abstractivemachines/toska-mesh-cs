@@ -14,6 +14,9 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # e.g., gateway-jwt-secret from cloud secret manager
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # e.g., service-jwt-secret from cloud secret manager
+    key: jwt_secret
 
 networkPolicy:
   enabled: true
@@ -29,6 +32,7 @@ mesh:
 # Global secrets (MUST be changed in production!)
 global:
   meshServiceAuthSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
+  jwtSecret: "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
 
 # External services configuration (use managed cloud services in production)
 externalServices:
@@ -48,6 +52,16 @@ externalServices:
   redis:
     host: "redis.production.example.com"
     port: 6379
+
+# Telemetry pipeline
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
 
 # Gateway configuration
 gateway:
@@ -81,6 +95,44 @@ gateway:
       memory: 2Gi
   secrets:
     jwtSecretKey: "CHANGE-ME-USE-STRONG-JWT-SECRET-MIN-64-CHARS"
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: your-registry.example.com/toskamesh-dashboard
+    tag: "1.0.0"
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 8080
+  ingress:
+    enabled: true
+    className: ""
+    hosts:
+      - host: "dashboard.example.com"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: toskamesh-dashboard-tls
+        hosts:
+          - "dashboard.example.com"
+  gatewayBaseUrl: "https://gateway.example.com"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
   hpa:
     enabled: true
     minReplicas: 2
@@ -207,8 +259,9 @@ core:
     tag: "1.0.0"
     pullPolicy: Always
   orleans:
-    serviceName: "ToskaMesh"
+    serviceId: "ToskaMesh"
     clusterId: "prod"
+    clusterProvider: "Consul"
   resources:
     requests:
       cpu: 1000m

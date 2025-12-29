@@ -14,6 +14,10 @@ docker-compose up -d prometheus grafana rabbitmq-exporter redis-exporter
 - RabbitMQ Exporter: http://localhost:9419/metrics
 - Redis Exporter: http://localhost:9121/metrics
 
+## Tracing Pipeline
+
+Trace export currently targets the ToskaMesh Tracing Service ingest endpoint. OTLP collector support is planned for a future iteration.
+
 ## Prometheus Configuration
 
 - Base config: `deployments/prometheus.yml`

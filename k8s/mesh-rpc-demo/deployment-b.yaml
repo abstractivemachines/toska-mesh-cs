@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mesh-rpc-b
+  labels:
+    app.kubernetes.io/name: mesh-rpc-b
+    app.kubernetes.io/instance: mesh-rpc-b
+    app.kubernetes.io/component: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mesh-rpc-b
+      app.kubernetes.io/instance: mesh-rpc-b
+      app.kubernetes.io/component: example
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mesh-rpc-b
+        app.kubernetes.io/instance: mesh-rpc-b
+        app.kubernetes.io/component: example
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mesh-rpc-b
+          image: 192.168.50.73:5000/mesh-rpc-b:local
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8082
+              name: http
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8082
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: Mesh__Service__ServiceName
+              value: mesh-rpc-service-b
+            - name: Mesh__Service__ServiceId
+              value: $(POD_NAME)
+            - name: Mesh__Service__AdvertisedAddress
+              value: $(POD_IP)
+            - name: Mesh__Service__Port
+              value: "8082"
+            - name: Mesh__Identity__ServiceName
+              value: mesh-rpc-service-b
+          envFrom:
+            - configMapRef:
+                name: mesh-rpc-demo-config
+            - secretRef:
+                name: mesh-rpc-demo-rabbitmq
+                optional: true
+            - secretRef:
+                name: mesh-rpc-demo-secrets
+                optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 15

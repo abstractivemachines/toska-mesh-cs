@@ -4,7 +4,7 @@ service:
 
 deploy:
   target: kubernetes
-  namespace: toskamesh
+  namespace: toskamesh-example
 
 workloads:
   - name: adder-mesh-service

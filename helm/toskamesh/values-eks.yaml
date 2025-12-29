@@ -14,9 +14,22 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # e.g., gateway-jwt (synced from AWS Secrets Manager)
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # e.g., service-jwt (synced from AWS Secrets Manager)
+    key: jwt_secret
 
 networkPolicy:
   enabled: true
+
+# Telemetry pipeline
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
 
 # Use ECR images with auto-pull policy
 gateway:
@@ -28,7 +41,7 @@ gateway:
     pullPolicy: Always
   service:
     type: LoadBalancer
-    port: 80
+    port: 8080
     annotations:
       # Use Network Load Balancer for better performance
       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
@@ -49,6 +62,40 @@ gateway:
   secrets:
     # TODO: Replace with AWS Secrets Manager reference
     jwtSecretKey: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-MIN-32-CHARS-LONG"
+
+dashboard:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: 215958754319.dkr.ecr.us-east-1.amazonaws.com/toskamesh-eks-services
+    tag: dashboard-latest
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 8080
+  ingress:
+    enabled: false
+    className: ""
+    hosts:
+      - host: "dashboard.toskamesh.local"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  gatewayBaseUrl: "http://toskamesh.local"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
 
 discovery:
   enabled: true
@@ -163,8 +210,9 @@ core:
     tag: core-latest
     pullPolicy: Always
   orleans:
-    serviceName: "ToskaMesh-Production"
+    serviceId: "ToskaMesh-Production"
     clusterId: "prod-eks"
+    clusterProvider: "Consul"
   resources:
     requests:
       cpu: 500m
@@ -245,6 +293,7 @@ externalServices:
 # TODO: Replace with AWS Secrets Manager or Kubernetes secrets
 global:
   meshServiceAuthSecret: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-SUPER-SECRET-KEY"
+  jwtSecret: "CHANGE-ME-USE-AWS-SECRETS-MANAGER-MIN-32-CHARS-LONG"
 
 # Service Account configuration
 # Enable IRSA (IAM Roles for Service Accounts) for AWS service access

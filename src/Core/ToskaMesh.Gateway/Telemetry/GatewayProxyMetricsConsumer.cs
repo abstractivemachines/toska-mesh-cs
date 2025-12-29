@@ -12,6 +12,7 @@ public class GatewayProxyMetricsConsumer : IForwarderTelemetryConsumer
     private readonly Counter<long> _forwardedRequests;
     private readonly Counter<long> _failedRequests;
     private readonly UpDownCounter<long> _inflightRequests;
+    private readonly Counter<long> _routedRequests;
 
     public GatewayProxyMetricsConsumer(IMeterFactory meterFactory)
     {
@@ -25,6 +26,9 @@ public class GatewayProxyMetricsConsumer : IForwarderTelemetryConsumer
         _inflightRequests = meter.CreateUpDownCounter<long>(
             "gateway.proxy.inflight",
             description: "In-flight proxy requests currently being processed");
+        _routedRequests = meter.CreateCounter<long>(
+            "gateway.proxy.routed.requests",
+            description: "Requests routed by cluster and route identifiers");
     }
 
     public void OnForwarderStart(DateTime timestamp, string destinationPrefix)
@@ -60,6 +64,9 @@ public class GatewayProxyMetricsConsumer : IForwarderTelemetryConsumer
 
     public void OnForwarderInvoke(DateTime timestamp, string destinationPrefix, string clusterId, string routeId)
     {
-        // No-op
+        _routedRequests.Add(1,
+            new KeyValuePair<string, object?>("destination", destinationPrefix),
+            new KeyValuePair<string, object?>("cluster_id", clusterId),
+            new KeyValuePair<string, object?>("route_id", routeId));
     }
 }

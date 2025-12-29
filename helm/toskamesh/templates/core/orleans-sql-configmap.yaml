@@ -1,0 +1,18 @@
+{{- if and .Values.core.enabled .Values.core.orleans.migrations.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-orleans-sql
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+data:
+  PostgreSQL-Main.sql: |
+{{- .Files.Get "files/orleans/PostgreSQL-Main.sql" | nindent 4 }}
+  PostgreSQL-Persistence.sql: |
+{{- .Files.Get "files/orleans/PostgreSQL-Persistence.sql" | nindent 4 }}
+  PostgreSQL-Clustering.sql: |
+{{- .Files.Get "files/orleans/PostgreSQL-Clustering.sql" | nindent 4 }}
+  PostgreSQL-Reminders.sql: |
+{{- .Files.Get "files/orleans/PostgreSQL-Reminders.sql" | nindent 4 }}
+{{- end }}

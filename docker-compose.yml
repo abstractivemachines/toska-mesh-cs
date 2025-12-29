@@ -72,19 +72,47 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.Gateway
     ports:
-      - "5000:80"
+      - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://+:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - Consul__Address=http://consul:8500
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
-      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
+      - Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport=true
+      - Jwt__SecretKey=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Dashboard__PrometheusBaseUrl=http://prometheus:9090
+      - Dashboard__TracingBaseUrl=http://tracing-service:8080
+      - Dashboard__DiscoveryBaseUrl=http://discovery:8080
+      - Dashboard__HealthMonitorBaseUrl=http://health-monitor:8080
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - consul
       - discovery
       - prometheus
+    networks:
+      - toksa-mesh
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile.Dashboard
+      args:
+        VITE_GATEWAY_BASE_URL: "http://localhost:5000"
+    ports:
+      - "5006:8080"
+    environment:
+      - DASHBOARD_GATEWAY_BASE_URL=http://localhost:5000
+    depends_on:
+      - gateway
+      - prometheus
+      - tracing-service
+      - discovery
+      - health-monitor
     networks:
       - toksa-mesh
 
@@ -93,14 +121,18 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.Discovery
     ports:
-      - "5010:80"
+      - "5010:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - Messaging__RabbitMqHost=rabbitmq
       - Consul__Address=http://consul:8500
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - consul
       - rabbitmq
@@ -112,18 +144,24 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.Core
     ports:
-      - "8080:80"
+      - "8080:8080"
       - "11111:11111"
       - "30000:30000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
-      - Orleans__ClusteringMode=localhost
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
+      - Orleans__ClusterProvider=Consul
       - Orleans__ServiceId=ToskaMesh
       - Orleans__ClusterId=dev
+      - Orleans__ConsulAddress=http://consul:8500
+      - Orleans__AdvertisedIPAddress=${ORLEANS_ADVERTISED_IP:-}
       - Consul__Address=http://consul:8500
-      - ConnectionStrings__OrleansStorage=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
+      - Orleans__DatabaseConnectionString=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
     depends_on:
       - postgres
@@ -136,15 +174,18 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.HealthMonitor
     ports:
-      - "5005:80"
+      - "5005:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
       - Consul__Address=http://consul:8500
-      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - discovery
       - consul
@@ -157,16 +198,20 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.AuthService
     ports:
-      - "5001:80"
+      - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Database__AutoMigrate=true
       - Consul__Address=http://consul:8500
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
-      - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul
@@ -179,16 +224,21 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.ConfigService
     ports:
-      - "5002:80"
+      - "5002:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Database__AutoMigrate=true
       - Consul__Address=http://consul:8500
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul
@@ -201,16 +251,21 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.MetricsService
     ports:
-      - "5003:80"
+      - "5003:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Database__AutoMigrate=true
       - Consul__Address=http://consul:8500
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - prometheus
@@ -224,16 +279,21 @@ services:
       context: .
       dockerfile: deployments/Dockerfile.TracingService
     ports:
-      - "5004:80"
+      - "5004:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-      - URLS=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - Urls=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=toksa_mesh;Username=toksa_mesh;Password=toksa_mesh_password
+      - Database__AutoMigrate=true
       - Consul__Address=http://consul:8500
-      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:80
+      - Mesh__ServiceDiscovery__Grpc__Address=http://discovery:8080
       - Jwt__Secret=localdev-super-secret-key-0123456789-0123456789
       - Mesh__ServiceAuth__Secret=localdev-super-secret-key-0123456789-0123456789
+      - Mesh__Telemetry__TracingIngest__Enabled=true
+      - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Mesh__Telemetry__Sampling__Strategy=ParentBasedAlwaysOn
+      - Mesh__Telemetry__Sampling__Ratio=1
     depends_on:
       - postgres
       - consul

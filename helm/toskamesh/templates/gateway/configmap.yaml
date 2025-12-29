@@ -8,5 +8,9 @@ metadata:
     app.kubernetes.io/component: gateway
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
-  discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+  discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:8080"
+  dashboard_prometheus_base_url: {{ .Values.gateway.dashboardProxy.prometheusBaseUrl | quote }}
+  dashboard_tracing_base_url: "http://{{ include "toskamesh.fullname" . }}-tracing-service:8080"
+  dashboard_discovery_base_url: "http://{{ include "toskamesh.fullname" . }}-discovery:8080"
+  dashboard_health_base_url: "http://{{ include "toskamesh.fullname" . }}-health-monitor:8080"
 {{- end }}

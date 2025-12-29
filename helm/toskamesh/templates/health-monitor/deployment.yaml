@@ -24,18 +24,28 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: health-monitor
         image: "{{ .Values.healthMonitor.image.repository }}:{{ .Values.healthMonitor.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.healthMonitor.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
+        - name: Urls
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -46,18 +56,37 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-health-monitor-config
               key: discovery_grpc_address
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        {{- with .Values.telemetry.tracingIngest.headers }}
+        {{- range $name, $value := . }}
+        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-health-monitor-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
         resources:
           {{- toYaml .Values.healthMonitor.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
 {{- end }}

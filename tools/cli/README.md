@@ -68,7 +68,7 @@ Options:
 ## Kubeconfig (Talos)
 Generate a Kubernetes kubeconfig using a Talos cluster (uses `talosctl` under the hood):
 ```bash
-toska kubeconfig --talosconfig ./clusterconfig/talosconfig -e 192.168.50.229 --out ~/.kube/config --force
+toska kubeconfig --talosconfig ./clusterconfig/talosconfig -e talos --out ~/.kube/config --force
 ```
 Options:
 - `--talosconfig` path to the Talos client config (defaults to `clusterconfig/talosconfig`).
@@ -87,13 +87,14 @@ toska deploy
 
 Options:
 ```bash
-toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose] [--port-forward] [-w workload] [--kubeconfig ~/.kube/config] [--context my-cluster]
+toska deploy [-f ./toska.yaml] [--dry-run] [-v/--verbose] [--port-forward] [--port-forward-local-port 18081] [-w workload] [--kubeconfig ~/.kube/config] [--context my-cluster]
 ```
 - Default manifest path: `toska.yaml` in the current directory.
 - Supported target: Kubernetes (`kubectl` must be pointed at your cluster, ToskaMesh already running there).
 - `--verbose` prints the underlying `kubectl` output; without it only the planned/executed commands are shown.
 - `-n/--namespace` overrides the manifest namespace for apply/delete/port-forward.
 - `--port-forward` runs `kubectl port-forward` for workloads that declare `portForward` and keeps them alive until Ctrl+C.
+- `--port-forward-local-port` overrides the local bind port used for port-forwarding (applies to all forwarded workloads).
 - `-w/--workload` limits the deploy to specific workloads defined in the manifest.
 - `--kubeconfig/--context` are forwarded to `kubectl` commands.
 - Progress output uses spinners and a summary when a TTY is detected; `-v` streams command output as it runs.

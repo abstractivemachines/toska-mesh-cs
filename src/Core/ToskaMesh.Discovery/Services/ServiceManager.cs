@@ -129,15 +129,32 @@ public class ServiceManager : IServiceManager
         return Task.FromResult<IEnumerable<ServiceInstanceTrackingSnapshot>>(snapshots);
     }
 
-    public Task<ServiceMetadataSummary> GetMetadataSummaryAsync(string serviceName, CancellationToken cancellationToken = default)
+    public async Task<ServiceMetadataSummary> GetMetadataSummaryAsync(string serviceName, CancellationToken cancellationToken = default)
     {
-        var snapshots = _tracking.Values
-            .Where(t => string.Equals(t.ServiceName, serviceName, StringComparison.OrdinalIgnoreCase))
-            .Select(t => t.ToSnapshot())
-            .ToList();
+        // Get actual instances from the registry to get accurate count
+        var instances = await _serviceRegistry.GetServiceInstancesAsync(serviceName, cancellationToken);
+        var instanceList = instances.ToList();
 
-        var keySummaries = snapshots
-            .SelectMany(snapshot => snapshot.Metadata)
+        // Get metadata from instances (merge with tracking if available)
+        var allMetadata = new List<Dictionary<string, string>>();
+        foreach (var instance in instanceList)
+        {
+            var metadata = instance.Metadata;
+            if (_tracking.TryGetValue(instance.ServiceId, out var tracking))
+            {
+                // Merge tracking metadata with instance metadata
+                var merged = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
+                foreach (var kv in tracking.ToSnapshot().Metadata)
+                {
+                    merged[kv.Key] = kv.Value;
+                }
+                metadata = merged;
+            }
+            allMetadata.Add(metadata);
+        }
+
+        var keySummaries = allMetadata
+            .SelectMany(m => m)
             .GroupBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
             .Select(group => new MetadataKeySummary(
                 group.Key,
@@ -147,11 +164,11 @@ public class ServiceManager : IServiceManager
 
         var summary = new ServiceMetadataSummary(
             serviceName,
-            snapshots.Count,
+            instanceList.Count,
             DateTime.UtcNow,
             keySummaries);
 
-        return Task.FromResult(summary);
+        return summary;
     }
 
     public async Task<IEnumerable<string>> GetServiceNamesAsync(CancellationToken cancellationToken = default)

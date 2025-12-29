@@ -323,6 +323,7 @@ def deploy(
     dry_run: bool = False,
     verbose: bool = False,
     port_forward: bool = False,
+    port_forward_local_port: Optional[int] = None,
     kubeconfig: Optional[Path] = None,
     context: Optional[str] = None,
     run_cmd=None,
@@ -376,7 +377,9 @@ def deploy(
 
         if port_forward and workload.port_forward:
             pf = workload.port_forward
-            local = pf.local_port or pf.remote_port
+            if port_forward_local_port is not None and port_forward_local_port <= 0:
+                raise DeployConfigError("port-forward-local-port must be a positive integer.")
+            local = port_forward_local_port or pf.local_port or pf.remote_port
             cmd = [
                 "kubectl",
                 *kube_args,

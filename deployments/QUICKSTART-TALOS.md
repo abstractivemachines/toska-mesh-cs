@@ -1,12 +1,12 @@
 # ToskaMesh Talos Quick Start (Local Network)
 
-Deploy ToskaMesh to the single-node Talos cluster (no AWS/EKS). Assumes your Talos control plane is reachable at `192.168.50.229` and your laptop is on the same network (registry will run on the laptop at `192.168.50.73:5000`; adjust if your IP changes).
+Deploy ToskaMesh to the single-node Talos cluster (no AWS/EKS). Assumes your Talos control plane is reachable at `talos` and your laptop is on the same network (registry will run on the laptop at `192.168.50.73:5000`; adjust if your IP changes). Ensure `talos` resolves via DNS or `/etc/hosts`.
 
 ## Prerequisites
 
 - `talosctl`, `kubectl`, `helm`, and `docker` installed on the laptop.
 - Talos kubeconfig set (e.g., `kubectl config use-context admin@homek8s-1`).
-- Talos node reachable: `ping 192.168.50.229` and `talosctl --talosconfig clusterconfig/talosconfig version -n 192.168.50.229`.
+- Talos node reachable: `ping talos` and `talosctl --talosconfig clusterconfig/talosconfig version -n talos`.
 
 ## 1) Add a default storage class
 Talos has no default `StorageClass`. Install a simple hostPath provisioner:
@@ -33,7 +33,7 @@ REGISTRY=192.168.50.73:5000   # replace if your laptop IP differs
 Patch the machine config to trust the local (HTTP) registry, then reboot to apply:
 
 ```bash
-talosctl edit machineconfig --talosconfig clusterconfig/talosconfig -n 192.168.50.229
+talosctl edit machineconfig --talosconfig clusterconfig/talosconfig -n talos
 ```
 
 Add under `machine`:
@@ -47,9 +47,9 @@ machine:
 ```
 Save and exit, then:
 ```bash
-talosctl apply-config --talosconfig clusterconfig/talosconfig -n 192.168.50.229 --mode=autoreboot --file /var/run/talos/machineconfig
+talosctl apply-config --talosconfig clusterconfig/talosconfig -n talos --mode=autoreboot --file /var/run/talos/machineconfig
 ```
-Wait for the node to return (`talosctl version -n 192.168.50.229`).
+Wait for the node to return (`talosctl version -n talos`).
 
 ## 4) Build and push images to the local registry
 Use the provided Dockerfiles; tag with `local` and push to the registry:
@@ -121,7 +121,7 @@ kubectl get svc -n toskamesh toskamesh-gateway
 Gateway is exposed via NodePort `30080` on the Talos node:
 
 ```bash
-curl http://192.168.50.229:30080/health
+curl http://talos:30080/health
 ```
 
 ## 8) Iterating
@@ -159,7 +159,7 @@ helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
   -f deployments/monitoring-values-talos.yaml
 ```
 
-- Access: `http://192.168.50.229:30300` (adjust if your Talos node IP changes).
+- Access: `http://talos:30300` (update DNS/hosts if the Talos node IP changes).
 - Password: `kubectl -n monitoring get secret prometheus-grafana -o jsonpath='{.data.admin-password}' | base64 -d; echo`
 - Dashboards: import JSON files from `deployments/grafana/dashboards/` into Grafana.
 - Note: `deployments/monitoring-values-talos.yaml` disables `nodeExporter` to satisfy Talos PodSecurity (restricted). If you want host metrics, relax the policy and re-enable it.

@@ -10,9 +10,12 @@ spec:
   type: {{ .Values.gateway.service.type }}
   ports:
   - port: {{ .Values.gateway.service.port }}
-    targetPort: 80
+    targetPort: 8080
     protocol: TCP
     name: http
+    {{- if and (eq .Values.gateway.service.type "NodePort") .Values.gateway.service.nodePort }}
+    nodePort: {{ .Values.gateway.service.nodePort }}
+    {{- end }}
   selector:
     {{- include "toskamesh.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: gateway
