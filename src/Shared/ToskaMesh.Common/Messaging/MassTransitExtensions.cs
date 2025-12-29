@@ -33,6 +33,9 @@ public static class MassTransitExtensions
                     h.Password(messagingConfig.RabbitMqPassword);
                 });
 
+                // Enable OpenTelemetry trace context propagation
+                cfg.UseInstrumentation();
+
                 // Configure message retry
                 cfg.UseMessageRetry(r => r.Intervals(
                     TimeSpan.FromSeconds(1),
