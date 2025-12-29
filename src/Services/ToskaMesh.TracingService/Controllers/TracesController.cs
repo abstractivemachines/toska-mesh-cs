@@ -60,4 +60,11 @@ public class TracesController : ControllerBase
         var response = await _analyticsService.GetPerformanceAsync(request, cancellationToken);
         return Ok(response);
     }
+
+    [HttpGet("services")]
+    public async Task<ActionResult<IEnumerable<string>>> GetServiceNames(CancellationToken cancellationToken)
+    {
+        var serviceNames = await _storageService.GetDistinctServiceNamesAsync(cancellationToken);
+        return Ok(serviceNames);
+    }
 }

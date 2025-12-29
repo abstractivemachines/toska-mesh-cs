@@ -41,6 +41,11 @@ bld/
 # Rider
 .idea/
 
+# Frontend artifacts
+src/Dashboard/node_modules/
+src/Dashboard/dist/
+src/Dashboard/.vite/
+
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 

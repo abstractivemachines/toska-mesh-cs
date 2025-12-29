@@ -47,7 +47,7 @@ builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddHostedService<ServiceDiscoveryBackgroundService>();
 
 // Add telemetry
-builder.Services.AddMeshTelemetry("Discovery");
+builder.Services.AddMeshTelemetry(builder.Configuration, "Discovery");
 builder.Services.AddMeshAuthorizationPolicies();
 
 var serviceAuthOptions = builder.Configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();

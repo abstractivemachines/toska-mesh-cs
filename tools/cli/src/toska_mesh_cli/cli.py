@@ -213,6 +213,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Start kubectl port-forward for workloads that define portForward in the manifest.",
     )
     deploy_parser.add_argument(
+        "--port-forward-local-port",
+        type=int,
+        help="Override the local port used for port-forwarding (applies to all forwarded workloads).",
+    )
+    deploy_parser.add_argument(
         "-w",
         "--workload",
         action="append",
@@ -615,6 +620,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 dry_run=args.dry_run,
                 verbose=args.verbose,
                 port_forward=args.port_forward,
+                port_forward_local_port=args.port_forward_local_port,
                 kubeconfig=args.kubeconfig,
                 context=args.context,
                 progress=reporter,

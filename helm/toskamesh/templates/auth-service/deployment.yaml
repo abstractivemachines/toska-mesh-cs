@@ -24,18 +24,26 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: auth-service
         image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.authService.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -46,28 +54,49 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-auth-service-config
               key: discovery_grpc_address
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        {{- with .Values.telemetry.tracingIngest.headers }}
+        {{- range $name, $value := . }}
+        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
               name: {{ default (printf "%s-auth-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
               key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
+        - name: Database__AutoMigrate
+          value: {{ default false .Values.database.autoMigrate | quote }}
         - name: Mesh__ServiceAuth__Secret
           valueFrom:
             secretKeyRef:
               name: {{ default (printf "%s-auth-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
               key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-auth-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.jwt.existingSecret }}
+              key: {{ default "jwt_secret" .Values.secrets.jwt.key }}
         resources:
           {{- toYaml .Values.authService.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 5
 {{- end }}

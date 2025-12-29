@@ -4,7 +4,21 @@ environment: Development
 
 # Global secrets (replace with strong values)
 global:
-  meshServiceAuthSecret: "CHANGE-ME-32-CHARS-MINIMUM"
+  meshServiceAuthSecret: "ToskaMesh-Dev-Secret-32-Chars-Min"
+  jwtSecret: "ToskaMesh-Dev-JWT-Secret-32-Chars"
+
+serviceDiscovery:
+  grpc:
+    allowInsecureTransport: true
+
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    headers: {}
 
 externalServices:
   consul:
@@ -24,6 +38,9 @@ externalServices:
     host: "redis-master.toskamesh-infra.svc.cluster.local"
     port: 6379
 
+database:
+  autoMigrate: true
+
 # Point all services at the local registry on the laptop (adjust if your host IP changes)
 registry: "192.168.50.73:5000"
 tag: "local"
@@ -32,22 +49,36 @@ gateway:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-gateway"
-    tag: "local"
+    tag: "v1.3.0"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
-    port: 80
+    port: 8080
     nodePort: 30080
   ingress:
     enabled: false
   secrets:
-    jwtSecretKey: "CHANGE-ME-32-CHARS-MINIMUM"
+    jwtSecretKey: "ToskaMesh-Dev-JWT-Secret-32-Chars"
+
+dashboard:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.73:5000/toskamesh-dashboard"
+    tag: "v2.9.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30081
+  ingress:
+    enabled: false
+  gatewayBaseUrl: "http://talos:30080"
 
 discovery:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-discovery"
-    tag: "local"
+    tag: "v1.2.0"
     pullPolicy: IfNotPresent
 
 authService:
@@ -68,14 +99,14 @@ metricsService:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-metrics-service"
-    tag: "local"
+    tag: "v1.1.0"
     pullPolicy: IfNotPresent
 
 tracingService:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-tracing-service"
-    tag: "local"
+    tag: "v1.3.0"
     pullPolicy: IfNotPresent
 
 core:
@@ -85,12 +116,13 @@ core:
     tag: "local"
     pullPolicy: IfNotPresent
   orleans:
-    serviceName: "ToskaMesh-Local"
+    serviceId: "ToskaMesh-Local"
     clusterId: "talos-local"
+    clusterProvider: "Consul"
 
 healthMonitor:
   replicaCount: 1
   image:
     repository: "192.168.50.73:5000/toskamesh-health-monitor"
-    tag: "local"
+    tag: "v1.1.0"
     pullPolicy: IfNotPresent

@@ -1,0 +1,110 @@
+{{- if and .Values.core.enabled .Values.core.orleans.migrations.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-orleans-migrations
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+  {{- if .Values.core.orleans.migrations.hook.enabled }}
+  annotations:
+    "helm.sh/hook": {{ .Values.core.orleans.migrations.hook.types | quote }}
+    "helm.sh/hook-delete-policy": {{ .Values.core.orleans.migrations.hook.deletePolicy | quote }}
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.core.orleans.migrations.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.core.orleans.migrations.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: core
+    spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+      - name: orleans-migrations
+        image: "{{ .Values.core.orleans.migrations.image.repository }}:{{ .Values.core.orleans.migrations.image.tag }}"
+        imagePullPolicy: {{ .Values.core.orleans.migrations.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        env:
+        - name: ORLEANS_DB_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-core-secrets" (include "toskamesh.fullname" .)) .Values.secrets.defaultConnection.existingSecret }}
+              key: {{ default "db_connection_string" .Values.secrets.defaultConnection.key }}
+        - name: ORLEANS_SKIP_IF_EXISTS
+          value: {{ .Values.core.orleans.migrations.skipIfExists | quote }}
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |
+            set -eu
+
+            conn="${ORLEANS_DB_CONNECTION:-}"
+            if [ -z "$conn" ]; then
+              echo "ORLEANS_DB_CONNECTION is empty."
+              exit 1
+            fi
+
+            host=""
+            port=""
+            dbname=""
+            user=""
+            password=""
+
+            old_ifs="$IFS"
+            IFS=';'
+            for part in $conn; do
+              part="$(echo "$part" | xargs)"
+              key="${part%%=*}"
+              value="${part#*=}"
+              case "$key" in
+                Host) host="$value" ;;
+                Port) port="$value" ;;
+                Database) dbname="$value" ;;
+                Username|User\ ID|UserId|User) user="$value" ;;
+                Password) password="$value" ;;
+              esac
+            done
+            IFS="$old_ifs"
+
+            if [ -z "$host" ] || [ -z "$dbname" ] || [ -z "$user" ] || [ -z "$password" ]; then
+              echo "Failed to parse connection string for host/db/user/password."
+              exit 1
+            fi
+
+            if [ -z "$port" ]; then
+              port="5432"
+            fi
+
+            export PGPASSWORD="$password"
+            conn_args="host=$host port=$port dbname=$dbname user=$user"
+
+            if [ "${ORLEANS_SKIP_IF_EXISTS}" = "true" ]; then
+              existing="$(psql "$conn_args" -tAc "select to_regclass('public.orleansquery');")"
+              if [ "$existing" = "orleansquery" ]; then
+                echo "Orleans schema already exists; skipping migrations."
+                exit 0
+              fi
+            fi
+
+            psql "$conn_args" -v ON_ERROR_STOP=1 -f /orleans-sql/PostgreSQL-Main.sql
+            psql "$conn_args" -v ON_ERROR_STOP=1 -f /orleans-sql/PostgreSQL-Persistence.sql
+            psql "$conn_args" -v ON_ERROR_STOP=1 -f /orleans-sql/PostgreSQL-Clustering.sql
+            psql "$conn_args" -v ON_ERROR_STOP=1 -f /orleans-sql/PostgreSQL-Reminders.sql
+        volumeMounts:
+        - name: orleans-sql
+          mountPath: /orleans-sql
+      volumes:
+      - name: orleans-sql
+        configMap:
+          name: {{ include "toskamesh.fullname" . }}-orleans-sql
+{{- end }}

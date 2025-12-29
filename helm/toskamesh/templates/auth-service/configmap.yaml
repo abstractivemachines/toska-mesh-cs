@@ -8,5 +8,5 @@ metadata:
     app.kubernetes.io/component: auth-service
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
-  discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:80"
+  discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:8080"
 {{- end }}

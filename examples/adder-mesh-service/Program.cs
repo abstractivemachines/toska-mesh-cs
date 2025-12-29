@@ -34,7 +34,15 @@ public sealed class AdderService : MeshService
 
     public override void ConfigureServices(IServiceCollection services)
     {
-        services.AddGrpcServiceRegistry(_configuration);
+        var provider = _configuration.GetValue<string>("Mesh:Service:ServiceRegistryProvider");
+        if (string.Equals(provider, "consul", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddConsulServiceRegistry(_configuration);
+        }
+        else
+        {
+            services.AddGrpcServiceRegistry(_configuration);
+        }
     }
 
     public override void ConfigureApp(MeshServiceApp app)

@@ -16,9 +16,26 @@ secrets:
   gatewayJwt:
     existingSecret: ""     # If set, use this secret/key for gateway JWT signing key
     key: jwt_secret_key
+  jwt:
+    existingSecret: ""     # If set, use this secret for Jwt__Secret
+    key: jwt_secret
 
 networkPolicy:
   enabled: false
+
+podSecurityContext:
+  enabled: false
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
 
 # Service mesh integration (optional)
 mesh:
@@ -31,6 +48,22 @@ mesh:
 # Global secrets
 global:
   meshServiceAuthSecret: "super-secret-mesh-key-change-me"
+  jwtSecret: "your-jwt-secret-min-32-chars-long-change-in-production"
+
+serviceDiscovery:
+  grpc:
+    allowInsecureTransport: false
+
+# Tracing pipeline (defaults to tracing-service ingest)
+telemetry:
+  sampling:
+    strategy: "ParentBasedAlwaysOn"
+    ratio: 1.0
+  tracingIngest:
+    enabled: true
+    endpoint: ""
+    # Header keys must be valid env var names when supplied via Helm.
+    headers: {}
 
 # External services configuration
 externalServices:
@@ -51,6 +84,10 @@ externalServices:
     host: "redis"
     port: 6379
 
+# Database bootstrap (EF Core)
+database:
+  autoMigrate: false
+
 # Gateway configuration
 gateway:
   enabled: true
@@ -61,7 +98,7 @@ gateway:
     pullPolicy: IfNotPresent
   service:
     type: LoadBalancer
-    port: 80
+    port: 8080
   ingress:
     enabled: false
     className: ""
@@ -80,6 +117,43 @@ gateway:
       memory: 512Mi
   secrets:
     jwtSecretKey: "your-secret-key-min-32-chars-long-change-in-production"
+  dashboardProxy:
+    prometheusBaseUrl: "http://prometheus:9090"
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-dashboard
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 8080
+  ingress:
+    enabled: false
+    className: ""
+    hosts:
+      - host: "dashboard.toskamesh.local"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  gatewayBaseUrl: "http://toskamesh.local"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
   hpa:
     enabled: false
     minReplicas: 1
@@ -183,6 +257,18 @@ tracingService:
     repository: toskamesh-tracing-service
     tag: latest
     pullPolicy: IfNotPresent
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1654
+    runAsGroup: 1654
+    fsGroup: 1654
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
   resources:
     requests:
       cpu: 100m
@@ -206,8 +292,22 @@ core:
     tag: latest
     pullPolicy: IfNotPresent
   orleans:
-    serviceName: "ToskaMesh"
+    serviceId: "ToskaMesh"
     clusterId: "dev"
+    clusterProvider: "Consul"
+    migrations:
+      enabled: true
+      image:
+        repository: postgres
+        tag: "16-alpine"
+        pullPolicy: IfNotPresent
+      backoffLimit: 3
+      ttlSecondsAfterFinished: 300
+      skipIfExists: true
+      hook:
+        enabled: true
+        types: "post-install,post-upgrade"
+        deletePolicy: "before-hook-creation,hook-succeeded"
   resources:
     requests:
       cpu: 200m

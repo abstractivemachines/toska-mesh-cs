@@ -28,7 +28,7 @@ spec:
       - name: gateway
         image: 192.168.50.73:5000/toskamesh-gateway:local-20251202
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
           protocol: TCP
         - containerPort: 8443
@@ -38,9 +38,11 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
+        - name: Urls
+          value: "http://+:8080"
         - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:80"
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -61,6 +63,14 @@ spec:
               name: toskamesh-mtls
               key: client_pfx_password
               optional: true
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: "true"
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: "http://toskamesh-tracing-service:8080/api/traces/ingest"
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: "ParentBasedAlwaysOn"
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: "1"
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:
@@ -113,13 +123,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:

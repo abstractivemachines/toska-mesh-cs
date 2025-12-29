@@ -24,19 +24,29 @@ spec:
         {{- end }}
       {{- end }}
     spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
       - name: gateway
         image: "{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
           protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
         - name: ASPNETCORE_URLS
-          value: "http://+:80"
+          value: "http://+:8080"
+        - name: Urls
+          value: "http://+:8080"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -47,23 +57,64 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-gateway-config
               key: discovery_grpc_address
+        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
+          value: {{ .Values.serviceDiscovery.grpc.allowInsecureTransport | quote }}
+        - name: Dashboard__PrometheusBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_prometheus_base_url
+        - name: Dashboard__TracingBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_tracing_base_url
+        - name: Dashboard__DiscoveryBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_discovery_base_url
+        - name: Dashboard__HealthMonitorBaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_health_base_url
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        {{- with .Values.telemetry.tracingIngest.headers }}
+        {{- range $name, $value := . }}
+        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
         - name: Jwt__SecretKey
           valueFrom:
             secretKeyRef:
               name: {{ default (printf "%s-gateway-secrets" (include "toskamesh.fullname" .)) .Values.secrets.gatewayJwt.existingSecret }}
               key: {{ default "jwt_secret_key" .Values.secrets.gatewayJwt.key }}
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-gateway-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
         resources:
           {{- toYaml .Values.gateway.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /health/live
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
 {{- end }}

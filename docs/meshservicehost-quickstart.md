@@ -45,6 +45,47 @@ await MeshServiceHost.RunAsync(
 - Auto-registration + heartbeat (Consul/gRPC via `IServiceRegistry`).
 - Custom middleware via `app.Use(...)` without exposing `WebApplication`.
 
+## RabbitMQ request/response (optional)
+
+Use `IMeshRpc` (MassTransit request/response) for simple service-to-service calls over RabbitMQ. See `examples/mesh-rpc-demo/README.md` for a runnable chain.
+
+```csharp
+using Microsoft.Extensions.Configuration;
+using ToskaMesh.Common.Messaging;
+using ToskaMesh.Runtime;
+
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
+await MeshServiceHost.RunAsync(
+    app =>
+    {
+        app.MapGet("/start", async (string value, IMeshRpc rpc, CancellationToken ct) =>
+        {
+            var response = await rpc.CallAsync<StepBRequest, StepBResponse>(
+                new StepBRequest(value, Guid.NewGuid().ToString("N")),
+                ct);
+            return Results.Ok(response.Value);
+        });
+    },
+    options =>
+    {
+        options.AllowNoopServiceRegistry = true;
+        options.EnableAuth = false;
+        options.EnableTelemetry = false;
+    },
+    services =>
+    {
+        services.AddMeshMassTransit(configuration, x =>
+        {
+            x.AddRequestClient<StepBRequest>();
+        });
+        services.AddMeshRpc();
+    });
+```
+
 ## Stateful service (Orleans-backed, provider-agnostic surface)
 
 ```csharp

@@ -3,7 +3,6 @@ using ToskaMesh.Common.Extensions;
 using ToskaMesh.Common.Health;
 using ToskaMesh.HealthMonitor.Configuration;
 using ToskaMesh.HealthMonitor.Services;
-using ToskaMesh.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +15,7 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options =>
     options.EnableMassTransit = false;
     options.EnableRedisCache = false;
 });
-builder.Services.AddMeshTelemetry("HealthMonitor");
+// HealthMonitor is infrastructure - don't trace health check loops
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<HealthReportCache>();
 builder.Services.AddHostedService<HealthProbeWorker>();
@@ -30,7 +29,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMeshHealthChecks();
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.MapControllers();
 
