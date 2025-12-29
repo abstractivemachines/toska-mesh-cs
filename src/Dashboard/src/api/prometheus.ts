@@ -34,7 +34,7 @@ export async function queryRange(
     end: end.toString(),
     step,
   };
-  return apiGet<PrometheusResult>(baseUrl, `${PROMETHEUS_BASE}/query_range`, params, signal);
+  return apiGet<PrometheusResult>(baseUrl, `${PROMETHEUS_BASE}/query-range`, params, signal);
 }
 
 export async function getLabels(

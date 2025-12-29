@@ -71,6 +71,12 @@ public class DashboardController : ControllerBase
         return await ProxyTracingAsync("api/traces/services", cancellationToken);
     }
 
+    [HttpGet("traces/services/{serviceName}/operations")]
+    public async Task<IActionResult> GetTraceOperations(string serviceName, CancellationToken cancellationToken)
+    {
+        return await ProxyTracingAsync($"api/traces/services/{serviceName}/operations", cancellationToken);
+    }
+
     [HttpGet("services")]
     public async Task<ActionResult<IReadOnlyCollection<DashboardServiceCatalogItem>>> GetServiceCatalog(
         CancellationToken cancellationToken)

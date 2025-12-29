@@ -11,12 +11,12 @@ interface MetricsPanelProps {
 function MetricsPanelContent({ serviceName }: MetricsPanelProps) {
   const { range } = useTimeRange();
 
-  // Request rate
-  const requestRateQuery = `sum(rate(http_server_requests_total{service="${serviceName}"}[5m]))`;
+  // Request rate (using histogram count as request counter)
+  const requestRateQuery = `sum(rate(http_server_request_duration_seconds_count{service="${serviceName}"}[5m]))`;
   const requestRate = usePrometheusRangeQuery(requestRateQuery, range.start, range.end, range.step);
 
-  // Error rate
-  const errorRateQuery = `sum(rate(http_server_requests_total{service="${serviceName}",status=~"5.."}[5m])) / sum(rate(http_server_requests_total{service="${serviceName}"}[5m]))`;
+  // Error rate (5xx responses)
+  const errorRateQuery = `sum(rate(http_server_request_duration_seconds_count{service="${serviceName}",http_response_status_code=~"5.."}[5m])) / sum(rate(http_server_request_duration_seconds_count{service="${serviceName}"}[5m]))`;
   const errorRate = usePrometheusRangeQuery(errorRateQuery, range.start, range.end, range.step);
 
   // Latency P95

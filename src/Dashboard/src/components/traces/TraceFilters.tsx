@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useConfig } from '../../context';
-import { getTraceServiceNames } from '../../api/traces';
+import { getTraceServiceNames, getTraceOperations } from '../../api/traces';
 import type { TraceQueryParameters } from '../../types/api';
 
 interface TraceFiltersProps {
@@ -21,12 +21,17 @@ function useDebounce<T>(value: T, delay: number): T {
 export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
   const { gatewayBaseUrl } = useConfig();
   const [allServices, setAllServices] = useState<string[]>([]);
+  const [allOperations, setAllOperations] = useState<string[]>([]);
   const [serviceName, setServiceName] = useState('');
+  const [operationName, setOperationName] = useState('');
   const [status, setStatus] = useState('');
   const [minDuration, setMinDuration] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showOperationSuggestions, setShowOperationSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLUListElement>(null);
+  const operationInputRef = useRef<HTMLInputElement>(null);
+  const operationSuggestionsRef = useRef<HTMLUListElement>(null);
 
   // Fetch service names on mount
   useEffect(() => {
@@ -37,8 +42,22 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
     return () => controller.abort();
   }, [gatewayBaseUrl]);
 
+  // Fetch operations when service changes
+  useEffect(() => {
+    if (!serviceName || !allServices.includes(serviceName)) {
+      setAllOperations([]);
+      return;
+    }
+    const controller = new AbortController();
+    getTraceOperations(gatewayBaseUrl, serviceName, controller.signal)
+      .then(setAllOperations)
+      .catch(() => setAllOperations([]));
+    return () => controller.abort();
+  }, [gatewayBaseUrl, serviceName, allServices]);
+
   // Debounce all filter values
   const debouncedServiceName = useDebounce(serviceName, 300);
+  const debouncedOperationName = useDebounce(operationName, 300);
   const debouncedStatus = useDebounce(status, 300);
   const debouncedMinDuration = useDebounce(minDuration, 300);
 
@@ -49,10 +68,11 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
   const buildParams = useCallback((): TraceQueryParameters => {
     const params: TraceQueryParameters = {};
     if (debouncedServiceName) params.serviceName = debouncedServiceName;
+    if (debouncedOperationName) params.operationName = debouncedOperationName;
     if (debouncedStatus) params.status = debouncedStatus;
     if (debouncedMinDuration) params.minDurationMs = parseFloat(debouncedMinDuration);
     return params;
-  }, [debouncedServiceName, debouncedStatus, debouncedMinDuration]);
+  }, [debouncedServiceName, debouncedOperationName, debouncedStatus, debouncedMinDuration]);
 
   // Auto-apply when any debounced value changes
   useEffect(() => {
@@ -61,7 +81,7 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
       return;
     }
     onFilterChange(buildParams());
-  }, [debouncedServiceName, debouncedStatus, debouncedMinDuration, buildParams, onFilterChange]);
+  }, [debouncedServiceName, debouncedOperationName, debouncedStatus, debouncedMinDuration, buildParams, onFilterChange]);
 
   // Filter suggestions locally
   const suggestions = useMemo(() => {
@@ -70,13 +90,26 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
     return allServices.filter(s => s.toLowerCase().includes(lower));
   }, [serviceName, allServices]);
 
+  // Filter operation suggestions locally
+  const operationSuggestions = useMemo(() => {
+    if (!operationName) return allOperations;
+    const lower = operationName.toLowerCase();
+    return allOperations.filter(o => o.toLowerCase().includes(lower));
+  }, [operationName, allOperations]);
+
   const handleServiceSelect = (name: string) => {
     setServiceName(name);
     setShowSuggestions(false);
   };
 
+  const handleOperationSelect = (name: string) => {
+    setOperationName(name);
+    setShowOperationSuggestions(false);
+  };
+
   const handleClear = () => {
     setServiceName('');
+    setOperationName('');
     setStatus('');
     setMinDuration('');
     // Trigger immediate update on clear
@@ -93,6 +126,14 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
         !suggestionsRef.current.contains(e.target as Node)
       ) {
         setShowSuggestions(false);
+      }
+      if (
+        operationInputRef.current &&
+        !operationInputRef.current.contains(e.target as Node) &&
+        operationSuggestionsRef.current &&
+        !operationSuggestionsRef.current.contains(e.target as Node)
+      ) {
+        setShowOperationSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -126,6 +167,36 @@ export function TraceFilters({ onFilterChange }: TraceFiltersProps) {
                   className={s === serviceName ? 'selected' : ''}
                 >
                   {s}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="filter-field autocomplete-container">
+          <label htmlFor="operation-filter">Operation</label>
+          <input
+            ref={operationInputRef}
+            id="operation-filter"
+            type="text"
+            value={operationName}
+            onChange={(e) => {
+              setOperationName(e.target.value);
+              setShowOperationSuggestions(true);
+            }}
+            onFocus={() => setShowOperationSuggestions(true)}
+            placeholder={allOperations.length > 0 ? "Type to search..." : "Select a service first"}
+            autoComplete="off"
+          />
+          {showOperationSuggestions && operationSuggestions.length > 0 && (
+            <ul ref={operationSuggestionsRef} className="autocomplete-suggestions">
+              {operationSuggestions.map((o) => (
+                <li
+                  key={o}
+                  onClick={() => handleOperationSelect(o)}
+                  className={o === operationName ? 'selected' : ''}
+                >
+                  {o}
                 </li>
               ))}
             </ul>

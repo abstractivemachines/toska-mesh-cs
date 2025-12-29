@@ -13,6 +13,7 @@ public interface ITraceStorageService
     Task<TraceDetailDto?> GetTraceAsync(string traceId, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<TraceSummaryDto>> GetByCorrelationIdAsync(string correlationId, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<string>> GetDistinctServiceNamesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<string>> GetDistinctOperationsAsync(string serviceName, CancellationToken cancellationToken);
 }
 
 public class TraceStorageService : ITraceStorageService
@@ -208,6 +209,23 @@ public class TraceStorageService : ITraceStorageService
             .ToListAsync(cancellationToken);
 
         return serviceNames;
+    }
+
+    public async Task<IReadOnlyCollection<string>> GetDistinctOperationsAsync(string serviceName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(serviceName))
+        {
+            return Array.Empty<string>();
+        }
+
+        var operations = await _dbContext.TraceSpans.AsNoTracking()
+            .Where(span => span.ServiceName == serviceName)
+            .Select(span => span.OperationName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToListAsync(cancellationToken);
+
+        return operations;
     }
 
     private static IQueryable<TraceSpan> ApplyFilters(IQueryable<TraceSpan> query, TraceQueryParameters parameters)

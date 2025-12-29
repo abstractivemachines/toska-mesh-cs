@@ -84,3 +84,16 @@ export async function getTraceServiceNames(
 ): Promise<string[]> {
   return apiGet<string[]>(baseUrl, `${TRACES_BASE}/services`, undefined, signal);
 }
+
+export async function getTraceOperations(
+  baseUrl: string,
+  serviceName: string,
+  signal?: AbortSignal
+): Promise<string[]> {
+  return apiGet<string[]>(
+    baseUrl,
+    `${TRACES_BASE}/services/${encodeURIComponent(serviceName)}/operations`,
+    undefined,
+    signal
+  );
+}

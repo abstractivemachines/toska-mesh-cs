@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mesh-rpc-demo
+  namespace: toskamesh-example
+  labels:
+    release: prometheus  # Match the Prometheus operator selector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: example
+  namespaceSelector:
+    matchNames:
+      - toskamesh-example
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

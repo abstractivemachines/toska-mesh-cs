@@ -67,4 +67,11 @@ public class TracesController : ControllerBase
         var serviceNames = await _storageService.GetDistinctServiceNamesAsync(cancellationToken);
         return Ok(serviceNames);
     }
+
+    [HttpGet("services/{serviceName}/operations")]
+    public async Task<ActionResult<IEnumerable<string>>> GetOperations(string serviceName, CancellationToken cancellationToken)
+    {
+        var operations = await _storageService.GetDistinctOperationsAsync(serviceName, cancellationToken);
+        return Ok(operations);
+    }
 }
