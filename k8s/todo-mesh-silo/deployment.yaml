@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: todo-mesh-silo
-        image: 192.168.50.73:5000/todo-mesh-silo:local
+        image: talos:30500/todo-mesh-silo:local
         imagePullPolicy: Always
         ports:
         - containerPort: 11111

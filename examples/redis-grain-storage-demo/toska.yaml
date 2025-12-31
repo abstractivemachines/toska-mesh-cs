@@ -15,7 +15,7 @@ workloads:
     image:
       repository: redis-grain-silo
       tag: local-reg
-      registry: 192.168.50.73:5000
+      registry: talos:30500
     build:
       context: ../..
       dockerfile: Dockerfile.silo
@@ -28,7 +28,7 @@ workloads:
     image:
       repository: redis-grain-api
       tag: local-reg
-      registry: 192.168.50.73:5000
+      registry: talos:30500
     build:
       context: ../..
       dockerfile: Dockerfile.api

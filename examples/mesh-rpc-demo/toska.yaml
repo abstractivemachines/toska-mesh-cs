@@ -16,7 +16,7 @@ workloads:
     image:
       repository: mesh-rpc-a
       tag: local
-      registry: 192.168.50.3:30500
+      registry: talos:30500
     build:
       context: ../..
       dockerfile: service-a/Dockerfile
@@ -34,7 +34,7 @@ workloads:
     image:
       repository: mesh-rpc-b
       tag: local
-      registry: 192.168.50.3:30500
+      registry: talos:30500
     build:
       context: ../..
       dockerfile: service-b/Dockerfile
@@ -48,7 +48,7 @@ workloads:
     image:
       repository: mesh-rpc-c
       tag: local
-      registry: 192.168.50.3:30500
+      registry: talos:30500
     build:
       context: ../..
       dockerfile: service-c/Dockerfile

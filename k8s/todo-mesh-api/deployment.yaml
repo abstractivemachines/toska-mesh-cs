@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: todo-mesh-api
-        image: 192.168.50.73:5000/todo-mesh-api:local-20251202
+        image: talos:30500/todo-mesh-api:local-20251202
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

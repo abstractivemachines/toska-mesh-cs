@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: redis-grain-silo
-          image: 192.168.50.73:5000/redis-grain-silo:local-reg
+          image: talos:30500/redis-grain-silo:local-reg
           env:
             - name: Mesh__ServiceAuth__Secret
               value: changeme-redis-grain-demo-secret-1234567890
@@ -63,7 +63,7 @@ spec:
             - containerPort: 30000
               name: gateway
         - name: redis-grain-api
-          image: 192.168.50.73:5000/redis-grain-api:local-reg
+          image: talos:30500/redis-grain-api:local-reg
           env:
             - name: Mesh__ServiceAuth__Secret
               value: changeme-redis-grain-demo-secret-1234567890

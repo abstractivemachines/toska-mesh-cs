@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: core
-        image: 192.168.50.73:5000/toskamesh-core:local-20251202-corefix
+        image: talos:30500/toskamesh-core:local-20251202-corefix
         ports:
         - containerPort: 8080
           name: http

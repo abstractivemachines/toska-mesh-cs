@@ -35,4 +35,4 @@ toska publish --manifest toska.yaml
 toska deploy --port-forward --manifest toska.yaml
 ```
 
-The manifest builds `192.168.50.73:5000/adder-mesh-service:local` using `examples/adder-mesh-service/Dockerfile` and applies the Kubernetes manifests under `k8s/adder-mesh-service`. Adjust registry/namespace in `toska.yaml` and the deployment manifest if your registry differs.
+The manifest builds `talos:30500/adder-mesh-service:local` using `examples/adder-mesh-service/Dockerfile` and applies the Kubernetes manifests under `k8s/adder-mesh-service`. Adjust registry/namespace in `toska.yaml` and the deployment manifest if your registry differs.

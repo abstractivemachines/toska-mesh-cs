@@ -133,25 +133,6 @@ services:
     volumes:
       - ./certs/gateway:/etc/tls:ro
 
-  dashboard:
-    build:
-      context: ../
-      dockerfile: deployments/Dockerfile.Dashboard
-      args:
-        VITE_GATEWAY_BASE_URL: "http://localhost:${GATEWAY_PORT:-15000}"
-    ports:
-      - "${DASHBOARD_PORT:-15020}:8080"
-    environment:
-      - DASHBOARD_GATEWAY_BASE_URL=http://localhost:${GATEWAY_PORT:-15000}
-    depends_on:
-      - gateway
-      - prometheus
-      - tracing-service
-      - discovery
-      - health-monitor
-    networks:
-      - toksa-mesh
-
   discovery:
     build:
       context: ../

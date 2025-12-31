@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: 192.168.50.73:5000/toskamesh-auth-service:local-20251202
+        image: talos:30500/toskamesh-auth-service:local-20251202
         ports:
         - containerPort: 8080
           name: http

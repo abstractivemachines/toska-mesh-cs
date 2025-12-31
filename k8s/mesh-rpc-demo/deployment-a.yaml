@@ -29,7 +29,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: mesh-rpc-a
-          image: 192.168.50.3:30500/mesh-rpc-a:local
+          image: talos:30500/mesh-rpc-a:local
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

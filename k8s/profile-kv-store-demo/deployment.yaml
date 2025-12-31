@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: profile-kv-store-demo
-          image: 192.168.50.73:5000/profile-kv-store-demo:local
+          image: talos:30500/profile-kv-store-demo:local
           imagePullPolicy: Always
           ports:
             - containerPort: 8084

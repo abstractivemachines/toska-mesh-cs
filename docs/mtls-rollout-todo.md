@@ -9,7 +9,7 @@
 2) Stabilize gateway rollout
 - New gateway pod CrashLooped; old pod still serving. After discovery is healthy, restart gateway and confirm liveness/readiness on :80 and HTTPS/mTLS on :8443 with mounted TLS secret.
 - Confirm outbound client cert loads from `toskamesh-gateway-tls` and `SSL_CERT_FILE` is honored.
-- Gateway fixed: health endpoints stay on HTTP (bypass HTTPS redirect for /health) and image `192.168.50.73:5000/toskamesh-gateway:local-20251202` rolled out. Probes now 200.
+- Gateway fixed: health endpoints stay on HTTP (bypass HTTPS redirect for /health) and image `talos:30500/toskamesh-gateway:local-20251202` rolled out. Probes now 200.
 
 3) Fix example services blocked on discovery
 - `adder-mesh-service` CrashLooping with gRPC connection refused. Retest once discovery is reachable on the expected port (likely :50051). Update env if discovery serves gRPC on 80 instead.

@@ -29,7 +29,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: tracing-service
-        image: 192.168.50.73:5000/toskamesh-tracing-service:local-20251229
+        image: talos:30500/toskamesh-tracing-service:local-20251229
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false

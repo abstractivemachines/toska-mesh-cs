@@ -42,13 +42,13 @@ database:
   autoMigrate: true
 
 # Point all services at the local registry on the laptop (adjust if your host IP changes)
-registry: "192.168.50.73:5000"
+registry: "talos:30500"
 tag: "local"
 
 gateway:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-gateway"
+    repository: "talos:30500/toskamesh-gateway"
     tag: "v1.3.0"
     pullPolicy: IfNotPresent
   service:
@@ -60,59 +60,45 @@ gateway:
   secrets:
     jwtSecretKey: "ToskaMesh-Dev-JWT-Secret-32-Chars"
 
-dashboard:
-  replicaCount: 1
-  image:
-    repository: "192.168.50.73:5000/toskamesh-dashboard"
-    tag: "v2.9.0"
-    pullPolicy: IfNotPresent
-  service:
-    type: NodePort
-    port: 8080
-    nodePort: 30081
-  ingress:
-    enabled: false
-  gatewayBaseUrl: "http://talos:30080"
-
 discovery:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-discovery"
+    repository: "talos:30500/toskamesh-discovery"
     tag: "v1.2.0"
     pullPolicy: IfNotPresent
 
 authService:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-auth-service"
+    repository: "talos:30500/toskamesh-auth-service"
     tag: "local"
     pullPolicy: IfNotPresent
 
 configService:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-config-service"
+    repository: "talos:30500/toskamesh-config-service"
     tag: "local"
     pullPolicy: IfNotPresent
 
 metricsService:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-metrics-service"
+    repository: "talos:30500/toskamesh-metrics-service"
     tag: "v1.1.0"
     pullPolicy: IfNotPresent
 
 tracingService:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-tracing-service"
+    repository: "talos:30500/toskamesh-tracing-service"
     tag: "v1.3.0"
     pullPolicy: IfNotPresent
 
 core:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-core"
+    repository: "talos:30500/toskamesh-core"
     tag: "local"
     pullPolicy: IfNotPresent
   orleans:
@@ -123,6 +109,6 @@ core:
 healthMonitor:
   replicaCount: 1
   image:
-    repository: "192.168.50.73:5000/toskamesh-health-monitor"
+    repository: "talos:30500/toskamesh-health-monitor"
     tag: "v1.1.0"
     pullPolicy: IfNotPresent

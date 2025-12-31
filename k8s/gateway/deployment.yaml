@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: 192.168.50.3:30500/toskamesh-gateway:latest
+        image: talos:30500/toskamesh-gateway:latest
         ports:
         - containerPort: 8080
           name: http

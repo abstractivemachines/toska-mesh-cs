@@ -1,6 +1,6 @@
 # ToskaMesh Talos Quick Start (Local Network)
 
-Deploy ToskaMesh to the single-node Talos cluster (no AWS/EKS). Assumes your Talos control plane is reachable at `talos` and your laptop is on the same network (registry will run on the laptop at `192.168.50.73:5000`; adjust if your IP changes). Ensure `talos` resolves via DNS or `/etc/hosts`.
+Deploy ToskaMesh to the single-node Talos cluster (no AWS/EKS). Assumes your Talos control plane is reachable at `talos` and the Talos-hosted registry is reachable at `talos:30500`. Ensure `talos` resolves via DNS or `/etc/hosts`.
 
 ## Prerequisites
 
@@ -21,11 +21,10 @@ helm install local-path-provisioner rancher-local-path/local-path-provisioner \
 kubectl get sc
 ```
 
-## 2) Run a local registry on the laptop
+## 2) Confirm the Talos registry endpoint
 
 ```bash
-docker run -d --restart=always -p 5000:5000 --name registry registry:2
-REGISTRY=192.168.50.73:5000   # replace if your laptop IP differs
+REGISTRY=talos:30500
 ```
 
 ## 3) Allow the Talos node to pull from the registry
@@ -41,9 +40,9 @@ Add under `machine`:
 machine:
   registries:
     mirrors:
-      "192.168.50.73:5000":
+      "talos:30500":
         endpoints:
-          - http://192.168.50.73:5000
+          - http://talos:30500
 ```
 Save and exit, then:
 ```bash
@@ -55,7 +54,7 @@ Wait for the node to return (`talosctl version -n talos`).
 Use the provided Dockerfiles; tag with `local` and push to the registry:
 
 ```bash
-REGISTRY=192.168.50.73:5000
+REGISTRY=talos:30500
 TAG=local
 for svc in gateway discovery auth-service config-service metrics-service tracing-service core health-monitor; do
   file="deployments/Dockerfile.${svc^}"

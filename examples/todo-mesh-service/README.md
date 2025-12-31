@@ -94,5 +94,5 @@ export Mesh__KeyValue__ToskaStore__EnableKeyIndex=true
 - Overlays live in `k8s/todo-mesh-silo` and `k8s/todo-mesh-api`; they use Consul at `consul-server.toskamesh-infra.svc.cluster.local:8500`.
 - Silo config: advertised IP from `status.podIP`, gateway port `30000`, service registration via Consul, Redis at `redis-master.toskamesh-infra.svc.cluster.local:6379` (DB 1, prefix `todo-mesh-silo:`). Probes are TCP on `11111`.
 - API config: Orleans cluster/service IDs `mesh-stateful`/`todo-mesh-silo`, discovery gRPC `http://toskamesh-discovery.toskamesh.svc.cluster.local:50051`, mesh auth secret from `toskamesh-discovery-secrets`, readiness `/health/ready`.
-- Images currently deployed: `192.168.50.73:5000/todo-mesh-silo:local` (`sha256:ca760705b8839fb8fdb8634a34fa77eb181918e135d5ca83c480170722aa3a33`), `192.168.50.73:5000/todo-mesh-api:local` (`sha256:58a6d149aba777dfbbcf45c49fb5780b395e1093d700b0fc9d1b439bac5f657b`).
+- Images currently deployed: `talos:30500/todo-mesh-silo:local` (`sha256:ca760705b8839fb8fdb8634a34fa77eb181918e135d5ca83c480170722aa3a33`), `talos:30500/todo-mesh-api:local` (`sha256:58a6d149aba777dfbbcf45c49fb5780b395e1093d700b0fc9d1b439bac5f657b`).
 - Validation: port-forward `svc/todo-mesh-api 18080:8080` and run `POST /todos/{id}` followed by `GET` to confirm API↔silo connectivity and Consul membership.

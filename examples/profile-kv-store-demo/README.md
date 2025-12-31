@@ -127,7 +127,7 @@ toska publish --manifest toska.yaml
 toska deploy --port-forward --manifest toska.yaml
 ```
 
-The manifest builds `192.168.50.73:5000/profile-kv-store-demo:local` using `examples/profile-kv-store-demo/Dockerfile`. Update the registry or tag in `toska.yaml` and the deployment manifest if your registry differs.
+The manifest builds `talos:30500/profile-kv-store-demo:local` using `examples/profile-kv-store-demo/Dockerfile`. Update the registry or tag in `toska.yaml` and the deployment manifest if your registry differs.
 
 Make sure the ToskaStore auth secret exists before deploying:
 
