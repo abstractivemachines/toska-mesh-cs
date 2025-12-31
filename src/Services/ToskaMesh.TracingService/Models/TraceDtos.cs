@@ -61,6 +61,7 @@ public record TraceQueryParameters
     public double? MaxDurationMs { get; init; }
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 50;
+    public bool IncludeTotal { get; init; }
 }
 
 public record TraceSummaryDto(

@@ -92,8 +92,18 @@ tracingService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-tracing-service"
-    tag: "v1.3.0"
+    tag: "local-20251231-8"
     pullPolicy: IfNotPresent
+  queryDefaults:
+    enableDefaultLookback: true
+    defaultLookbackHours: 24
+    totalTimeoutSeconds: 5
+    includeTotalCounts: false
+  summaryRefresh:
+    enabled: true
+    refreshIntervalSeconds: 60
+    refreshConcurrently: true
+    commandTimeoutSeconds: 300
 
 core:
   replicaCount: 1

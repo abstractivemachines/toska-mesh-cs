@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using ToskaMesh.TracingService.Data;
+using Microsoft.Extensions.Options;
 using ToskaMesh.TracingService.Entities;
 using ToskaMesh.TracingService.Models;
 
@@ -19,11 +20,15 @@ public interface ITraceStorageService
 public class TraceStorageService : ITraceStorageService
 {
     private readonly TracingDbContext _dbContext;
+    private readonly TraceQueryDefaultsOptions _queryDefaults;
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
-    public TraceStorageService(TracingDbContext dbContext)
+    public TraceStorageService(
+        TracingDbContext dbContext,
+        IOptions<TraceQueryDefaultsOptions> queryDefaults)
     {
         _dbContext = dbContext;
+        _queryDefaults = queryDefaults.Value ?? new TraceQueryDefaultsOptions();
     }
 
     public async Task IngestAsync(TraceIngestRequest request, CancellationToken cancellationToken)
@@ -87,61 +92,63 @@ public class TraceStorageService : ITraceStorageService
 
     public async Task<TraceQueryResponse> QueryAsync(TraceQueryParameters query, CancellationToken cancellationToken)
     {
-        var filter = ApplyFilters(_dbContext.TraceSpans.AsNoTracking(), query);
-
-        var total = await filter
-            .Select(span => span.TraceId)
-            .Distinct()
-            .CountAsync(cancellationToken);
+        var filter = ApplySummaryFilters(_dbContext.TraceSummaries.AsNoTracking(), query, _queryDefaults);
 
         var page = Math.Max(query.Page, 1);
         var take = Math.Clamp(query.PageSize, 1, 500);
         var skip = (page - 1) * take;
 
-        var orderedTraceIds = await filter
-            .GroupBy(span => span.TraceId)
-            .OrderByDescending(group => group.Max(span => span.EndTimeUtc))
+        var summaries = await filter
+            .OrderByDescending(summary => summary.EndTimeUtc)
             .Skip(skip)
             .Take(take)
-            .Select(group => group.Key)
+            .Select(summary => new TraceSummaryDto(
+                summary.TraceId,
+                summary.ServiceName,
+                summary.OperationName,
+                summary.StartTimeUtc,
+                summary.EndTimeUtc,
+                summary.DurationMs,
+                summary.Status,
+                summary.SpanCount,
+                summary.CorrelationId))
             .ToListAsync(cancellationToken);
 
-        if (orderedTraceIds.Count == 0)
+        var includeTotal = query.IncludeTotal || _queryDefaults.IncludeTotalCounts;
+        int? total = null;
+        if (includeTotal)
         {
-            return new TraceQueryResponse(total, page, take, Array.Empty<TraceSummaryDto>());
+            if (page == 1 && summaries.Count < take)
+            {
+                total = summaries.Count;
+            }
+            else if (_queryDefaults.TotalTimeoutSeconds > 0)
+            {
+                using var totalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                totalCts.CancelAfter(TimeSpan.FromSeconds(_queryDefaults.TotalTimeoutSeconds));
+                try
+                {
+                    total = await filter.CountAsync(totalCts.Token);
+                }
+                catch (OperationCanceledException) when (totalCts.IsCancellationRequested)
+                {
+                    total = null;
+                }
+            }
+            else
+            {
+                total = await filter.CountAsync(cancellationToken);
+            }
         }
 
-        var orderLookup = orderedTraceIds
-            .Select((traceId, index) => new { traceId, index })
-            .ToDictionary(x => x.traceId, x => x.index);
+        var resolvedTotal = total ?? skip + summaries.Count;
 
-        var spans = await _dbContext.TraceSpans.AsNoTracking()
-            .Where(span => orderedTraceIds.Contains(span.TraceId))
-            .ToListAsync(cancellationToken);
+        if (summaries.Count == 0)
+        {
+            return new TraceQueryResponse(resolvedTotal, page, take, Array.Empty<TraceSummaryDto>());
+        }
 
-        var groupedSummaries = spans
-            .GroupBy(span => span.TraceId)
-            .Select(group =>
-            {
-                var ordered = group.OrderBy(span => span.StartTimeUtc).ToList();
-                var start = ordered.First().StartTimeUtc;
-                var end = ordered.Last().EndTimeUtc;
-                var duration = (end - start).TotalMilliseconds;
-                return new TraceSummaryDto(
-                    group.Key,
-                    ordered.First().ServiceName,
-                    ordered.First().OperationName,
-                    start,
-                    end,
-                    duration,
-                    ordered.First().Status,
-                    ordered.Count,
-                    ordered.First().CorrelationId);
-            })
-            .OrderBy(summary => orderLookup[summary.TraceId])
-            .ToList();
-
-        return new TraceQueryResponse(total, page, take, groupedSummaries);
+        return new TraceQueryResponse(resolvedTotal, page, take, summaries);
     }
 
     public async Task<TraceDetailDto?> GetTraceAsync(string traceId, CancellationToken cancellationToken)
@@ -202,8 +209,8 @@ public class TraceStorageService : ITraceStorageService
 
     public async Task<IReadOnlyCollection<string>> GetDistinctServiceNamesAsync(CancellationToken cancellationToken)
     {
-        var serviceNames = await _dbContext.TraceSpans.AsNoTracking()
-            .Select(span => span.ServiceName)
+        var serviceNames = await _dbContext.TraceSummaries.AsNoTracking()
+            .Select(summary => summary.ServiceName)
             .Distinct()
             .OrderBy(name => name)
             .ToListAsync(cancellationToken);
@@ -218,9 +225,9 @@ public class TraceStorageService : ITraceStorageService
             return Array.Empty<string>();
         }
 
-        var operations = await _dbContext.TraceSpans.AsNoTracking()
-            .Where(span => span.ServiceName == serviceName)
-            .Select(span => span.OperationName)
+        var operations = await _dbContext.TraceSummaries.AsNoTracking()
+            .Where(summary => summary.ServiceName == serviceName)
+            .Select(summary => summary.OperationName)
             .Distinct()
             .OrderBy(name => name)
             .ToListAsync(cancellationToken);
@@ -228,49 +235,61 @@ public class TraceStorageService : ITraceStorageService
         return operations;
     }
 
-    private static IQueryable<TraceSpan> ApplyFilters(IQueryable<TraceSpan> query, TraceQueryParameters parameters)
+    private static IQueryable<TraceSummary> ApplySummaryFilters(
+        IQueryable<TraceSummary> query,
+        TraceQueryParameters parameters,
+        TraceQueryDefaultsOptions defaults)
     {
         if (!string.IsNullOrWhiteSpace(parameters.ServiceName))
         {
             var serviceNameFilter = parameters.ServiceName.ToLowerInvariant();
-            query = query.Where(span => span.ServiceName.ToLower().Contains(serviceNameFilter));
+            query = query.Where(summary => summary.ServiceName.ToLower().Contains(serviceNameFilter));
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.OperationName))
         {
-            query = query.Where(span => span.OperationName == parameters.OperationName);
+            query = query.Where(summary => summary.OperationName == parameters.OperationName);
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.Status))
         {
-            query = query.Where(span => span.Status == parameters.Status);
+            query = query.Where(summary => summary.Status == parameters.Status);
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.CorrelationId))
         {
-            query = query.Where(span => span.CorrelationId == parameters.CorrelationId);
+            query = query.Where(summary => summary.CorrelationId == parameters.CorrelationId);
         }
 
-        if (parameters.From is not null)
+        if (defaults.EnableDefaultLookback && parameters.From is null && parameters.To is null)
         {
-            var fromUtc = parameters.From.Value.UtcDateTime;
-            query = query.Where(span => span.StartTimeUtc >= fromUtc);
+            var toUtc = DateTime.UtcNow;
+            var fromUtc = toUtc.AddHours(-Math.Max(1, defaults.DefaultLookbackHours));
+            query = query.Where(summary => summary.EndTimeUtc >= fromUtc && summary.StartTimeUtc <= toUtc);
         }
-
-        if (parameters.To is not null)
+        else
         {
-            var toUtc = parameters.To.Value.UtcDateTime;
-            query = query.Where(span => span.EndTimeUtc <= toUtc);
+            if (parameters.From is not null)
+            {
+                var fromUtc = parameters.From.Value.UtcDateTime;
+                query = query.Where(summary => summary.StartTimeUtc >= fromUtc);
+            }
+
+            if (parameters.To is not null)
+            {
+                var toUtc = parameters.To.Value.UtcDateTime;
+                query = query.Where(summary => summary.EndTimeUtc <= toUtc);
+            }
         }
 
         if (parameters.MinDurationMs is not null)
         {
-            query = query.Where(span => span.DurationMs >= parameters.MinDurationMs.Value);
+            query = query.Where(summary => summary.DurationMs >= parameters.MinDurationMs.Value);
         }
 
         if (parameters.MaxDurationMs is not null)
         {
-            query = query.Where(span => span.DurationMs <= parameters.MaxDurationMs.Value);
+            query = query.Where(summary => summary.DurationMs <= parameters.MaxDurationMs.Value);
         }
 
         return query;

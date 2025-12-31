@@ -60,6 +60,46 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-tracing-service-config
               key: discovery_grpc_address
+        - name: Tracing__QueryDefaults__EnableDefaultLookback
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_query_default_lookback_enabled
+        - name: Tracing__QueryDefaults__DefaultLookbackHours
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_query_default_lookback_hours
+        - name: Tracing__QueryDefaults__TotalTimeoutSeconds
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_query_total_timeout_seconds
+        - name: Tracing__QueryDefaults__IncludeTotalCounts
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_query_include_total_counts
+        - name: Tracing__SummaryRefresh__Enabled
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_summary_refresh_enabled
+        - name: Tracing__SummaryRefresh__RefreshIntervalSeconds
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_summary_refresh_interval_seconds
+        - name: Tracing__SummaryRefresh__RefreshConcurrently
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_summary_refresh_concurrently
+        - name: Tracing__SummaryRefresh__CommandTimeoutSeconds
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_summary_refresh_command_timeout_seconds
         - name: Mesh__Telemetry__TracingIngest__Enabled
           value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
         - name: Mesh__Telemetry__TracingIngest__Endpoint
@@ -92,12 +132,12 @@ spec:
           httpGet:
             path: /health/live
             port: 8080
-          initialDelaySeconds: 15
+          initialDelaySeconds: 180
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 90
           periodSeconds: 5
 {{- end }}

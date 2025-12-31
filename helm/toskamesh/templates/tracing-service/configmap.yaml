@@ -9,4 +9,12 @@ metadata:
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
   discovery_grpc_address: "http://{{ include "toskamesh.fullname" . }}-discovery:8080"
+  tracing_query_default_lookback_enabled: {{ default true .Values.tracingService.queryDefaults.enableDefaultLookback | quote }}
+  tracing_query_default_lookback_hours: {{ default 24 .Values.tracingService.queryDefaults.defaultLookbackHours | quote }}
+  tracing_query_total_timeout_seconds: {{ default 5 .Values.tracingService.queryDefaults.totalTimeoutSeconds | quote }}
+  tracing_query_include_total_counts: {{ default false .Values.tracingService.queryDefaults.includeTotalCounts | quote }}
+  tracing_summary_refresh_enabled: {{ default true .Values.tracingService.summaryRefresh.enabled | quote }}
+  tracing_summary_refresh_interval_seconds: {{ default 5 .Values.tracingService.summaryRefresh.refreshIntervalSeconds | quote }}
+  tracing_summary_refresh_concurrently: {{ default true .Values.tracingService.summaryRefresh.refreshConcurrently | quote }}
+  tracing_summary_refresh_command_timeout_seconds: {{ default 300 .Values.tracingService.summaryRefresh.commandTimeoutSeconds | quote }}
 {{- end }}

@@ -29,6 +29,9 @@ builder.Services.AddMeshHealthChecks();
 
 builder.Services.AddScoped<ITraceStorageService, TraceStorageService>();
 builder.Services.AddScoped<ITraceAnalyticsService, TraceAnalyticsService>();
+builder.Services.Configure<TraceQueryDefaultsOptions>(builder.Configuration.GetSection("Tracing:QueryDefaults"));
+builder.Services.Configure<TraceSummaryRefreshOptions>(builder.Configuration.GetSection("Tracing:SummaryRefresh"));
+builder.Services.AddHostedService<TraceSummaryRefreshService>();
 
 // TracingService is infrastructure - it stores traces but doesn't generate its own
 // to avoid feedback loops and noise in the trace data
@@ -73,5 +76,6 @@ await app.Services.EnsureDatabaseAsync<TracingDbContext>(
     app.Configuration,
     app.Logger,
     app.Lifetime.ApplicationStopping);
+await app.Services.EnsureTraceSummariesAsync(app.Logger, app.Lifetime.ApplicationStopping);
 
 app.Run();

@@ -79,7 +79,8 @@ helm install postgres bitnami/postgresql -n toskamesh-infra \
   --set auth.username=toksa_mesh \
   --set auth.password=toksa_mesh_password \
   --set primary.persistence.size=5Gi \
-  --set global.storageClass=local-path
+  --set global.storageClass=local-path \
+  -f deployments/postgres-values-talos.yaml
 
 helm install rabbitmq bitnami/rabbitmq -n toskamesh-infra \
   --set auth.username=guest \

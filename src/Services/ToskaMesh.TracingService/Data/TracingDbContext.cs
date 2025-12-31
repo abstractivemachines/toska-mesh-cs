@@ -10,6 +10,7 @@ public class TracingDbContext : DbContext
     }
 
     public DbSet<TraceSpan> TraceSpans => Set<TraceSpan>();
+    public DbSet<TraceSummary> TraceSummaries => Set<TraceSummary>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,6 +18,14 @@ public class TracingDbContext : DbContext
         span.HasKey(x => x.Id);
         span.HasIndex(x => x.TraceId);
         span.HasIndex(x => new { x.TraceId, x.SpanId }).IsUnique();
+        span.HasIndex(x => x.StartTimeUtc);
+        span.HasIndex(x => x.EndTimeUtc);
+        span.HasIndex(x => x.ServiceName);
+        span.HasIndex(x => x.OperationName);
+        span.HasIndex(x => x.Status);
+        span.HasIndex(x => x.CorrelationId);
+        span.HasIndex(x => x.DurationMs);
+        span.HasIndex(x => new { x.ServiceName, x.EndTimeUtc });
         span.Property(x => x.TraceId).HasMaxLength(64).IsRequired();
         span.Property(x => x.SpanId).HasMaxLength(64).IsRequired();
         span.Property(x => x.ParentSpanId).HasMaxLength(64);
@@ -28,5 +37,14 @@ public class TracingDbContext : DbContext
         span.Property(x => x.AttributesJson).HasColumnType("jsonb");
         span.Property(x => x.EventsJson).HasColumnType("jsonb");
         span.Property(x => x.ResourceAttributesJson).HasColumnType("jsonb");
+
+        var summary = modelBuilder.Entity<TraceSummary>();
+        summary.HasKey(x => x.TraceId);
+        summary.ToView("TraceSummaries");
+        summary.Property(x => x.TraceId).HasMaxLength(64);
+        summary.Property(x => x.ServiceName).HasMaxLength(200);
+        summary.Property(x => x.OperationName).HasMaxLength(200);
+        summary.Property(x => x.Status).HasMaxLength(32);
+        summary.Property(x => x.CorrelationId).HasMaxLength(128);
     }
 }

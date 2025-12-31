@@ -222,6 +222,16 @@ tracingService:
     repository: toskamesh-tracing-service
     tag: latest
     pullPolicy: IfNotPresent
+  queryDefaults:
+    enableDefaultLookback: true
+    defaultLookbackHours: 24
+    totalTimeoutSeconds: 5
+    includeTotalCounts: false
+  summaryRefresh:
+    enabled: true
+    refreshIntervalSeconds: 5
+    refreshConcurrently: true
+    commandTimeoutSeconds: 300
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1654

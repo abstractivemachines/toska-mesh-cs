@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ToskaMesh.TracingService.Data;
+using ToskaMesh.TracingService.Entities;
 using ToskaMesh.TracingService.Models;
 using ToskaMesh.TracingService.Services;
 using Xunit;
@@ -13,7 +15,7 @@ public class TraceStorageServiceTests
     public async Task IngestAndQuery_RoundTripsTraces()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         var traceId = Guid.NewGuid().ToString("N");
         var now = DateTimeOffset.UtcNow;
@@ -52,6 +54,7 @@ public class TraceStorageServiceTests
         };
 
         await service.IngestAsync(request, CancellationToken.None);
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters(), CancellationToken.None);
         response.Total.Should().Be(1);
@@ -67,11 +70,12 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_FiltersByServiceName()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-1", "gateway", "HTTP GET /api");
         await IngestTrace(service, "trace-2", "orders-service", "ProcessOrder");
         await IngestTrace(service, "trace-3", "gateway", "HTTP POST /api");
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -86,11 +90,12 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_FiltersByOperationName()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-1", "api", "CreateUser");
         await IngestTrace(service, "trace-2", "api", "DeleteUser");
         await IngestTrace(service, "trace-3", "api", "CreateUser");
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -104,11 +109,12 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_FiltersByStatus()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-1", "api", "Op1", status: "Ok");
         await IngestTrace(service, "trace-2", "api", "Op2", status: "Error");
         await IngestTrace(service, "trace-3", "api", "Op3", status: "Ok");
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -123,11 +129,12 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_FiltersByCorrelationId()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-1", "api", "Op1", correlationId: "req-123");
         await IngestTrace(service, "trace-2", "api", "Op2", correlationId: "req-456");
         await IngestTrace(service, "trace-3", "api", "Op3", correlationId: "req-123");
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -142,11 +149,12 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_FiltersByDurationRange()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-fast", "api", "FastOp", durationMs: 50);
         await IngestTrace(service, "trace-medium", "api", "MediumOp", durationMs: 200);
         await IngestTrace(service, "trace-slow", "api", "SlowOp", durationMs: 500);
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -162,12 +170,13 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_SupportsPagination()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         for (int i = 0; i < 15; i++)
         {
             await IngestTrace(service, $"trace-{i:D2}", "api", "Operation");
         }
+        RefreshSummaries(context);
 
         var page1 = await service.QueryAsync(new TraceQueryParameters { Page = 1, PageSize = 5 }, CancellationToken.None);
         var page2 = await service.QueryAsync(new TraceQueryParameters { Page = 2, PageSize = 5 }, CancellationToken.None);
@@ -185,10 +194,61 @@ public class TraceStorageServiceTests
     }
 
     [Fact]
+    public async Task QueryAsync_SkipsTotalCount_WhenDisabled()
+    {
+        await using var context = CreateDbContext();
+        var service = CreateService(context, new TraceQueryDefaultsOptions
+        {
+            EnableDefaultLookback = false,
+            IncludeTotalCounts = false
+        });
+
+        for (int i = 0; i < 10; i++)
+        {
+            await IngestTrace(service, $"trace-{i:D2}", "api", "Operation");
+        }
+        RefreshSummaries(context);
+
+        var response = await service.QueryAsync(new TraceQueryParameters
+        {
+            Page = 1,
+            PageSize = 5
+        }, CancellationToken.None);
+
+        response.Total.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task QueryAsync_IncludesTotal_WhenRequested()
+    {
+        await using var context = CreateDbContext();
+        var service = CreateService(context, new TraceQueryDefaultsOptions
+        {
+            EnableDefaultLookback = false,
+            IncludeTotalCounts = false
+        });
+
+        for (int i = 0; i < 10; i++)
+        {
+            await IngestTrace(service, $"trace-{i:D2}", "api", "Operation");
+        }
+        RefreshSummaries(context);
+
+        var response = await service.QueryAsync(new TraceQueryParameters
+        {
+            Page = 1,
+            PageSize = 5,
+            IncludeTotal = true
+        }, CancellationToken.None);
+
+        response.Total.Should().Be(10);
+    }
+
+    [Fact]
     public async Task GetTraceAsync_ReturnsNullForNonExistent()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         var result = await service.GetTraceAsync("nonexistent-trace-id", CancellationToken.None);
 
@@ -199,7 +259,7 @@ public class TraceStorageServiceTests
     public async Task GetTraceAsync_CalculatesCorrectDuration()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         var traceId = "duration-test";
         var now = DateTimeOffset.UtcNow;
@@ -220,6 +280,7 @@ public class TraceStorageServiceTests
                 }
             }
         }, CancellationToken.None);
+        RefreshSummaries(context);
 
         var detail = await service.GetTraceAsync(traceId, CancellationToken.None);
 
@@ -231,12 +292,13 @@ public class TraceStorageServiceTests
     public async Task IngestAsync_HandlesEmptySpans()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await service.IngestAsync(new TraceIngestRequest
         {
             Spans = Array.Empty<TraceSpanDto>()
         }, CancellationToken.None);
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters(), CancellationToken.None);
         response.Total.Should().Be(0);
@@ -246,12 +308,13 @@ public class TraceStorageServiceTests
     public async Task QueryAsync_CombinesMultipleFilters()
     {
         await using var context = CreateDbContext();
-        var service = new TraceStorageService(context);
+        var service = CreateService(context);
 
         await IngestTrace(service, "trace-1", "gateway", "CreateOrder", status: "Ok");
         await IngestTrace(service, "trace-2", "gateway", "CreateOrder", status: "Error");
         await IngestTrace(service, "trace-3", "orders", "CreateOrder", status: "Ok");
         await IngestTrace(service, "trace-4", "gateway", "DeleteOrder", status: "Ok");
+        RefreshSummaries(context);
 
         var response = await service.QueryAsync(new TraceQueryParameters
         {
@@ -262,6 +325,51 @@ public class TraceStorageServiceTests
 
         response.Total.Should().Be(1);
         response.Items.Single().TraceId.Should().Be("trace-1");
+    }
+
+    private static TraceStorageService CreateService(
+        TracingDbContext context,
+        TraceQueryDefaultsOptions? defaults = null)
+    {
+        var resolvedDefaults = defaults ?? new TraceQueryDefaultsOptions
+        {
+            EnableDefaultLookback = false,
+            IncludeTotalCounts = true
+        };
+        return new TraceStorageService(context, Options.Create(resolvedDefaults));
+    }
+
+    private static void RefreshSummaries(TracingDbContext context)
+    {
+        var spans = context.TraceSpans
+            .AsNoTracking()
+            .ToList();
+
+        var summaries = spans
+            .GroupBy(span => span.TraceId)
+            .Select(group =>
+            {
+                var ordered = group.OrderBy(span => span.StartTimeUtc).ToList();
+                var start = ordered.First().StartTimeUtc;
+                var end = ordered.Last().EndTimeUtc;
+                return new TraceSummary
+                {
+                    TraceId = group.Key,
+                    ServiceName = ordered.First().ServiceName,
+                    OperationName = ordered.First().OperationName,
+                    Status = ordered.First().Status,
+                    StartTimeUtc = start,
+                    EndTimeUtc = end,
+                    DurationMs = end.Subtract(start).TotalMilliseconds,
+                    SpanCount = ordered.Count,
+                    CorrelationId = ordered.First().CorrelationId
+                };
+            })
+            .ToList();
+
+        context.TraceSummaries.RemoveRange(context.TraceSummaries);
+        context.TraceSummaries.AddRange(summaries);
+        context.SaveChanges();
     }
 
     private static async Task IngestTrace(
