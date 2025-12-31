@@ -60,7 +60,7 @@ spec:
             - name: Mesh__KeyValue__Provider
               value: ToskaStore
             - name: Mesh__KeyValue__ToskaStore__BaseUrl
-              value: http://toska-store.toskamesh-example.svc.cluster.local:4000
+              value: http://toska-store.toskamesh-infra.svc.cluster.local:4000
             - name: Mesh__KeyValue__ToskaStore__KeyPrefix
               value: profile-kv-store-demo
             - name: Mesh__KeyValue__ToskaStore__AuthToken

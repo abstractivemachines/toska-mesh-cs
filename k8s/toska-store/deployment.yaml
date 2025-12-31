@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: toska-store
+  namespace: toskamesh-infra
   labels:
     app.kubernetes.io/name: toska-store
     app.kubernetes.io/instance: toska-store
