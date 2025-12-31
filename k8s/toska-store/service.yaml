@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: toska-store
+  labels:
+    app.kubernetes.io/name: toska-store
+    app.kubernetes.io/instance: toska-store
+    app.kubernetes.io/component: example
+spec:
+  selector:
+    app.kubernetes.io/name: toska-store
+    app.kubernetes.io/instance: toska-store
+    app.kubernetes.io/component: example
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000

@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-grain-demo
-  namespace: toskamesh
   labels:
     app.kubernetes.io/name: redis-grain-demo
     app.kubernetes.io/instance: redis-grain-demo
