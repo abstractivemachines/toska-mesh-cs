@@ -1,9 +1,13 @@
 using System.Net;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TodoMeshService.Grains;
 using ToskaMesh.Runtime;
 using ToskaMesh.Runtime.Stateful;
-using Microsoft.Extensions.DependencyInjection;
 
 // Orleans silo hosting todo grains, with Redis-backed key/value store.
 var configuration = new ConfigurationBuilder()
@@ -11,7 +15,13 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-await StatefulMeshHost.RunAsync(
+var healthPort = configuration.GetValue<int?>("Mesh:Service:Port") ?? 8085;
+await using var healthApp = BuildHealthApp(healthPort);
+await healthApp.StartAsync();
+
+try
+{
+    await StatefulMeshHost.RunAsync(
     configureStateful: opts =>
     {
         opts.ServiceName = "todo-mesh-silo";
@@ -35,3 +45,18 @@ await StatefulMeshHost.RunAsync(
     {
         services.AddSingleton<IPEndPoint>(_ => new IPEndPoint(IPAddress.Any, 0));
     });
+}
+finally
+{
+    await healthApp.StopAsync();
+}
+
+static WebApplication BuildHealthApp(int port)
+{
+    var builder = WebApplication.CreateBuilder();
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+    var app = builder.Build();
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+    return app;
+}

@@ -20,4 +20,8 @@ spec:
     port: 30000
     targetPort: 30000
     protocol: TCP
+  - name: health
+    port: 8085
+    targetPort: 8085
+    protocol: TCP
   type: ClusterIP

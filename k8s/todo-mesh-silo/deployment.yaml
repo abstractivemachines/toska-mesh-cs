@@ -31,6 +31,9 @@ spec:
         - containerPort: 30000
           name: gateway
           protocol: TCP
+        - containerPort: 8085
+          name: health
+          protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
@@ -78,7 +81,7 @@ spec:
         - name: Mesh__Service__AdvertisedAddress
           value: $(POD_IP)
         - name: Mesh__Service__Port
-          value: "11111"
+          value: "8085"
         - name: Mesh__Service__Routing__HealthCheckEndpoint
           value: /health
         - name: Mesh__Service__RegisterAutomatically
