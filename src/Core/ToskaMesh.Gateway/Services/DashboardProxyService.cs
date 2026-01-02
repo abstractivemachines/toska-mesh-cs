@@ -73,8 +73,8 @@ public sealed class DashboardProxyService : IDashboardProxyService
 
             await Task.WhenAll(instancesTask, metadataTask);
 
-            var instances = instancesTask.Result;
-            var metadata = metadataTask.Result;
+            var instances = await instancesTask;
+            var metadata = await metadataTask;
 
             // Only include services registered via ToskaMesh SDK (have mesh metadata)
             var isMeshService = instances.Any(i =>

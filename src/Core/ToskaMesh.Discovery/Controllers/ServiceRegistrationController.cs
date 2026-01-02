@@ -40,7 +40,7 @@ public class ServiceRegistrationController : ControllerBase
         if (result.Success)
         {
             var instance = await _serviceManager.GetInstanceAsync(registration.ServiceId, cancellationToken);
-            return Ok(ApiResponse<ServiceInstance>.SuccessResponse(instance, "Service registered successfully"));
+            return Ok(ApiResponse<ServiceInstance?>.SuccessResponse(instance, "Service registered successfully"));
         }
 
         return BadRequest(ApiResponse<object>.ErrorResponse(result.ErrorMessage ?? "Failed to register service"));
@@ -60,7 +60,7 @@ public class ServiceRegistrationController : ControllerBase
 
         if (result)
         {
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Service deregistered successfully"));
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Service deregistered successfully"));
         }
 
         return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));

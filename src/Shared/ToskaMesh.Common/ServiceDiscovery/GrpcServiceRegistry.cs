@@ -212,7 +212,9 @@ public static class GrpcServiceRegistryExtensions
             {
                 try
                 {
-                    var cert = new X509Certificate2(grpcOptions.ClientCertificatePath, grpcOptions.ClientCertificatePassword);
+                    var cert = X509CertificateLoader.LoadPkcs12FromFile(
+                        grpcOptions.ClientCertificatePath,
+                        grpcOptions.ClientCertificatePassword);
                     var handler = new SocketsHttpHandler();
                     handler.SslOptions.ClientCertificates = new X509CertificateCollection { cert };
                     options.HttpHandler = handler;

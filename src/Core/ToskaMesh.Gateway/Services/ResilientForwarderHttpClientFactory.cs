@@ -44,7 +44,9 @@ public class ResilientForwarderHttpClientFactory : ForwarderHttpClientFactory
 
         try
         {
-            var clientCertificate = new X509Certificate2(_tlsOptions.ClientCertificatePath, _tlsOptions.ClientCertificatePassword);
+            var clientCertificate = X509CertificateLoader.LoadPkcs12FromFile(
+                _tlsOptions.ClientCertificatePath,
+                _tlsOptions.ClientCertificatePassword);
             handler.SslOptions ??= new SslClientAuthenticationOptions();
             handler.SslOptions.ClientCertificates ??= new X509CertificateCollection();
             handler.SslOptions.ClientCertificates.Add(clientCertificate);

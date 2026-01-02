@@ -21,13 +21,13 @@ public class HealthProbeWorker : BackgroundService
         HealthReportCache cache,
         IOptions<HealthMonitorOptions> options,
         ILogger<HealthProbeWorker> logger,
-        IHttpClientFactory? httpClientFactory = null)
+        IHttpClientFactory httpClientFactory)
     {
         _serviceRegistry = serviceRegistry;
         _cache = cache;
         _logger = logger;
         _options = options.Value;
-        _httpClient = httpClientFactory?.CreateClient() ?? new HttpClient();
+        _httpClient = httpClientFactory.CreateClient(nameof(HealthProbeWorker));
         _httpClient.Timeout = TimeSpan.FromSeconds(_options.HttpTimeoutSeconds);
     }
 

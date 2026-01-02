@@ -12,6 +12,7 @@ namespace ToskaMesh.Runtime;
 public sealed class ToskaStoreKeyValueStore : IKeyValueStore, IDisposable
 {
     private readonly HttpClient _client;
+    private readonly bool _ownsClient;
     private readonly ToskaStoreKeyValueOptions _options;
     private readonly string _keyPrefix;
     private readonly string _indexKey;
@@ -21,20 +22,29 @@ public sealed class ToskaStoreKeyValueStore : IKeyValueStore, IDisposable
         WriteIndented = false
     };
 
-    public ToskaStoreKeyValueStore(ToskaStoreKeyValueOptions options, MeshServiceOptions serviceOptions)
+    public ToskaStoreKeyValueStore(ToskaStoreKeyValueOptions options, MeshServiceOptions serviceOptions, HttpClient? httpClient = null)
     {
         _options = options;
         _keyPrefix = BuildPrefix(options, serviceOptions);
         _indexKey = string.IsNullOrWhiteSpace(options.KeyIndexKey) ? "__keys" : options.KeyIndexKey!;
 
-        _client = new HttpClient
+        if (httpClient is not null)
         {
-            BaseAddress = new Uri(options.BaseUrl)
-        };
+            _client = httpClient;
+            _ownsClient = false;
+        }
+        else
+        {
+            _client = new HttpClient();
+            _ownsClient = true;
+        }
+
+        _client.BaseAddress = new Uri(options.BaseUrl);
 
         if (!string.IsNullOrWhiteSpace(options.AuthToken))
         {
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.AuthToken}");
+            _client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.AuthToken);
         }
     }
 
@@ -135,7 +145,10 @@ public sealed class ToskaStoreKeyValueStore : IKeyValueStore, IDisposable
 
     public void Dispose()
     {
-        _client.Dispose();
+        if (_ownsClient)
+        {
+            _client.Dispose();
+        }
     }
 
     private async Task PutValueAsync(string key, string value, TimeSpan? ttl, CancellationToken cancellationToken)

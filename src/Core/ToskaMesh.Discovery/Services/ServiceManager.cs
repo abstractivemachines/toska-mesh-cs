@@ -22,12 +22,12 @@ public class ServiceManager : IServiceManager
         IServiceRegistry serviceRegistry,
         IPublishEndpoint publishEndpoint,
         ILogger<ServiceManager> logger,
-        IHttpClientFactory? httpClientFactory = null)
+        IHttpClientFactory httpClientFactory)
     {
         _serviceRegistry = serviceRegistry;
         _publishEndpoint = publishEndpoint;
         _logger = logger;
-        _httpClient = httpClientFactory?.CreateClient() ?? new HttpClient();
+        _httpClient = httpClientFactory.CreateClient(nameof(ServiceManager));
         _httpClient.Timeout = TimeSpan.FromSeconds(5);
         _tracking = new ConcurrentDictionary<string, ServiceInstanceTrackingInfo>(StringComparer.OrdinalIgnoreCase);
     }
