@@ -14,6 +14,7 @@ using ToskaMesh.Gateway.Middleware;
 using ToskaMesh.Gateway.Services;
 using ToskaMesh.Gateway.Telemetry;
 using ToskaMesh.Protocols;
+using ToskaMesh.Security;
 using ToskaMesh.Telemetry;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
@@ -24,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add configuration
 var jwtConfig = builder.Configuration.GetSection(JwtConfiguration.SectionName).Get<JwtConfiguration>()
     ?? new JwtConfiguration();
+SecretValidation.EnsureSecureSecret(jwtConfig.SecretKey, JwtTokenOptions.MinimumSecretLength, "Jwt:SecretKey");
 var rateLimitConfig = builder.Configuration.GetSection(RateLimitConfiguration.SectionName).Get<RateLimitConfiguration>()
     ?? new RateLimitConfiguration();
 var corsConfig = builder.Configuration.GetSection(CorsConfiguration.SectionName).Get<CorsConfiguration>()

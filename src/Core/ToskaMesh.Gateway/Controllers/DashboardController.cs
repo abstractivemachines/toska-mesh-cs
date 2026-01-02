@@ -6,7 +6,7 @@ using ToskaMesh.Gateway.Services;
 namespace ToskaMesh.Gateway.Controllers;
 
 [ApiController]
-[AllowAnonymous]
+[Authorize]
 [Route("api/dashboard")]
 public class DashboardController : ControllerBase
 {

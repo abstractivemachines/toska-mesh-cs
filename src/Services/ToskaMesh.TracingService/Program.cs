@@ -32,6 +32,8 @@ builder.Services.AddScoped<ITraceAnalyticsService, TraceAnalyticsService>();
 builder.Services.Configure<TraceQueryDefaultsOptions>(builder.Configuration.GetSection("Tracing:QueryDefaults"));
 builder.Services.Configure<TraceSummaryRefreshOptions>(builder.Configuration.GetSection("Tracing:SummaryRefresh"));
 builder.Services.AddHostedService<TraceSummaryRefreshService>();
+builder.Services.Configure<TraceRetentionOptions>(builder.Configuration.GetSection("Tracing:Retention"));
+builder.Services.AddHostedService<TraceRetentionService>();
 
 // TracingService is infrastructure - it stores traces but doesn't generate its own
 // to avoid feedback loops and noise in the trace data
@@ -39,6 +41,10 @@ var tracingOptions = builder.Configuration.GetSection("Tracing").Get<TracingExpo
 builder.Services.AddSingleton(tracingOptions);
 
 var serviceAuthOptions = builder.Configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
+SecretValidation.EnsureSecureSecret(
+    serviceAuthOptions.Secret,
+    MeshServiceAuthOptions.MinimumSecretLength,
+    "Mesh:ServiceAuth:Secret");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(serviceAuthOptions.Secret));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

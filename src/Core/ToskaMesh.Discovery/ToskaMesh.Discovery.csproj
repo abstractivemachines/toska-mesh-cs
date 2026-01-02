@@ -11,7 +11,6 @@
     <PackageReference Include="Consul" />
     <PackageReference Include="Steeltoe.Discovery.Consul" />
     <PackageReference Include="Steeltoe.Discovery.ClientCore" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore" />
   </ItemGroup>

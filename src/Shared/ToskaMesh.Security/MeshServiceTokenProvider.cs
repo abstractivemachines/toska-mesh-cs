@@ -101,12 +101,10 @@ public static class MeshServiceAuthenticationExtensions
         if (!services.Any(sd => sd.ServiceType == typeof(MeshServiceAuthOptions)))
         {
             var authOptions = configuration.GetSection("Mesh:ServiceAuth").Get<MeshServiceAuthOptions>() ?? new MeshServiceAuthOptions();
-            if (string.IsNullOrWhiteSpace(authOptions.Secret) ||
-                authOptions.Secret.Equals("change-me", StringComparison.OrdinalIgnoreCase) ||
-                authOptions.Secret.Length < MeshServiceAuthOptions.MinimumSecretLength)
-            {
-                throw new InvalidOperationException($"Mesh:ServiceAuth:Secret must be configured, unique per environment, and at least {MeshServiceAuthOptions.MinimumSecretLength} characters for service-to-service authentication.");
-            }
+            SecretValidation.EnsureSecureSecret(
+                authOptions.Secret,
+                MeshServiceAuthOptions.MinimumSecretLength,
+                "Mesh:ServiceAuth:Secret");
 
             services.AddSingleton(authOptions);
         }

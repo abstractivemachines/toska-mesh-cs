@@ -17,6 +17,7 @@ docker-compose up -d prometheus grafana rabbitmq-exporter redis-exporter
 ## Tracing Pipeline
 
 Trace export currently targets the ToskaMesh Tracing Service ingest endpoint. OTLP collector support is planned for a future iteration.
+Tracing data retention is time-based and configurable via `Tracing__Retention__RetentionDays`, `Tracing__Retention__CleanupIntervalMinutes`, and `Tracing__Retention__BatchSize` (default 14 days, hourly cleanup).
 
 ## Prometheus Configuration
 

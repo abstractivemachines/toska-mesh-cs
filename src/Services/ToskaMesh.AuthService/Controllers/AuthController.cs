@@ -75,14 +75,7 @@ public class AuthController : ControllerBase
 
         if (request.Roles?.Length > 0)
         {
-            var roles = request.Roles.Select(role => role.Trim()).Where(role => !string.IsNullOrWhiteSpace(role));
-            foreach (var role in roles)
-            {
-                if (!await _userManager.IsInRoleAsync(user, role))
-                {
-                    await _userManager.AddToRoleAsync(user, role);
-                }
-            }
+            _logger.LogWarning("Role assignment requested during self-service registration for {Email}. Ignoring roles.", request.Email);
         }
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -113,8 +106,9 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials");
         }
 
-        var token = await IssueTokensAsync(user, request.ClientId, request.IpAddress, cancellationToken);
-        await _auditService.RecordAsync(user.Id, "login", new { request.ClientId }, request.IpAddress, cancellationToken);
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var token = await IssueTokensAsync(user, request.ClientId, clientIp, cancellationToken);
+        await _auditService.RecordAsync(user.Id, "login", new { request.ClientId }, clientIp, cancellationToken);
         return Ok(token);
     }
 
@@ -207,39 +201,12 @@ public class AuthController : ControllerBase
 
     [HttpPost("external")]
     [AllowAnonymous]
-    public async Task<IActionResult> ExternalLogin(ExternalLoginRequest request, CancellationToken cancellationToken)
+    public Task<IActionResult> ExternalLogin(ExternalLoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null)
-        {
-            user = new MeshUser
-            {
-                UserName = request.Email,
-                Email = request.Email,
-                EmailConfirmed = true,
-                FullName = request.DisplayName
-            };
-            var createResult = await _userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
-            {
-                return BadRequest(createResult.Errors);
-            }
-        }
-
-        var loginInfo = new UserLoginInfo(request.Provider, request.ExternalUserId, request.Provider);
-        var existing = await _userManager.FindByLoginAsync(request.Provider, request.ExternalUserId);
-        if (existing == null)
-        {
-            var addLogin = await _userManager.AddLoginAsync(user, loginInfo);
-            if (!addLogin.Succeeded)
-            {
-                return BadRequest(addLogin.Errors);
-            }
-        }
-
-        var tokens = await IssueTokensAsync(user, request.Provider, null, cancellationToken);
-        await _auditService.RecordAsync(user.Id, "external_login", new { request.Provider }, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
-        return Ok(tokens);
+        _logger.LogWarning("External login attempted but no provider validation is configured.");
+        return Task.FromResult<IActionResult>(StatusCode(
+            StatusCodes.Status501NotImplemented,
+            "External login is disabled until a provider validation flow is configured."));
     }
 
     [Authorize(Roles = "Admin")]

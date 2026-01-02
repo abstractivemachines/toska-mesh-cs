@@ -8,15 +8,24 @@ public interface IEmailSender
 public class ConsoleEmailSender : IEmailSender
 {
     private readonly ILogger<ConsoleEmailSender> _logger;
+    private readonly IHostEnvironment _environment;
 
-    public ConsoleEmailSender(ILogger<ConsoleEmailSender> logger)
+    public ConsoleEmailSender(ILogger<ConsoleEmailSender> logger, IHostEnvironment environment)
     {
         _logger = logger;
+        _environment = environment;
     }
 
     public Task SendAsync(string email, string subject, string body, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Email to {Email}: {Subject}\n{Body}", email, subject, body);
+        if (_environment.IsDevelopment())
+        {
+            _logger.LogInformation("Email to {Email}: {Subject}\n{Body}", email, subject, body);
+        }
+        else
+        {
+            _logger.LogInformation("Email to {Email}: {Subject}", email, subject);
+        }
         return Task.CompletedTask;
     }
 }

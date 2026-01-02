@@ -6,6 +6,7 @@ using ToskaMesh.ConfigService.Services;
 namespace ToskaMesh.ConfigService.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class ConfigurationsController : ControllerBase
 {

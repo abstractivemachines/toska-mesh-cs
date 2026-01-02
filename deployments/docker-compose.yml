@@ -316,6 +316,9 @@ services:
       - Mesh__ServiceAuth__Audience=${MESH_SERVICE_AUTH_AUDIENCE:-ToskaMesh.Services}
       - Mesh__Telemetry__TracingIngest__Enabled=true
       - Mesh__Telemetry__TracingIngest__Endpoint=http://tracing-service:8080/api/traces/ingest
+      - Tracing__Retention__RetentionDays=14
+      - Tracing__Retention__CleanupIntervalMinutes=60
+      - Tracing__Retention__BatchSize=20000
     depends_on:
       - postgres
       - consul

@@ -32,6 +32,7 @@ builder.Services.AddScoped<IAlertRuleService, AlertRuleService>();
 builder.Services.AddScoped<IGrafanaProvisioningService, GrafanaProvisioningService>();
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtTokenOptions>() ?? new JwtTokenOptions();
+SecretValidation.EnsureSecureSecret(jwtOptions.Secret, JwtTokenOptions.MinimumSecretLength, "Jwt:Secret");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

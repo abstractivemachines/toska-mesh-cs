@@ -57,8 +57,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         // Validate API key
         if (!Options.ValidApiKeys.TryGetValue(providedApiKey, out var apiKeyInfo))
         {
-            Logger.LogWarning("Invalid API key provided: {ApiKey}",
-                providedApiKey.Substring(0, Math.Min(8, providedApiKey.Length)) + "...");
+            Logger.LogWarning("Invalid API key provided.");
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key"));
         }
 
@@ -67,7 +66,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         {
             new Claim(ClaimTypes.Name, apiKeyInfo.ServiceName),
             new Claim(MeshAuthorizationPolicies.ServiceIdClaim, apiKeyInfo.ServiceId),
-            new Claim(MeshAuthorizationPolicies.ApiKeyClaim, providedApiKey)
+            new Claim(MeshAuthorizationPolicies.ApiKeyClaim, apiKeyInfo.ServiceId)
         };
 
         // Add roles
