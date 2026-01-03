@@ -93,6 +93,10 @@ spec:
           value: "ParentBasedAlwaysOn"
         - name: Mesh__Telemetry__Sampling__Ratio
           value: "1"
+        - name: Mesh__Telemetry__ServiceNamespace
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         - name: Orleans__DatabaseConnectionString
           valueFrom:
             secretKeyRef:

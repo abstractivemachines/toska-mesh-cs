@@ -2,7 +2,6 @@ syntax = "proto3";
 
 option csharp_namespace = "ToskaMesh.Grpc.Discovery";
 
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 package toskamesh.discovery;

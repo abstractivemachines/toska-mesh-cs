@@ -3,47 +3,48 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AspNetCore.HealthChecks.Consul" Version="7.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="7.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.Rabbitmq" Version="7.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="7.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Consul" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
     <PackageVersion Include="AspNetCoreRateLimit" Version="5.0.0" />
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageVersion Include="Consul" Version="1.6.10.9" />
-    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
-    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.27.2" />
-    <PackageVersion Include="Grpc.AspNetCore" Version="2.60.0" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.60.0" />
-    <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.60.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.60.0" />
-    <PackageVersion Include="KubernetesClient" Version="17.0.14" />
-    <PackageVersion Include="KubernetesClient.Basic" Version="17.0.14" />
-    <PackageVersion Include="KubernetesClient.Models" Version="17.0.14" />
-    <PackageVersion Include="MassTransit" Version="8.1.0" />
-    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.1.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Consul" Version="1.7.14.9" />
+    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageVersion Include="FluentAssertions" Version="7.2.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.33.2" />
+    <PackageVersion Include="Grpc.AspNetCore" Version="2.76.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.76.0" />
+    <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.76.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.76.0" />
+    <PackageVersion Include="KubernetesClient" Version="18.0.13" />
+    <PackageVersion Include="KubernetesClient.Basic" Version="18.0.13" />
+    <PackageVersion Include="KubernetesClient.Models" Version="18.0.13" />
+    <PackageVersion Include="MassTransit" Version="8.5.7" />
+    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="3.1.1" />
     <PackageVersion Include="Microsoft.Orleans.Client" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Clustering.AdoNet" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Clustering.AzureStorage" Version="9.2.1" />
@@ -56,7 +57,7 @@
     <PackageVersion Include="Microsoft.Orleans.Sdk" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.2.1" />
     <PackageVersion Include="OrleansDashboard" Version="8.2.0" />
-    <PackageVersion Include="Npgsql" Version="10.0.0" />
+    <PackageVersion Include="Npgsql" Version="10.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
@@ -67,23 +68,23 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
-    <PackageVersion Include="Polly" Version="8.2.0" />
+    <PackageVersion Include="Polly" Version="8.6.5" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
-    <PackageVersion Include="prometheus-net" Version="8.2.0" />
-    <PackageVersion Include="prometheus-net.AspNetCore" Version="8.2.0" />
-    <PackageVersion Include="Serilog" Version="3.1.1" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.0" />
-    <PackageVersion Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.8.24" />
-    <PackageVersion Include="Steeltoe.Discovery.ClientCore" Version="3.2.0" />
-    <PackageVersion Include="Steeltoe.Discovery.Consul" Version="3.2.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageVersion Include="prometheus-net" Version="8.2.1" />
+    <PackageVersion Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <PackageVersion Include="Serilog" Version="4.3.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.10.1" />
+    <PackageVersion Include="Steeltoe.Discovery.Configuration" Version="4.0.0" />
+    <PackageVersion Include="Steeltoe.Discovery.Consul" Version="4.0.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
-    <PackageVersion Include="xunit" Version="2.7.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.8" />
-    <PackageVersion Include="YamlDotNet" Version="13.7.1" />
-    <PackageVersion Include="Yarp.ReverseProxy" Version="2.1.0" />
-    <PackageVersion Include="Yarp.Telemetry.Consumption" Version="2.1.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="YamlDotNet" Version="16.3.0" />
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <PackageVersion Include="Yarp.Telemetry.Consumption" Version="2.3.0" />
   </ItemGroup>
 </Project>

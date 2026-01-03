@@ -62,6 +62,7 @@ public record TraceQueryParameters
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 50;
     public bool IncludeTotal { get; init; }
+    public bool ExcludeBuiltInServices { get; init; }
 }
 
 public record TraceSummaryDto(

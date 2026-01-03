@@ -22,3 +22,4 @@ data:
   Mesh__Telemetry__TracingIngest__Endpoint: "http://toskamesh-tracing-service.toskamesh.svc.cluster.local:8080/api/traces/ingest"
   Mesh__Telemetry__Sampling__Strategy: "ParentBasedAlwaysOn"
   Mesh__Telemetry__Sampling__Ratio: "1"
+  Mesh__Telemetry__ServiceNamespace: "toskamesh-example"

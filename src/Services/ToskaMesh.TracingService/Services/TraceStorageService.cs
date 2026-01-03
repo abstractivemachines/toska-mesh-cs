@@ -21,6 +21,10 @@ public class TraceStorageService : ITraceStorageService
 {
     private readonly TracingDbContext _dbContext;
     private readonly TraceQueryDefaultsOptions _queryDefaults;
+    private static readonly string[] BuiltInNamespaces = { "toskamesh", "toskamesh-example", "toskamesh-infra" };
+    private static readonly string[] BuiltInNamespacesLower = BuiltInNamespaces
+        .Select(name => name.ToLowerInvariant())
+        .ToArray();
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
     public TraceStorageService(
@@ -244,6 +248,13 @@ public class TraceStorageService : ITraceStorageService
         {
             var serviceNameFilter = parameters.ServiceName.ToLowerInvariant();
             query = query.Where(summary => summary.ServiceName.ToLower().Contains(serviceNameFilter));
+        }
+
+        if (parameters.ExcludeBuiltInServices)
+        {
+            query = query.Where(summary =>
+                summary.ServiceNamespace == null ||
+                !BuiltInNamespacesLower.Contains(summary.ServiceNamespace.ToLower()));
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.OperationName))

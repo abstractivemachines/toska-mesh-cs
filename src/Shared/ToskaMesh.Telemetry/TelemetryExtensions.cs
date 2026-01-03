@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
@@ -27,6 +28,12 @@ public static class TelemetryExtensions
     {
         var telemetryOptions = configuration.GetSection(MeshTelemetryOptions.SectionName).Get<MeshTelemetryOptions>()
             ?? new MeshTelemetryOptions();
+        var serviceNamespace = telemetryOptions.ServiceNamespace;
+        if (string.IsNullOrWhiteSpace(serviceNamespace))
+        {
+            serviceNamespace = configuration["Mesh:Telemetry:ServiceNamespace"]
+                ?? Environment.GetEnvironmentVariable("Mesh__Telemetry__ServiceNamespace");
+        }
 
         var activitySource = MeshActivitySource.Get(serviceName, serviceVersion);
         services.AddSingleton(activitySource);
@@ -38,7 +45,11 @@ public static class TelemetryExtensions
                 services.AddMeshServiceIdentity(configuration);
             }
 
-            var exporterOptions = new TracingIngestExporterOptions(serviceName, serviceVersion, telemetryOptions.TracingIngest);
+            var exporterOptions = new TracingIngestExporterOptions(
+                serviceName,
+                serviceVersion,
+                telemetryOptions.TracingIngest,
+                serviceNamespace);
             services.AddSingleton(exporterOptions);
             services.AddHttpClient(TracingIngestExporter.HttpClientName, client =>
             {
@@ -48,8 +59,19 @@ public static class TelemetryExtensions
         }
 
         services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource
-                .AddService(serviceName: serviceName, serviceVersion: serviceVersion))
+            .ConfigureResource(resource =>
+            {
+                resource.AddService(serviceName: serviceName, serviceVersion: serviceVersion);
+                if (!string.IsNullOrWhiteSpace(serviceNamespace))
+                {
+                    resource.AddAttributes(new[]
+                    {
+                        new KeyValuePair<string, object>(
+                            "service.namespace",
+                            serviceNamespace)
+                    });
+                }
+            })
             .WithTracing(tracing =>
             {
                 tracing

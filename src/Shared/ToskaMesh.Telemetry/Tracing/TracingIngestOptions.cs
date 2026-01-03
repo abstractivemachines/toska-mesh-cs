@@ -5,6 +5,7 @@ public sealed class MeshTelemetryOptions
     public const string SectionName = "Mesh:Telemetry";
 
     public bool EnableConsoleTraceExporter { get; set; } = true;
+    public string? ServiceNamespace { get; set; }
     public TracingSamplingOptions Sampling { get; set; } = new();
     public TracingIngestOptions TracingIngest { get; set; } = new();
 }
@@ -33,10 +34,12 @@ public sealed class TracingIngestExporterOptions
     public TracingIngestExporterOptions(
         string serviceName,
         string serviceVersion,
-        TracingIngestOptions ingestOptions)
+        TracingIngestOptions ingestOptions,
+        string? serviceNamespace = null)
     {
         ServiceName = serviceName;
         ServiceVersion = serviceVersion;
+        ServiceNamespace = serviceNamespace;
         Enabled = ingestOptions.Enabled;
         Endpoint = ingestOptions.Endpoint;
         Collector = ingestOptions.Collector;
@@ -52,6 +55,7 @@ public sealed class TracingIngestExporterOptions
 
     public string ServiceName { get; }
     public string ServiceVersion { get; }
+    public string? ServiceNamespace { get; }
     public bool Enabled { get; }
     public string Endpoint { get; }
     public string Collector { get; }

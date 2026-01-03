@@ -30,7 +30,8 @@ public class RedisKeyValueStore : IKeyValueStore
     {
         var serialized = JsonSerializer.Serialize(value, _jsonOptions);
         var redisKey = BuildKey(key);
-        await _database.StringSetAsync(redisKey, serialized, ttl);
+        var expiry = ttl.HasValue ? new Expiration(ttl.Value) : Expiration.Default;
+        await _database.StringSetAsync(redisKey, serialized, expiry);
     }
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)

@@ -43,6 +43,7 @@ public class TracingDbContext : DbContext
         summary.ToView("TraceSummaries");
         summary.Property(x => x.TraceId).HasMaxLength(64);
         summary.Property(x => x.ServiceName).HasMaxLength(200);
+        summary.Property(x => x.ServiceNamespace).HasMaxLength(200);
         summary.Property(x => x.OperationName).HasMaxLength(200);
         summary.Property(x => x.Status).HasMaxLength(32);
         summary.Property(x => x.CorrelationId).HasMaxLength(128);

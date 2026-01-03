@@ -75,6 +75,10 @@ spec:
           value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
         - name: Mesh__Telemetry__Sampling__Ratio
           value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        - name: Mesh__Telemetry__ServiceNamespace
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         {{- with .Values.telemetry.tracingIngest.headers }}
         {{- range $name, $value := . }}
         - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}

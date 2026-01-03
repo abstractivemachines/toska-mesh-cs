@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Consul" />
     <PackageReference Include="Steeltoe.Discovery.Consul" />
-    <PackageReference Include="Steeltoe.Discovery.ClientCore" />
+    <PackageReference Include="Steeltoe.Discovery.Configuration" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore" />
   </ItemGroup>

@@ -179,7 +179,7 @@ public class TraceAnalyticsServiceTests
         var response = await service.GetPerformanceAsync(new TracePerformanceRequest(), CancellationToken.None);
 
         // P95 should be around the 95th percentile value (190 or close to it)
-        response.P95DurationMs.Should().BeGreaterOrEqualTo(180);
+        response.P95DurationMs.Should().BeGreaterThanOrEqualTo(180);
     }
 
     private static TracingDbContext CreateDbContext()

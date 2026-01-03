@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ WITH ordered AS (
     SELECT
         ""TraceId"",
         ""ServiceName"",
+        COALESCE(""ResourceAttributesJson"", '{{{{}}}}'::jsonb)->>'service.namespace' AS ""ServiceNamespace"",
         ""OperationName"",
         ""Status"",
         ""StartTimeUtc"",
@@ -41,6 +43,7 @@ aggregated AS (
 SELECT
     aggregated.""TraceId"",
     ordered.""ServiceName"",
+    ordered.""ServiceNamespace"",
     ordered.""OperationName"",
     ordered.""Status"",
     aggregated.""StartTimeUtc"",
@@ -59,11 +62,13 @@ WITH DATA;";
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_EndTimeUtc_StartTimeUtc\" ON {TraceSummariesViewName} (\"EndTimeUtc\" DESC, \"StartTimeUtc\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_StartTimeUtc\" ON {TraceSummariesViewName} (\"StartTimeUtc\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_ServiceName\" ON {TraceSummariesViewName} (\"ServiceName\");",
+        $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_ServiceNamespace\" ON {TraceSummariesViewName} (\"ServiceNamespace\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_OperationName\" ON {TraceSummariesViewName} (\"OperationName\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_Status\" ON {TraceSummariesViewName} (\"Status\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_CorrelationId\" ON {TraceSummariesViewName} (\"CorrelationId\");",
         $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_DurationMs\" ON {TraceSummariesViewName} (\"DurationMs\");",
-        $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_Service_EndTimeUtc\" ON {TraceSummariesViewName} (\"ServiceName\", \"EndTimeUtc\" DESC);"
+        $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_Service_EndTimeUtc\" ON {TraceSummariesViewName} (\"ServiceName\", \"EndTimeUtc\" DESC);",
+        $"CREATE INDEX IF NOT EXISTS \"IX_TraceSummaries_ServiceNamespace_EndTimeUtc\" ON {TraceSummariesViewName} (\"ServiceNamespace\", \"EndTimeUtc\" DESC);"
     ];
 
     private static readonly string[] TraceSpanIndexSql =
@@ -93,6 +98,16 @@ WITH DATA;";
 
         try
         {
+            var requiresRefresh = !await MaterializedViewHasColumnAsync(
+                dbContext,
+                "TraceSummaries",
+                "ServiceNamespace",
+                cancellationToken);
+            if (requiresRefresh)
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(DropTraceSummariesSql, cancellationToken);
+            }
+
             try
             {
                 await dbContext.Database.ExecuteSqlRawAsync(CreateMaterializedViewSql, cancellationToken);
@@ -135,6 +150,43 @@ WITH DATA;";
         catch (PostgresException ex) when (IsDuplicateObject(ex))
         {
             logger.LogWarning(ex, "Index creation hit a duplicate entry; skipping. SQL: {Sql}", sql);
+        }
+    }
+
+    private static async Task<bool> MaterializedViewHasColumnAsync(
+        TracingDbContext dbContext,
+        string viewName,
+        string columnName,
+        CancellationToken cancellationToken)
+    {
+        var connection = dbContext.Database.GetDbConnection();
+        await dbContext.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+SELECT 1
+FROM information_schema.columns
+WHERE lower(table_name) = lower(@viewName)
+  AND lower(column_name) = lower(@columnName)
+LIMIT 1;
+""";
+            var viewParam = command.CreateParameter();
+            viewParam.ParameterName = "viewName";
+            viewParam.Value = viewName;
+            command.Parameters.Add(viewParam);
+
+            var columnParam = command.CreateParameter();
+            columnParam.ParameterName = "columnName";
+            columnParam.Value = columnName;
+            command.Parameters.Add(columnParam);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            return result != null && result != DBNull.Value;
+        }
+        finally
+        {
+            await dbContext.Database.CloseConnectionAsync();
         }
     }
 }

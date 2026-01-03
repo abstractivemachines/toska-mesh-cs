@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -84,6 +85,31 @@ public class TraceStorageServiceTests
 
         response.Total.Should().Be(2);
         response.Items.Should().AllSatisfy(t => t.ServiceName.Should().Be("gateway"));
+    }
+
+    [Fact]
+    public async Task QueryAsync_ExcludesBuiltInServices_WhenRequested()
+    {
+        await using var context = CreateDbContext();
+        var service = CreateService(context);
+
+        await IngestTrace(service, "trace-1", "toskamesh-example/orders", "Op1",
+            resourceAttributes: new Dictionary<string, string?> { ["service.namespace"] = "toskamesh-example" });
+        await IngestTrace(service, "trace-2", "customer-api", "Op2",
+            resourceAttributes: new Dictionary<string, string?> { ["service.namespace"] = "customer-namespace" });
+        await IngestTrace(service, "trace-3", "toskamesh-infra/metrics", "Op3",
+            resourceAttributes: new Dictionary<string, string?> { ["service.namespace"] = "toskamesh-infra" });
+        await IngestTrace(service, "trace-4", "gateway", "Op4",
+            resourceAttributes: new Dictionary<string, string?> { ["service.namespace"] = "toskamesh" });
+        RefreshSummaries(context);
+
+        var response = await service.QueryAsync(new TraceQueryParameters
+        {
+            ExcludeBuiltInServices = true
+        }, CancellationToken.None);
+
+        response.Total.Should().Be(1);
+        response.Items.Single().ServiceName.Should().Be("customer-api");
     }
 
     [Fact]
@@ -356,6 +382,7 @@ public class TraceStorageServiceTests
                 {
                     TraceId = group.Key,
                     ServiceName = ordered.First().ServiceName,
+                    ServiceNamespace = GetServiceNamespace(ordered.First().ResourceAttributesJson),
                     OperationName = ordered.First().OperationName,
                     Status = ordered.First().Status,
                     StartTimeUtc = start,
@@ -379,7 +406,8 @@ public class TraceStorageServiceTests
         string operationName,
         string status = "Ok",
         string? correlationId = null,
-        double durationMs = 100)
+        double durationMs = 100,
+        IReadOnlyDictionary<string, string?>? resourceAttributes = null)
     {
         var now = DateTimeOffset.UtcNow;
         await service.IngestAsync(new TraceIngestRequest
@@ -396,7 +424,8 @@ public class TraceStorageServiceTests
                     StartTime = now.AddMilliseconds(-durationMs),
                     EndTime = now,
                     Status = status,
-                    CorrelationId = correlationId
+                    CorrelationId = correlationId,
+                    ResourceAttributes = resourceAttributes
                 }
             }
         }, CancellationToken.None);
@@ -409,5 +438,28 @@ public class TraceStorageServiceTests
             .Options;
 
         return new TracingDbContext(options);
+    }
+
+    private static string? GetServiceNamespace(string? resourceAttributesJson)
+    {
+        if (string.IsNullOrWhiteSpace(resourceAttributesJson))
+        {
+            return null;
+        }
+
+        try
+        {
+            var attributes = JsonSerializer.Deserialize<Dictionary<string, string?>>(resourceAttributesJson);
+            if (attributes != null && attributes.TryGetValue("service.namespace", out var value))
+            {
+                return value;
+            }
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        return null;
     }
 }

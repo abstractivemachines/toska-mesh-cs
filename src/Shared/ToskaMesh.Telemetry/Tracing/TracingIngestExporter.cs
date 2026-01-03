@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -142,6 +143,21 @@ public sealed class TracingIngestExporter : BaseExporter<Activity>
         var start = activity.StartTimeUtc;
         var end = activity.StartTimeUtc.Add(activity.Duration);
 
+        var resourceAttributes = new Dictionary<string, string?>
+        {
+            ["service.name"] = _options.ServiceName,
+            ["service.version"] = _options.ServiceVersion
+        };
+        var serviceNamespace = _options.ServiceNamespace;
+        if (string.IsNullOrWhiteSpace(serviceNamespace))
+        {
+            serviceNamespace = Environment.GetEnvironmentVariable("Mesh__Telemetry__ServiceNamespace");
+        }
+        if (!string.IsNullOrWhiteSpace(serviceNamespace))
+        {
+            resourceAttributes["service.namespace"] = serviceNamespace;
+        }
+
         return new TracingSpanDto
         {
             TraceId = traceId,
@@ -155,11 +171,7 @@ public sealed class TracingIngestExporter : BaseExporter<Activity>
             Kind = activity.Kind.ToString(),
             CorrelationId = traceId,
             Attributes = ToStringDictionary(activity.TagObjects),
-            ResourceAttributes = new Dictionary<string, string?>
-            {
-                ["service.name"] = _options.ServiceName,
-                ["service.version"] = _options.ServiceVersion
-            }
+            ResourceAttributes = resourceAttributes
         };
     }
 
