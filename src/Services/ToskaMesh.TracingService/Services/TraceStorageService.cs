@@ -96,27 +96,92 @@ public class TraceStorageService : ITraceStorageService
 
     public async Task<TraceQueryResponse> QueryAsync(TraceQueryParameters query, CancellationToken cancellationToken)
     {
-        var filter = ApplySummaryFilters(_dbContext.TraceSummaries.AsNoTracking(), query, _queryDefaults);
+        var filter = ApplySummaryFilters(
+            _dbContext.TraceSummaries.AsNoTracking(),
+            query,
+            _queryDefaults,
+            skipBuiltInFilter: HasSpanFilters(query));
+        filter = ApplySpanFilters(filter, query);
+        var useSpanProjection = HasSpanFilters(query);
 
         var page = Math.Max(query.Page, 1);
         var take = Math.Clamp(query.PageSize, 1, 500);
         var skip = (page - 1) * take;
 
-        var summaries = await filter
-            .OrderByDescending(summary => summary.EndTimeUtc)
-            .Skip(skip)
-            .Take(take)
-            .Select(summary => new TraceSummaryDto(
-                summary.TraceId,
-                summary.ServiceName,
-                summary.OperationName,
-                summary.StartTimeUtc,
-                summary.EndTimeUtc,
-                summary.DurationMs,
-                summary.Status,
-                summary.SpanCount,
-                summary.CorrelationId))
-            .ToListAsync(cancellationToken);
+        IReadOnlyCollection<TraceSummaryDto> summaries;
+        if (useSpanProjection)
+        {
+            var summaryPage = await filter
+                .OrderByDescending(summary => summary.EndTimeUtc)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync(cancellationToken);
+
+            var traceIds = summaryPage.Select(summary => summary.TraceId).ToList();
+            var spanCandidates = await BuildSpanFilterQuery(query)
+                .Where(span => traceIds.Contains(span.TraceId))
+                .Select(span => new
+                {
+                    span.TraceId,
+                    span.ServiceName,
+                    span.OperationName,
+                    span.StartTimeUtc
+                })
+                .ToListAsync(cancellationToken);
+
+            var spanLookup = spanCandidates
+                .GroupBy(span => span.TraceId)
+                .Select(group => group.OrderBy(span => span.StartTimeUtc).First())
+                .ToDictionary(span => span.TraceId, span => span);
+
+            summaries = summaryPage
+                .Select(summary =>
+                {
+                    if (spanLookup.TryGetValue(summary.TraceId, out var span))
+                    {
+                        return new TraceSummaryDto(
+                            summary.TraceId,
+                            span.ServiceName,
+                            span.OperationName,
+                            summary.StartTimeUtc,
+                            summary.EndTimeUtc,
+                            summary.DurationMs,
+                            summary.Status,
+                            summary.SpanCount,
+                            summary.CorrelationId);
+                    }
+
+                    return new TraceSummaryDto(
+                        summary.TraceId,
+                        summary.ServiceName,
+                        summary.OperationName,
+                        summary.StartTimeUtc,
+                        summary.EndTimeUtc,
+                        summary.DurationMs,
+                        summary.Status,
+                        summary.SpanCount,
+                        summary.CorrelationId);
+                })
+                .ToList();
+        }
+        else
+        {
+            summaries = await filter
+                .OrderByDescending(summary => summary.EndTimeUtc)
+                .Skip(skip)
+                .Take(take)
+                .Select(summary => new TraceSummaryDto(
+                    summary.TraceId,
+                    summary.ServiceName,
+                    summary.OperationName,
+                    summary.StartTimeUtc,
+                    summary.EndTimeUtc,
+                    summary.DurationMs,
+                    summary.Status,
+                    summary.SpanCount,
+                    summary.CorrelationId))
+                .ToListAsync(cancellationToken);
+        }
 
         var includeTotal = query.IncludeTotal || _queryDefaults.IncludeTotalCounts;
         int? total = null;
@@ -213,8 +278,8 @@ public class TraceStorageService : ITraceStorageService
 
     public async Task<IReadOnlyCollection<string>> GetDistinctServiceNamesAsync(CancellationToken cancellationToken)
     {
-        var serviceNames = await _dbContext.TraceSummaries.AsNoTracking()
-            .Select(summary => summary.ServiceName)
+        var serviceNames = await _dbContext.TraceSpans.AsNoTracking()
+            .Select(span => span.ServiceName)
             .Distinct()
             .OrderBy(name => name)
             .ToListAsync(cancellationToken);
@@ -229,9 +294,9 @@ public class TraceStorageService : ITraceStorageService
             return Array.Empty<string>();
         }
 
-        var operations = await _dbContext.TraceSummaries.AsNoTracking()
-            .Where(summary => summary.ServiceName == serviceName)
-            .Select(summary => summary.OperationName)
+        var operations = await _dbContext.TraceSpans.AsNoTracking()
+            .Where(span => span.ServiceName == serviceName)
+            .Select(span => span.OperationName)
             .Distinct()
             .OrderBy(name => name)
             .ToListAsync(cancellationToken);
@@ -242,24 +307,14 @@ public class TraceStorageService : ITraceStorageService
     private static IQueryable<TraceSummary> ApplySummaryFilters(
         IQueryable<TraceSummary> query,
         TraceQueryParameters parameters,
-        TraceQueryDefaultsOptions defaults)
+        TraceQueryDefaultsOptions defaults,
+        bool skipBuiltInFilter)
     {
-        if (!string.IsNullOrWhiteSpace(parameters.ServiceName))
-        {
-            var serviceNameFilter = parameters.ServiceName.ToLowerInvariant();
-            query = query.Where(summary => summary.ServiceName.ToLower().Contains(serviceNameFilter));
-        }
-
-        if (parameters.ExcludeBuiltInServices)
+        if (parameters.ExcludeBuiltInServices && !skipBuiltInFilter)
         {
             query = query.Where(summary =>
                 summary.ServiceNamespace == null ||
                 !BuiltInNamespacesLower.Contains(summary.ServiceNamespace.ToLower()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(parameters.OperationName))
-        {
-            query = query.Where(summary => summary.OperationName == parameters.OperationName);
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.Status))
@@ -304,6 +359,43 @@ public class TraceStorageService : ITraceStorageService
         }
 
         return query;
+    }
+
+    private IQueryable<TraceSummary> ApplySpanFilters(
+        IQueryable<TraceSummary> query,
+        TraceQueryParameters parameters)
+    {
+        if (!HasSpanFilters(parameters))
+        {
+            return query;
+        }
+
+        var spanQuery = BuildSpanFilterQuery(parameters);
+
+        return query.Where(summary =>
+            spanQuery.Select(span => span.TraceId).Contains(summary.TraceId));
+    }
+
+    private static bool HasSpanFilters(TraceQueryParameters parameters)
+        => !string.IsNullOrWhiteSpace(parameters.ServiceName)
+        || !string.IsNullOrWhiteSpace(parameters.OperationName);
+
+    private IQueryable<TraceSpan> BuildSpanFilterQuery(TraceQueryParameters parameters)
+    {
+        var spanQuery = _dbContext.TraceSpans.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(parameters.ServiceName))
+        {
+            var serviceNameFilter = parameters.ServiceName.ToLowerInvariant();
+            spanQuery = spanQuery.Where(span => span.ServiceName.ToLower().Contains(serviceNameFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(parameters.OperationName))
+        {
+            spanQuery = spanQuery.Where(span => span.OperationName == parameters.OperationName);
+        }
+
+        return spanQuery;
     }
 
     private static TraceSpanDto ToDto(TraceSpan span)

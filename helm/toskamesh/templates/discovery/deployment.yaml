@@ -40,6 +40,12 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
+        - containerPort: 50051
+          name: grpc
+          protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: {{ .Values.environment }}
@@ -47,6 +53,59 @@ spec:
           value: "http://+:8080"
         - name: Urls
           value: "http://+:8080"
+        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
+          value: "http://+:8080"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Url
+          value: "https://+:50051"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols
+          value: "Http2"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__ClientCertificateMode
+          value: "AllowCertificate"
+        - name: Kestrel__Endpoints__Grpc__Url
+          value: "https://+:50051"
+        - name: Kestrel__Endpoints__Grpc__Protocols
+          value: "Http2"
+        - name: Kestrel__Endpoints__Grpc__ClientCertificateMode
+          value: "AllowCertificate"
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Path
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_path
+        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Password
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_password
+        - name: Kestrel__Endpoints__Grpc__Certificate__Path
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_path
+        - name: Kestrel__Endpoints__Grpc__Certificate__Password
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_password
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: https_url
+        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
+          value: "RequireCertificate"
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_path
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: server_pfx_password
+        - name: SSL_CERT_FILE
+          value: "/etc/tls/ca.crt"
         - name: Consul__Address
           valueFrom:
             configMapKeyRef:
@@ -104,4 +163,12 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: mesh-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: mesh-tls
+        secret:
+          secretName: {{ include "toskamesh.fullname" . }}-mtls
 {{- end }}

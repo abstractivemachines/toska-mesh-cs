@@ -59,6 +59,14 @@ spec:
               key: discovery_grpc_address
         - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
           value: {{ .Values.serviceDiscovery.grpc.allowInsecureTransport | quote }}
+        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
+          value: "/etc/tls/client.pfx"
+        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-mtls
+              key: client_pfx_password
+              optional: true
         - name: Dashboard__PrometheusBaseUrl
           valueFrom:
             configMapKeyRef:
@@ -91,6 +99,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: SSL_CERT_FILE
+          value: "/etc/tls/ca.crt"
         {{- with .Values.telemetry.tracingIngest.headers }}
         {{- range $name, $value := . }}
         - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
@@ -121,4 +131,12 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: mesh-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: mesh-tls
+        secret:
+          secretName: {{ include "toskamesh.fullname" . }}-mtls
 {{- end }}
