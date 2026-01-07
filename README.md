@@ -141,7 +141,7 @@ cd tools/cli
 
 ### Create a new service
 ```bash
-toska init my-service --type stateless --style host
+toska init my-service --type stateless --style lambda
 cd my-service
 dotnet build
 ```
@@ -206,7 +206,7 @@ tools/cli/      # Toska CLI (Python)
 
 ### Using the CLI
 ```bash
-toska init inventory-api --type stateless --style host    # New stateless service
+toska init inventory-api --type stateless --style lambda  # New stateless service
 toska init order-tracker --type stateful --stateful-template consul  # New stateful service
 toska validate -f toska.yaml                              # Validate manifest
 toska deploy --dry-run                                    # Preview deployment

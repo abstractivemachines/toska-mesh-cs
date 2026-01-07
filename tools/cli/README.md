@@ -52,15 +52,20 @@ Create a new service scaffold from built-in templates:
 cd tools/cli
 source .venv/bin/activate  # or create it via: python -m venv .venv
 
-toska init inventory-service --type stateless --style host
+toska init inventory-service --type stateless --style lambda
 toska init inventory-service --type stateless --style base
 toska init inventory-service --type stateful --stateful-template consul
 toska init inventory-service --type stateful --stateful-template local
 ```
 
+Stateless styles:
+- `lambda` uses `MeshServiceHost` (lambda-style routing).
+- `base` uses the `MeshService` base class.
+
 Options:
 - `-o/--output` target directory (defaults to `./<name>`).
 - `--solution/--sln` adds generated `.csproj` files to an existing solution.
+- `--style` selects the stateless style (`lambda` or `base`).
 - `--runtime-version` overrides `ToskaMesh.Runtime` package version.
 - `--orleans-version` overrides `Microsoft.Orleans.*` package version (stateful templates).
 - `--force` overwrites files in an existing output directory.

@@ -104,9 +104,9 @@ def _resolve_template(service_type: str, style: str, stateful_template: str) -> 
     stateful_template = stateful_template.lower()
 
     if service_type == "stateless":
-        if style not in {"host", "base"}:
-            raise ScaffoldError("Stateless style must be 'host' or 'base'.")
-        return "stateless-host" if style == "host" else "stateless-base"
+        if style not in {"lambda", "base"}:
+            raise ScaffoldError("Stateless style must be 'lambda' or 'base'.")
+        return "stateless-lambda" if style == "lambda" else "stateless-base"
 
     if service_type == "stateful":
         if stateful_template not in {"consul", "local"}:
@@ -163,7 +163,7 @@ def _build_replacements(template_name: str, context: ScaffoldContext) -> dict[st
         "8.2.0": context.orleans_version,
     }
 
-    if template_name == "stateless-host":
+    if template_name == "stateless-lambda":
         replacements.update(
             {
                 "hello-mesh-service": context.service_name,

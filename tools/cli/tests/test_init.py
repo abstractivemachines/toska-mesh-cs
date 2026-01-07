@@ -3,7 +3,7 @@ from pathlib import Path
 from toska_mesh_cli.cli import main
 
 
-def test_init_stateless_host_scaffold(tmp_path):
+def test_init_stateless_lambda_scaffold(tmp_path):
     output_dir = tmp_path / "inventory-service"
 
     exit_code = main(
@@ -13,7 +13,7 @@ def test_init_stateless_host_scaffold(tmp_path):
             "--type",
             "stateless",
             "--style",
-            "host",
+            "lambda",
             "--output",
             str(output_dir),
         ]

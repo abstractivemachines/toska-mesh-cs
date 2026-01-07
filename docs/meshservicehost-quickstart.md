@@ -14,7 +14,7 @@ Runnable sample (NuGet consumer): `examples/hello-mesh-service` packs `ToskaMesh
 - ToskaStore guide: [docs/toskastore.md](toskastore.md) and the
   [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md).
 
-## Stateless service (Lambda-style)
+## Stateless service (Lambda style)
 
 ```csharp
 using ToskaMesh.Runtime;
@@ -110,7 +110,7 @@ await StatefulMeshHost.RunAsync(
 
 **What you get:**
 - Orleans hosting by default without surfacing Orleans types (provider can be swapped later).
-- Same registration/telemetry/auth/heartbeat pipeline as stateless hosts.
+- Same registration/telemetry/auth/heartbeat pipeline as stateless services.
 
 ## Key options
 

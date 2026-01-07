@@ -1,13 +1,13 @@
 # Runtime Packaging (NuGet)
 
 ## Projects
-- `src/Shared/ToskaMesh.Runtime` → `ToskaMesh.Runtime` (stateless host)
+- `src/Shared/ToskaMesh.Runtime` → `ToskaMesh.Runtime` (stateless runtime; lambda/base styles)
 - `src/Shared/ToskaMesh.Runtime.Stateful` → `ToskaMesh.Runtime.Stateful` (provider-agnostic stateful host; wraps Orleans by default)
 - `src/Shared/ToskaMesh.Runtime.Orleans` → `ToskaMesh.Runtime.Orleans` (Orleans provider)
 
 ## Pack locally
 ```bash
-# Stateless host
+# Stateless runtime
 dotnet pack src/Shared/ToskaMesh.Runtime/ToskaMesh.Runtime.csproj -c Release -o ./artifacts/nuget
 
 # Stateful facade (wraps Orleans)
