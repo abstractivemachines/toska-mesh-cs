@@ -62,7 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--style",
         choices=["lambda", "base"],
         default="lambda",
-        help="Stateless style: lambda (MeshServiceHost) or base (MeshService).",
+        help="Stateless style: lambda (MeshLambdaService) or base (MeshService).",
     )
     init_parser.add_argument(
         "--stateful-template",

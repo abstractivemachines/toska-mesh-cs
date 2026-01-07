@@ -2,13 +2,13 @@
 
 - Orleans gives us virtual actors (grains) with single-threaded execution per activation, persistence, and reminders. It is not a “spawn more threads per request” model; the runtime activates grains on demand, routes calls to the right silo, and handles placement/failover.
 - Default storage provider name is `Default` (wired by `UseMeshSilo`): ADO.NET storage when `DatabaseConnectionString` is set, in-memory otherwise. Reminders use the same database when configured.
-- Pair a stateful silo with a separate `MeshServiceHost` HTTP front-end that uses an Orleans client if you need public APIs; keep grains focused on entity/state logic.
+- Pair a stateful silo with a separate `MeshLambdaService` HTTP front-end that uses an Orleans client if you need public APIs; keep grains focused on entity/state logic.
 
 ## Flow (front-end to grain)
 
 ```mermaid
 flowchart LR
-    Client["HTTP caller"] -->|API| MeshHost["MeshServiceHost\n(front-end)"]
+    Client["HTTP caller"] -->|API| MeshHost["MeshLambdaService\n(front-end)"]
     MeshHost -->|IClusterClient| Gateway["Orleans gateway"]
     Gateway -->|routes| Silo["Silo host process"]
     Silo -->|activate| Grain["SessionGrain\n(single-threaded)"]
@@ -145,4 +145,4 @@ await StatefulMeshHost.RunAsync(
     });
 ```
 
-From a front-end `MeshServiceHost`, resolve `IClusterClient` and call `GetGrain<ISessionGrain>(sessionId)` to touch/read sessions. The grain keeps per-session state single-threaded, persists it via the configured store, and reminders clean up idle sessions without extra scheduler code.
+From a front-end `MeshLambdaService`, resolve `IClusterClient` and call `GetGrain<ISessionGrain>(sessionId)` to touch/read sessions. The grain keeps per-session state single-threaded, persists it via the configured store, and reminders clean up idle sessions without extra scheduler code.

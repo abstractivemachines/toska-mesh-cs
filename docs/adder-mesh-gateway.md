@@ -3,7 +3,7 @@
 ```mermaid
 flowchart LR
     subgraph AdderPod["Adder Mesh Service Pod"]
-        A["MeshServiceHost<br/>ASP.NET Core<br/>binds to 0.0.0.0:8083"] -->|uses| B["MeshServiceOptions<br/>Address=0.0.0.0<br/>AdvertisedAddress=PodIP"]
+        A["MeshLambdaService<br/>ASP.NET Core<br/>binds to 0.0.0.0:8083"] -->|uses| B["MeshServiceOptions<br/>Address=0.0.0.0<br/>AdvertisedAddress=PodIP"]
         B -->|registers| C["Discovery Registry<br/>entry Address=PodIP, Port=8083"]
     end
 

@@ -5,7 +5,7 @@ using ToskaMesh.Protocols;
 using ToskaMesh.Runtime;
 
 // Simple sample service that uses the ToskaMesh.Runtime NuGet package.
-// Shows the minimal MeshServiceHost surface with DI and a few routes.
+// Shows the minimal MeshLambdaService surface with DI and a few routes.
 var todoStore = new TodoStore();
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: true)
@@ -13,7 +13,7 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-await MeshServiceHost.RunAsync(
+await MeshLambdaService.RunAsync(
     app =>
     {
         app.Use(async (ctx, next) =>

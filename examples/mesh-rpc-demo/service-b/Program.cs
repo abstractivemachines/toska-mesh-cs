@@ -10,7 +10,7 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-await MeshServiceHost.RunAsync(
+await MeshLambdaService.RunAsync(
     app =>
     {
         app.MapGet("/health", () => Results.Ok("ok"));

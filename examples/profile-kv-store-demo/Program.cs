@@ -11,7 +11,7 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-await MeshServiceHost.RunAsync(
+await MeshLambdaService.RunAsync(
     app =>
     {
         app.MapGet("/profiles/{id}", async (string id, IKeyValueStore store, CancellationToken ct) =>

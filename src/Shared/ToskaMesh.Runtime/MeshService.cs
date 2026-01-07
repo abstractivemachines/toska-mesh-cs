@@ -33,13 +33,13 @@ public abstract class MeshService
     /// Run the service until shutdown.
     /// </summary>
     public Task RunAsync(CancellationToken cancellationToken = default) =>
-        MeshServiceHost.RunAsync(ConfigureApp, ConfigureOptions, ConfigureServices, cancellationToken);
+        MeshLambdaService.RunAsync(ConfigureApp, ConfigureOptions, ConfigureServices, cancellationToken);
 
     /// <summary>
     /// Start the service and return a handle to control the host (useful for tests).
     /// </summary>
-    public Task<MeshServiceHostHandle> StartAsync(CancellationToken cancellationToken = default) =>
-        MeshServiceHost.StartAsync(ConfigureApp, ConfigureOptions, ConfigureServices, cancellationToken);
+    public Task<MeshLambdaServiceHandle> StartAsync(CancellationToken cancellationToken = default) =>
+        MeshLambdaService.StartAsync(ConfigureApp, ConfigureOptions, ConfigureServices, cancellationToken);
 
     /// <summary>
     /// Run a service that uses a parameterless constructor.
@@ -51,7 +51,7 @@ public abstract class MeshService
     /// <summary>
     /// Start a service that uses a parameterless constructor and return a host handle.
     /// </summary>
-    public static Task<MeshServiceHostHandle> StartAsync<TService>(CancellationToken cancellationToken = default)
+    public static Task<MeshLambdaServiceHandle> StartAsync<TService>(CancellationToken cancellationToken = default)
         where TService : MeshService, new() =>
         new TService().StartAsync(cancellationToken);
 }

@@ -2,7 +2,7 @@
 
 Two processes:
 - `todo-mesh-silo`: Orleans silo using `StatefulMeshHost`, clustering via Consul, state stored through `IKeyValueStore` (Redis by default).
-- `todo-mesh-api`: HTTP API using `MeshServiceHost`, Orleans client calls grains in the silo.
+- `todo-mesh-api`: HTTP API using `MeshLambdaService`, Orleans client calls grains in the silo.
 
 Todos persist across restarts because state lives in the configured key/value store.
 

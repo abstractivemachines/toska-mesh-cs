@@ -4,7 +4,7 @@
 
 This document outlines the detailed implementation plan for ToskaMesh on .NET 8, including phased delivery and the remaining work to reach production readiness.
 
-Related docs: [MeshServiceHost quickstart](meshservicehost-quickstart.md), [Kubernetes deployment guide](kubernetes-deployment.md), [ADR index](adr/README.md), [runtime SDK design notes](runtime-sdk-design.md).
+Related docs: [MeshLambdaService quickstart](meshlambdaservice-quickstart.md), [Kubernetes deployment guide](kubernetes-deployment.md), [ADR index](adr/README.md), [runtime SDK design notes](runtime-sdk-design.md).
 
 ## Architecture Overview
 

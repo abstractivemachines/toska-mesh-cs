@@ -6,14 +6,14 @@ using Xunit;
 
 namespace ToskaMesh.Runtime.Tests;
 
-public class MeshServiceHostTests
+public class MeshLambdaServiceTests
 {
     [Fact]
     public async Task Minimal_service_can_run_in_memory_and_handle_requests()
     {
         var registry = new RecordingServiceRegistry();
 
-        await using var handle = await MeshServiceHost.StartAsync(
+        await using var handle = await MeshLambdaService.StartAsync(
             app =>
             {
                 app.MapGet("/hello", () => Results.Ok(new { message = "hi" }));
@@ -40,7 +40,7 @@ public class MeshServiceHostTests
     [Fact]
     public async Task Options_are_applied_when_running_in_memory()
     {
-        await using var handle = await MeshServiceHost.StartAsync(
+        await using var handle = await MeshLambdaService.StartAsync(
             app =>
             {
                 app.MapGet("/ping", () => "pong");
@@ -62,7 +62,7 @@ public class MeshServiceHostTests
     [Fact]
     public async Task Custom_middleware_runs_before_route()
     {
-        await using var handle = await MeshServiceHost.StartAsync(
+        await using var handle = await MeshLambdaService.StartAsync(
             app =>
             {
                 app.Use(async (ctx, next) =>
@@ -91,7 +91,7 @@ public class MeshServiceHostTests
     {
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await MeshServiceHost.StartAsync(
+            await MeshLambdaService.StartAsync(
                 app => { app.MapGet("/hello", () => "hi"); },
                 options =>
                 {

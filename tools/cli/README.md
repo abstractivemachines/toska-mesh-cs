@@ -59,7 +59,7 @@ toska init inventory-service --type stateful --stateful-template local
 ```
 
 Stateless styles:
-- `lambda` uses `MeshServiceHost` (lambda-style routing).
+- `lambda` uses `MeshLambdaService` (lambda-style routing).
 - `base` uses the `MeshService` base class.
 
 Options:

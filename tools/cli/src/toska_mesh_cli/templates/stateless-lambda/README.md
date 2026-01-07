@@ -1,6 +1,6 @@
 # hello-mesh-service
 
-Stateless mesh service template using `MeshServiceHost` (lambda-style routing).
+Stateless mesh service template using `MeshLambdaService` (lambda-style routing).
 
 ## Run locally
 ```bash

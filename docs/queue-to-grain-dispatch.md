@@ -7,9 +7,9 @@
 
 ```mermaid
 flowchart LR
-    Client["HTTP caller"] --> API["todo-mesh-api\nMeshServiceHost"]
+    Client["HTTP caller"] --> API["todo-mesh-api\nMeshLambdaService"]
     API -->|enqueue command| Redis["Redis stream/list"]
-    Worker["queue worker\nMeshServiceHost + Orleans client"] -->|dequeue| Redis
+    Worker["queue worker\nMeshLambdaService + Orleans client"] -->|dequeue| Redis
     Worker -->|dispatch| Grain["TodoGrain / SessionGrain"]
     Grain --> Storage["Orleans storage\n(Default provider)"]
 ```
@@ -79,7 +79,7 @@ public class CommandPump : BackgroundService
 public record TodoCommandEnvelope(string Id, string Title, bool Completed);
 ```
 
-Register the Orleans client and Redis in `MeshServiceHost` (or a generic host) similarly to the todo API, then add `CommandPump` as a hosted service.
+Register the Orleans client and Redis in `MeshLambdaService` (or a generic host) similarly to the todo API, then add `CommandPump` as a hosted service.
 
 ## How this differs from direct grain calls
 

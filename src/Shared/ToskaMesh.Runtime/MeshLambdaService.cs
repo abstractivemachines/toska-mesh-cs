@@ -12,7 +12,7 @@ namespace ToskaMesh.Runtime;
 /// <summary>
 /// High-level runtime wrapper for hosting stateless mesh-aware services without exposing ASP.NET Core details.
 /// </summary>
-public static class MeshServiceHost
+public static class MeshLambdaService
 {
     /// <summary>
     /// Run a stateless mesh service until shutdown.
@@ -30,7 +30,7 @@ public static class MeshServiceHost
     /// <summary>
     /// Start a stateless mesh service and return a handle with client/services access (useful for tests and embedding).
     /// </summary>
-    public static async Task<MeshServiceHostHandle> StartAsync(
+    public static async Task<MeshLambdaServiceHandle> StartAsync(
         Action<MeshServiceApp> configureApp,
         Action<MeshServiceOptions>? configureOptions = null,
         Action<IServiceCollection>? configureServices = null,
@@ -79,7 +79,7 @@ public static class MeshServiceHost
         var baseAddress = GetClientBaseAddress(app, options);
         var client = new HttpClient { BaseAddress = baseAddress };
 
-        return new MeshServiceHostHandle(app, client);
+        return new MeshLambdaServiceHandle(app, client);
     }
 
     private static Uri GetClientBaseAddress(WebApplication app, MeshServiceOptions options)
@@ -142,9 +142,9 @@ public sealed class MeshServiceApp
 /// <summary>
 /// Handle for a running host (supports HTTP client + DI access).
 /// </summary>
-public sealed class MeshServiceHostHandle : IAsyncDisposable
+public sealed class MeshLambdaServiceHandle : IAsyncDisposable
 {
-    internal MeshServiceHostHandle(WebApplication app, HttpClient client)
+    internal MeshLambdaServiceHandle(WebApplication app, HttpClient client)
     {
         App = app;
         Client = client;
@@ -162,7 +162,7 @@ public sealed class MeshServiceHostHandle : IAsyncDisposable
     }
 }
 
-public static class MeshServiceHostServiceCollectionExtensions
+public static class MeshLambdaServiceServiceCollectionExtensions
 {
     public static void TryAddMeshServiceRegistryStub(this IServiceCollection services, MeshServiceOptions options, IHostEnvironment env)
     {
@@ -175,7 +175,7 @@ public static class MeshServiceHostServiceCollectionExtensions
             {
                 throw new InvalidOperationException("No IServiceRegistry registered and AllowNoopServiceRegistry is false. Register a registry or explicitly allow noop for tests/dev.");
             }
-            Console.WriteLine($"[MeshServiceHost] WARNING: No IServiceRegistry registered; using noop registry for service '{options.ServiceName}' in {env.EnvironmentName}.");
+            Console.WriteLine($"[MeshLambdaService] WARNING: No IServiceRegistry registered; using noop registry for service '{options.ServiceName}' in {env.EnvironmentName}.");
         }
     }
 

@@ -1,6 +1,6 @@
 # Examples
 
-See [docs/README.md](../docs/README.md) for a full docs index and [MeshServiceHost quickstart](../docs/meshservicehost-quickstart.md) for runtime usage.
+See [docs/README.md](../docs/README.md) for a full docs index and [MeshLambdaService quickstart](../docs/meshlambdaservice-quickstart.md) for runtime usage.
 
 - `hello-mesh-service` – runnable stateless sample that consumes the `ToskaMesh.Runtime` NuGet package, registers with discovery, and can be deployed with the provided Dockerfile/compose override. See `examples/hello-mesh-service/README.md` for setup instructions.
 - `adder-mesh-service` – minimal stateless sample that uses the `MeshService` base class API and exposes a simple `/add` endpoint. See `examples/adder-mesh-service/README.md` for usage.

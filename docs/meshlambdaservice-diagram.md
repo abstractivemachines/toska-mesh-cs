@@ -1,4 +1,4 @@
-# MeshServiceHost runtime flow
+# MeshLambdaService runtime flow
 
 ```mermaid
 flowchart TD
@@ -9,7 +9,7 @@ flowchart TD
     end
 
     subgraph "Stateless host"
-        S1["MeshServiceHost.RunAsync / StartAsync"]
+        S1["MeshLambdaService.RunAsync / StartAsync"]
         S2["Options binding\nMeshServiceOptions.FromConfiguration + EnsureDefaults"]
         S3["TryAddMeshServiceRegistryStub\n(no-op registry only when allowed/dev)"]
         S4["AddMeshService\n- telemetry/auth wiring\n- health checks\n- MeshAutoRegistrar\n- MeshHeartbeatService (optional)"]

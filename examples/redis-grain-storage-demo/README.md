@@ -5,7 +5,7 @@ Minimal stateful service that persists Orleans grain state to ToskaRedis (Redis)
 ## What it shows
 - `[PersistentState]` using the mesh Redis grain storage provider (`RedisStorageConnectionString`).
 - Local clustering (no Consul) for easy testing.
-- Front-end (`MeshServiceHost`) calls grains; grain state persists in Redis without TTL/eviction.
+- Front-end (`MeshLambdaService`) calls grains; grain state persists in Redis without TTL/eviction.
 
 ## Run locally
 

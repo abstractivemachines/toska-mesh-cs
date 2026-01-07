@@ -18,7 +18,7 @@ var serviceId = configuration.GetValue<string>("Orleans:ServiceId") ?? "redis-gr
 var gatewayPort = configuration.GetValue<int?>("Orleans:GatewayPort") ?? 30000;
 var siloPort = configuration.GetValue<int?>("Orleans:SiloPort") ?? 11111;
 
-await MeshServiceHost.RunAsync(
+await MeshLambdaService.RunAsync(
     app =>
     {
         app.MapGet("/counter", async (IGrainFactory grains) =>

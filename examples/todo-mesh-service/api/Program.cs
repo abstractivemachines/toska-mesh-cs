@@ -22,8 +22,8 @@ var serviceId = configuration.GetValue<string>("Orleans:ServiceId") ?? "todo-mes
 
 try
 {
-    Console.WriteLine("[todo-mesh-api] Starting MeshServiceHost...");
-    await MeshServiceHost.RunAsync(
+    Console.WriteLine("[todo-mesh-api] Starting MeshLambdaService...");
+    await MeshLambdaService.RunAsync(
         app =>
         {
             app.MapGet("/todos/{id}", async (string id, IGrainFactory grains) =>

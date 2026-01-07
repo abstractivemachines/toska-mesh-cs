@@ -2,13 +2,13 @@
 
 - **Start here**
   - [Getting started](GETTING_STARTED.md) – single-page local demo/setup.
-  - [MeshServiceHost quickstart](meshservicehost-quickstart.md) – runtime surface with stateless/stateful samples.
+  - [MeshLambdaService quickstart](meshlambdaservice-quickstart.md) – runtime surface with stateless/stateful samples.
   - [Examples index](../examples/README.md) – links to runnable samples; see per-example guides for `hello`, `adder`, `todo`, and `redis-grain-storage`.
   - Cluster bootstraps: [Talos quickstart](../deployments/QUICKSTART-TALOS.md), [EKS quickstart](../deployments/QUICKSTART-EKS.md).
   - Demo script: [DEMO.md](../DEMO.md) for the abbreviated local walkthrough.
 
 - **Architecture & Runtime**
-  - [MeshServiceHost diagram](meshservicehost-diagram.md) and [runtime SDK design](runtime-sdk-design.md).
+  - [MeshLambdaService diagram](meshlambdaservice-diagram.md) and [runtime SDK design](runtime-sdk-design.md).
   - [Orleans stateful grain example](orleans-stateful-grain-example.md) and [queue-to-grain dispatch](queue-to-grain-dispatch.md).
   - [Evented communication](evented-communication.md) patterns; [runtime packaging](runtime-packaging.md) layout.
   - [Toska manifest reference](toska-manifest.md) for `toska.yaml`.

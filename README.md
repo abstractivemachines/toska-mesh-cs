@@ -12,7 +12,7 @@ includes a CLI for scaffolding and deployment.
 ## What ToskaMesh gives you
 - Gateway and routing powered by YARP with health-aware load balancing and resilience policies.
 - Discovery and registry through Consul and a gRPC-based registry surface.
-- Runtime hosts (`MeshServiceHost` and `StatefulMeshHost`) that wire auth, telemetry, health checks, and service registration.
+- Runtime hosts (`MeshLambdaService` and `StatefulMeshHost`) that wire auth, telemetry, health checks, and service registration.
 - Operational services for auth, config, metrics, and tracing to keep cross-cutting concerns consistent.
 - Tooling and deployment assets: Toska CLI, Docker Compose, Helm, Kubernetes manifests, and Terraform.
 
@@ -52,7 +52,7 @@ flowchart LR
     subgraph Service Runtime
         ServiceA[Service A\nstateless or Orleans-backed]
         ServiceB[Service B\nstateless or Orleans-backed]
-        Runtime[ToskaMesh.Runtime\nMeshServiceHost / StatefulMeshHost]
+        Runtime[ToskaMesh.Runtime\nMeshLambdaService / StatefulMeshHost]
     end
 
     ServiceA --> Runtime
@@ -188,7 +188,7 @@ See [tools/cli/README.md](tools/cli/README.md) for full CLI documentation.
 
 ## Documentation
 - Docs index: [docs/README.md](docs/README.md) for architecture, operations, deployments, and plans.
-- Runtime hosting: [docs/meshservicehost-quickstart.md](docs/meshservicehost-quickstart.md); samples under `examples/`.
+- Runtime hosting: [docs/meshlambdaservice-quickstart.md](docs/meshlambdaservice-quickstart.md); samples under `examples/`.
 - ToskaStore key/value guide: [docs/toskastore.md](docs/toskastore.md).
 - Decisions and history: ADRs in [docs/adr/README.md](docs/adr/README.md); changelog index in [docs/CHANGELOG.md](docs/CHANGELOG.md) with entries in `changes/`.
 
@@ -254,6 +254,6 @@ Licensed under the Apache License 2.0. See `LICENSE` and `NOTICE` for details.
 - [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
 - [Polly Documentation](https://github.com/App-vNext/Polly)
-- `MeshServiceHost` quickstart: `docs/meshservicehost-quickstart.md`
+- `MeshLambdaService` quickstart: `docs/meshlambdaservice-quickstart.md`
 - Runnable example service (NuGet consumer): `examples/hello-mesh-service`
 - Runtime packaging: `docs/runtime-packaging.md`

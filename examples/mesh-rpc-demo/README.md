@@ -74,5 +74,5 @@ kubectl -n toskamesh-example create secret generic mesh-rpc-demo-rabbitmq \\
 ```
 
 ## Notes
-- These services use `MeshServiceHost` but set `AllowNoopServiceRegistry = true` and `RegisterAutomatically = false` for local runs.
+- These services use `MeshLambdaService` but set `AllowNoopServiceRegistry = true` and `RegisterAutomatically = false` for local runs.
 - To point at a different RabbitMQ host, update `k8s/mesh-rpc-demo/configmap.yaml` and redeploy.
