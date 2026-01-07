@@ -10,7 +10,7 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-await StatefulMeshHost.RunAsync(
+await MeshStatefulLambdaService.RunAsync(
     configureStateful: stateful =>
     {
         stateful.ServiceName = "redis-grain-silo";

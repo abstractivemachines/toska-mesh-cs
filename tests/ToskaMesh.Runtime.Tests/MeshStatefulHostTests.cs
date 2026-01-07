@@ -13,7 +13,7 @@ public class MeshStatefulHostTests
     {
         Environment.SetEnvironmentVariable("Mesh:ServiceAuth:Secret", new string('s', MeshServiceAuthOptions.MinimumSecretLength));
 
-        using var host = StatefulMeshHost.Start(
+        using var host = MeshStatefulLambdaService.Start(
             configureStateful: options =>
             {
                 options.ServiceName = "stateful-test";

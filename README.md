@@ -12,7 +12,7 @@ includes a CLI for scaffolding and deployment.
 ## What ToskaMesh gives you
 - Gateway and routing powered by YARP with health-aware load balancing and resilience policies.
 - Discovery and registry through Consul and a gRPC-based registry surface.
-- Runtime hosts (`MeshLambdaService` and `StatefulMeshHost`) that wire auth, telemetry, health checks, and service registration.
+- Runtime hosts (`MeshLambdaService` and `MeshStatefulLambdaService`) that wire auth, telemetry, health checks, and service registration.
 - Operational services for auth, config, metrics, and tracing to keep cross-cutting concerns consistent.
 - Tooling and deployment assets: Toska CLI, Docker Compose, Helm, Kubernetes manifests, and Terraform.
 
@@ -52,7 +52,7 @@ flowchart LR
     subgraph Service Runtime
         ServiceA[Service A\nstateless or Orleans-backed]
         ServiceB[Service B\nstateless or Orleans-backed]
-        Runtime[ToskaMesh.Runtime\nMeshLambdaService / StatefulMeshHost]
+        Runtime[ToskaMesh.Runtime\nMeshLambdaService / MeshStatefulLambdaService]
     end
 
     ServiceA --> Runtime

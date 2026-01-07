@@ -38,35 +38,17 @@ public static class MeshLambdaService
     {
         var builder = WebApplication.CreateBuilder();
 
-        var options = MeshServiceOptions.FromConfiguration(builder.Configuration);
-        configureOptions?.Invoke(options);
-        options.EnsureDefaults();
+        var options = MeshServiceBootstrap.CreateOptions(builder.Configuration, configureOptions);
 
         // Allow dynamic port selection (e.g., tests) by setting Port=0.
         builder.WebHost.UseUrls($"http://{options.Address}:{options.Port}");
 
+        // Register options early so user services can inject them
         builder.Services.AddSingleton(options);
         configureServices?.Invoke(builder.Services);
 
-        builder.Services.AddMeshService(builder.Configuration, opt =>
-        {
-            opt.ServiceName = options.ServiceName;
-            opt.ServiceId = options.ServiceId;
-            opt.Address = options.Address;
-            opt.Port = options.Port;
-            opt.HealthEndpoint = options.HealthEndpoint;
-            opt.HealthInterval = options.HealthInterval;
-            opt.HealthTimeout = options.HealthTimeout;
-            opt.UnhealthyThreshold = options.UnhealthyThreshold;
-            opt.EnableTelemetry = options.EnableTelemetry;
-            opt.EnableAuth = options.EnableAuth;
-            opt.RegisterAutomatically = options.RegisterAutomatically;
-            opt.ServiceRegistryProvider = options.ServiceRegistryProvider;
-            opt.Metadata = new Dictionary<string, string>(options.Metadata, StringComparer.OrdinalIgnoreCase);
-        });
-
-        // If the caller still didn't register a service registry, use a no-op stub only if explicitly allowed.
-        builder.Services.TryAddMeshServiceRegistryStub(options, builder.Environment);
+        // Wire mesh infrastructure (uses TryAddSingleton for options, so won't duplicate)
+        MeshServiceBootstrap.ConfigureServices(builder.Services, builder.Configuration, builder.Environment, options);
 
         var app = builder.Build();
         var meshApp = new MeshServiceApp(app);

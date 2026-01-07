@@ -6,7 +6,7 @@ Runnable sample (NuGet consumer): `examples/hello-mesh-service` packs `ToskaMesh
 
 ## Key/value helper (Redis or ToskaStore)
 - Stateless: `services.AddMeshKeyValueStore(configuration);` (optional `options => options.KeyPrefix = "my-svc:";` for Redis).
-- Stateful silo pattern: use `StatefulMeshHost` for grains only; expose HTTP via a separate `MeshLambdaService` front-end that uses an Orleans client. Set `StatefulHostOptions.KeyValue.Enabled = true` to wire an `IKeyValueStore` with a default prefix of the service name.
+- Stateful silo pattern: use `MeshStatefulLambdaService` for grains only; expose HTTP via a separate `MeshLambdaService` front-end that uses an Orleans client. Set `StatefulHostOptions.KeyValue.Enabled = true` to wire an `IKeyValueStore` with a default prefix of the service name.
 - Provider selection: set `Mesh:KeyValue:Provider` to `Redis` (default) or `ToskaStore`.
 - Redis config: `Mesh:KeyValue:Redis:ConnectionString` (and optional `KeyPrefix`, `Database`).
 - ToskaStore config: `Mesh:KeyValue:ToskaStore:BaseUrl` plus optional `AuthToken`, `KeyPrefix`. `ListKeysAsync`/`ListAsync` use `/kv/keys` when available; set `EnableKeyIndex=true` to fall back on a local key index if the endpoint is unavailable.
@@ -92,7 +92,7 @@ await MeshLambdaService.RunAsync(
 using ToskaMesh.Runtime;
 using ToskaMesh.Runtime.Stateful;
 
-await StatefulMeshHost.RunAsync(
+await MeshStatefulLambdaService.RunAsync(
     configureStateful: stateful =>
     {
         stateful.ServiceName = "inventory-stateful";
@@ -128,5 +128,5 @@ await StatefulMeshHost.RunAsync(
 ## Notes
 - If you don't register an `IServiceRegistry`, the host will insert a no-op registry only when explicitly allowed (or in Development). For real deployments, leave `AllowNoopServiceRegistry` as false and supply a registry.
 - Middleware hook is available via `MeshServiceApp.Use(Func<HttpContext, Func<Task>, Task>)`.
-- Stateful path currently assumes Orleans under the hood but is exposed via `StatefulMeshHost` + `StatefulHostOptions` to keep implementation details out of consumer code.
+- Stateful path currently assumes Orleans under the hood but is exposed via `MeshStatefulLambdaService` + `StatefulHostOptions` to keep implementation details out of consumer code.
 - Telemetry/auth are enabled by default. To opt out (e.g., lightweight internal jobs), set `EnableTelemetry = false` and/or `EnableAuth = false` in `MeshServiceOptions`.

@@ -130,7 +130,7 @@ Hosting the silo with the built-in Orleans provider:
 ```csharp
 using ToskaMesh.Runtime.Stateful;
 
-await StatefulMeshHost.RunAsync(
+await MeshStatefulLambdaService.RunAsync(
     configureStateful: stateful =>
     {
         stateful.ServiceName = "session-silo";

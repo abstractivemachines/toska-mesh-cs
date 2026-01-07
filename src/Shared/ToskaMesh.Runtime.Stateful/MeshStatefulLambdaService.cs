@@ -6,9 +6,10 @@ using ToskaMesh.Runtime.Orleans;
 namespace ToskaMesh.Runtime.Stateful;
 
 /// <summary>
-/// Provider-agnostic entry points for hosting stateful ToskaMesh services.
+/// Provider-agnostic entry points for hosting stateful ToskaMesh services using lambdas.
+/// Mirrors <see cref="MeshLambdaService"/> for stateless services.
 /// </summary>
-public static class StatefulMeshHost
+public static class MeshStatefulLambdaService
 {
     public static async Task RunAsync(
         Action<StatefulHostOptions>? configureStateful = null,
@@ -46,23 +47,19 @@ public static class StatefulMeshHost
 
         builder.ConfigureServices((context, services) =>
         {
-            var meshOptions = MeshServiceOptions.FromConfiguration(context.Configuration);
-            meshOptions.ServiceName = statefulOptions.ServiceName;
-            meshOptions.ServiceId = statefulOptions.ServiceId;
-            configureService?.Invoke(meshOptions);
-            meshOptions.EnsureDefaults();
-
-            services.AddSingleton(statefulOptions);
-            services.AddSingleton(statefulOptions.Orleans);
-
-            services.AddMeshService(context.Configuration, opts =>
+            // Create mesh options, applying stateful service name/id first, then user config
+            var meshOptions = MeshServiceBootstrap.CreateOptions(context.Configuration, opts =>
             {
                 opts.ServiceName = statefulOptions.ServiceName;
                 opts.ServiceId = statefulOptions.ServiceId;
                 configureService?.Invoke(opts);
             });
 
-            services.TryAddMeshServiceRegistryStub(meshOptions, context.HostingEnvironment);
+            services.AddSingleton(statefulOptions);
+            services.AddSingleton(statefulOptions.Orleans);
+
+            // Wire mesh infrastructure using shared bootstrap
+            MeshServiceBootstrap.ConfigureServices(services, context.Configuration, context.HostingEnvironment, meshOptions);
 
             if (statefulOptions.KeyValue.Enabled)
             {

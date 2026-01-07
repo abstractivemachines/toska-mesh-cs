@@ -21,7 +21,7 @@ await healthApp.StartAsync();
 
 try
 {
-    await StatefulMeshHost.RunAsync(
+    await MeshStatefulLambdaService.RunAsync(
     configureStateful: opts =>
     {
         opts.ServiceName = "todo-mesh-silo";
