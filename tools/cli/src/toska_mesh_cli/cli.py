@@ -59,12 +59,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Service type (default: stateless).",
     )
     init_parser.add_argument(
-        "--style",
-        choices=["lambda", "base"],
-        default="lambda",
-        help="Stateless style: lambda (MeshLambdaService) or base (MeshService).",
-    )
-    init_parser.add_argument(
         "--stateful-template",
         choices=["consul", "local"],
         default="consul",
@@ -496,7 +490,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 result = scaffold_service(
                     args.name,
                     service_type=args.type,
-                    style=args.style,
                     stateful_template=args.stateful_template,
                     output_dir=output_dir,
                     runtime_version=args.runtime_version,

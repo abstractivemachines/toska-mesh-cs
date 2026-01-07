@@ -1,6 +1,6 @@
-# Adder Mesh Service (base-class style)
+# Adder Mesh Service
 
-Small stateless service that uses the `MeshService` base class instead of lambdas. It exposes a single endpoint that sums two numbers.
+Small stateless service that exposes a simple endpoint to sum two numbers.
 
 ## Run locally
 

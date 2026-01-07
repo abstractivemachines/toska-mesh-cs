@@ -41,7 +41,6 @@ def scaffold_service(
     name: str,
     *,
     service_type: str,
-    style: str,
     stateful_template: str,
     output_dir: Path,
     runtime_version: str,
@@ -50,7 +49,7 @@ def scaffold_service(
     force: bool,
 ) -> ScaffoldResult:
     service_name = _validate_service_name(name)
-    template_name = _resolve_template(service_type, style, stateful_template)
+    template_name = _resolve_template(service_type, stateful_template)
 
     base_name = _base_name(service_name)
     base_pascal = _to_pascal(base_name)
@@ -98,15 +97,12 @@ def scaffold_service(
     )
 
 
-def _resolve_template(service_type: str, style: str, stateful_template: str) -> str:
+def _resolve_template(service_type: str, stateful_template: str) -> str:
     service_type = service_type.lower()
-    style = style.lower()
     stateful_template = stateful_template.lower()
 
     if service_type == "stateless":
-        if style not in {"lambda", "base"}:
-            raise ScaffoldError("Stateless style must be 'lambda' or 'base'.")
-        return "stateless-lambda" if style == "lambda" else "stateless-base"
+        return "stateless-lambda"
 
     if service_type == "stateful":
         if stateful_template not in {"consul", "local"}:
@@ -168,14 +164,6 @@ def _build_replacements(template_name: str, context: ScaffoldContext) -> dict[st
             {
                 "hello-mesh-service": context.service_name,
                 "HelloMeshService": context.project_name,
-            }
-        )
-    elif template_name == "stateless-base":
-        replacements.update(
-            {
-                "adder-mesh-service": context.service_name,
-                "AdderMeshService": context.project_name,
-                "AdderService": context.service_class_name,
             }
         )
     elif template_name == "stateful-consul":
