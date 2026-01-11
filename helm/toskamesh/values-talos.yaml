@@ -109,8 +109,12 @@ observabilityService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-observability-service"
-    tag: "local"
+    tag: "v0.2.0"
     pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30082
 
 core:
   replicaCount: 1

@@ -266,6 +266,10 @@ observabilityService:
     repository: toskamesh-observability-service
     tag: latest
     pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    nodePort: null
   resources:
     requests:
       cpu: 100m

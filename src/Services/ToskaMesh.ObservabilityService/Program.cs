@@ -23,8 +23,15 @@ builder.Services.AddSingleton(new ObservabilityMetrics(ServiceName));
 builder.Services.AddSingleton<ObservabilityStore>();
 builder.Services.AddSingleton<TopologyGraphBuilder>();
 builder.Services.AddSingleton<SloCalculator>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Dashboard", policy =>
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
 
 var app = builder.Build();
+
+app.UseCors("Dashboard");
 
 app.Use(async (context, next) =>
 {
