@@ -19,6 +19,7 @@
     <PackageReference Include="OrleansDashboard" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" />
     <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.AmazonSQS" />
     <PackageReference Include="MassTransit.RabbitMQ" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>

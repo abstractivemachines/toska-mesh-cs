@@ -3,9 +3,9 @@
 - **Start here**
   - [Getting started](GETTING_STARTED.md) – single-page local demo/setup.
   - [MeshLambdaService quickstart](meshlambdaservice-quickstart.md) – runtime surface with stateless/stateful samples.
+  - [Migration guide (v0.1 to v0.2)](migration-guide-v0.2.md) – breaking changes and migration steps.
   - [Examples index](../examples/README.md) – links to runnable samples; see per-example guides for `hello`, `adder`, `todo`, and `redis-grain-storage`.
   - Cluster bootstraps: [Talos quickstart](../deployments/QUICKSTART-TALOS.md), [EKS quickstart](../deployments/QUICKSTART-EKS.md).
-  - Demo script: [DEMO.md](../DEMO.md) for the abbreviated local walkthrough.
 
 - **Architecture & Runtime**
   - [MeshLambdaService diagram](meshlambdaservice-diagram.md) and [runtime SDK design](runtime-sdk-design.md).
@@ -36,6 +36,7 @@
 - **Decisions & change history**
   - ADRs: [adr/README.md](adr/README.md) (001 Orleans clustering, 002 Polly resilience, 003 Consul discovery, 004 YARP gateway).
   - Changelog: [CHANGELOG.md](CHANGELOG.md) links to detailed change notes in `changes/`.
+  - [Package compatibility](package-compatibility.md) – version requirements for MassTransit, AWS SDK, Orleans, etc.
 
 - **Tooling**
   - CLI helper: [tools/cli/README.md](../tools/cli/README.md).

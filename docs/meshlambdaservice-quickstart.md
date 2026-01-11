@@ -45,9 +45,9 @@ await MeshLambdaService.RunAsync(
 - Auto-registration + heartbeat (Consul/gRPC via `IServiceRegistry`).
 - Custom middleware via `app.Use(...)` without exposing `WebApplication`.
 
-## RabbitMQ request/response (optional)
+## Message bus request/response (RabbitMQ or AWS SNS/SQS)
 
-Use `IMeshRpc` (MassTransit request/response) for simple service-to-service calls over RabbitMQ. See `examples/mesh-rpc-demo/README.md` for a runnable chain.
+Use `IMeshRpc` (MassTransit request/response) for simple service-to-service calls over the configured broker (RabbitMQ by default; AWS SNS/SQS when `Messaging:Transport` is set to `AwsSqs`). See `examples/mesh-rpc-demo/README.md` for a runnable chain.
 
 ```csharp
 using Microsoft.Extensions.Configuration;

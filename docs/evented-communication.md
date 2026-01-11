@@ -1,15 +1,16 @@
-# Evented Service Communication (RabbitMQ + MassTransit)
+# Evented Service Communication (RabbitMQ or AWS SNS/SQS + MassTransit)
 
 ## Pattern
 - **Contract:** Define/extend event DTOs in `src/Shared/ToskaMesh.Common/Messaging/MessageContracts.cs` (e.g., `UserCreated { UserId, Email, Timestamp }`).
-- **Publisher (Service A):** Inject `IPublishEndpoint`; on the business event call `await _publishEndpoint.Publish(new UserCreated { … }, ct);`. RabbitMQ connection comes from `externalServices.rabbitmq` (Helm values).
+- **Transport:** Set `Messaging:Transport` to `RabbitMq` (default) or `AwsSqs`. RabbitMQ uses `Messaging:RabbitMq*` settings; AWS uses `Messaging:AwsSqs:*` for region/scope/optional service URL and AWS credentials from the default provider chain.
+- **Publisher (Service A):** Inject `IPublishEndpoint`; on the business event call `await _publishEndpoint.Publish(new UserCreated { … }, ct);`. Broker connection comes from the configured transport.
 - **Consumer (Service B):** Implement `IConsumer<UserCreated>`; register consumer with MassTransit (`AddConsumer<>`, `ReceiveEndpoint("service-b-user-created", …)`); handle the event and optionally publish follow-on events.
-- **Security:** Use RabbitMQ auth/TLS; service-to-service JWT/mTLS is for HTTP/gRPC, not needed for broker messages.
+- **Security:** RabbitMQ uses broker auth/TLS; AWS relies on IAM roles/credentials (or access key/secret) and optional `ServiceUrl` for LocalStack.
 - **Telemetry:** OpenTelemetry + Prometheus already wired; add custom counters/histograms via `IMetricsRegistry` in consumers if desired.
-- **Deployment:** Queues are auto-created by MassTransit on first consumer. No chart changes beyond RabbitMQ settings.
+- **Deployment:** Queues/topics are auto-created by MassTransit on first consumer. No chart changes beyond transport settings.
 
 ## Mesh RPC helper (request/response)
-For simple service-to-service calls over RabbitMQ, use `IMeshRpc` from `ToskaMesh.Common.Messaging`. It wraps MassTransit request/response so handlers look like synchronous calls.
+For simple service-to-service calls over the configured broker (RabbitMQ or AWS SNS/SQS), use `IMeshRpc` from `ToskaMesh.Common.Messaging`. It wraps MassTransit request/response so handlers look like synchronous calls.
 
 Example flow: Service A receives HTTP, calls Service B; Service B calls Service C; Service C responds; the response bubbles back to A.
 
@@ -75,14 +76,31 @@ services.AddMeshMassTransit(configuration, x =>
 services.AddMeshRpc();
 ```
 
+## Transport configuration
+- `RabbitMq`: defaults to localhost guest credentials; override via `Messaging:RabbitMqHost`, `RabbitMqVirtualHost`, `RabbitMqUsername`, and `RabbitMqPassword` (or matching environment variables).
+- `AwsSqs`: set `Messaging:Transport` to `AwsSqs` and provide region plus optional scope/service URL for LocalStack. Credentials can come from IAM roles or the standard AWS env vars.
+
+```json
+{
+  "Messaging": {
+    "Transport": "AwsSqs",
+    "AwsSqs": {
+      "Region": "us-east-1",
+      "Scope": "dev",
+      "ServiceUrl": "http://localhost:4566"
+    }
+  }
+}
+```
+
 ## Flow Diagram
 ```
-+-------------+        publish UserCreated        +----------------+        consume        +----------------+
-| Service A   |  --------------------------------> |   RabbitMQ     |  -------------------> |   Service B    |
-| (Publisher) |   (IPublishEndpoint.Publish)       |  exchange/queue|   (IConsumer<T>)     | (Consumer)     |
-+-------------+                                    +----------------+                      +----------------+
-        |                                                                                         |
-        | emit follow-on events if needed                                                        |
-        v                                                                                         v
-   other services (any subscriber with matching contract)                              downstream actions / replies
++-------------+        publish UserCreated        +-----------------------------+        consume        +----------------+
+| Service A   |  --------------------------------> | RabbitMQ or SNS topic/SQS  |  -------------------> |   Service B    |
+| (Publisher) |   (IPublishEndpoint.Publish)       |  exchange/topic + queue    |   (IConsumer<T>)     | (Consumer)     |
++-------------+                                    +-----------------------------+                      +----------------+
+        |                                                                                                  |
+        | emit follow-on events if needed                                                                 |
+        v                                                                                                  v
+   other services (any subscriber with matching contract)                                      downstream actions / replies
 ```
