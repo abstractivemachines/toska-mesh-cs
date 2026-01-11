@@ -169,6 +169,16 @@ Health checks: `curl http://localhost:5000/health` (gateway) and `curl http://lo
 
 Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 
+## Observability service (demo)
+- Run locally: `dotnet run --project src/Services/ToskaMesh.ObservabilityService`
+- JSON portal index: `GET http://localhost:5000/observability/portal`
+- Topology graph: `GET http://localhost:5000/observability/topology`
+- Service dashboards: `GET http://localhost:5000/observability/dashboards/service/Gateway`
+- SLO burn alerts: `GET http://localhost:5000/observability/alerts/burn-rate`
+- Release history: `GET http://localhost:5000/observability/releases`
+- Playbooks: `GET http://localhost:5000/observability/playbooks`
+- Prometheus scrape: `GET http://localhost:5000/metrics`
+
 ## CLI Reference
 
 | Command | Description |

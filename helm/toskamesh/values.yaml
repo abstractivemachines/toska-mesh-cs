@@ -258,6 +258,28 @@ tracingService:
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
 
+# Observability service configuration
+observabilityService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: toskamesh-observability-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
 # Core (Orleans) configuration
 core:
   enabled: true

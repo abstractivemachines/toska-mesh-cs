@@ -1,0 +1,97 @@
+{{- if .Values.observabilityService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toskamesh.fullname" . }}-observability-service
+  labels:
+    {{- include "toskamesh.labels" . | nindent 4 }}
+    app.kubernetes.io/component: observability-service
+spec:
+  replicas: {{ .Values.observabilityService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "toskamesh.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: observability-service
+  template:
+    metadata:
+      labels:
+        {{- include "toskamesh.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: observability-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+        {{- if .Values.mesh.enabled }}
+        {{- with .Values.mesh.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: observability-service
+        image: "{{ .Values.observabilityService.image.repository }}:{{ .Values.observabilityService.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.observabilityService.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.environment }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: Consul__Address
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-observability-service-config
+              key: consul_address
+        - name: Mesh__ServiceDiscovery__Grpc__Address
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-observability-service-config
+              key: discovery_grpc_address
+        - name: Mesh__Telemetry__TracingIngest__Enabled
+          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
+        - name: Mesh__Telemetry__TracingIngest__Endpoint
+          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
+        - name: Mesh__Telemetry__Sampling__Strategy
+          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
+        - name: Mesh__Telemetry__Sampling__Ratio
+          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
+        - name: Mesh__Telemetry__ServiceNamespace
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        {{- with .Values.telemetry.tracingIngest.headers }}
+        {{- range $name, $value := . }}
+        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: Mesh__ServiceAuth__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-observability-service-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
+              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
+        resources:
+          {{- toYaml .Values.observabilityService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+{{- end }}

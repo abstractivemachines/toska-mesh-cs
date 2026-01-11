@@ -14,6 +14,7 @@ ToskaMesh Service Mesh Components:
   - Config Service: {{ .Values.configService.enabled }}
   - Metrics Service: {{ .Values.metricsService.enabled }}
   - Tracing Service: {{ .Values.tracingService.enabled }}
+  - Observability Service: {{ .Values.observabilityService.enabled }}
   - Core (Orleans): {{ .Values.core.enabled }}
   - Health Monitor: {{ .Values.healthMonitor.enabled }}
 

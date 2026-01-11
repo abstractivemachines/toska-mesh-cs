@@ -105,6 +105,13 @@ tracingService:
     refreshConcurrently: true
     commandTimeoutSeconds: 300
 
+observabilityService:
+  replicaCount: 1
+  image:
+    repository: "192.168.50.3:30500/toskamesh-observability-service"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
 core:
   replicaCount: 1
   image:
