@@ -11,7 +11,7 @@ Source lives under `src/`: `Core` (gateway, discovery, router, health monitor), 
 - Run a service with `dotnet run` from its project directory (e.g., `src/Core/ToskaMesh.Gateway`).
 
 ## Coding Style & Naming Conventions
-Target .NET 8/C# 12 with `Nullable` and implicit usings enabled. Prefer 4-space indentation, `PascalCase` for types/methods, `camelCase` for locals/fields, `I`-prefixed interfaces, and `Async` suffix for async methods. Keep dependencies centralized; prefer DI/options and pass cancellation tokens to entrypoints. Treat warnings as actionable and mirror existing patterns before introducing new ones.
+Target .NET 10/C# 14 with `Nullable` and implicit usings enabled. Prefer 4-space indentation, `PascalCase` for types/methods, `camelCase` for locals/fields, `I`-prefixed interfaces, and `Async` suffix for async methods. Keep dependencies centralized; prefer DI/options and pass cancellation tokens to entrypoints. Treat warnings as actionable and mirror existing patterns before introducing new ones.
 
 ## Testing Guidelines
 xUnit with FluentAssertions is the default; tests mirror production namespaces and use the `.Tests` suffix. Name tests by behavior (`Method_Scenario_ExpectedResult`). Use `Fact` for single cases and `Theory` for data-driven coverage. Prefer in-memory/test host for HTTP flows; document required containers when adding integration tests. Add tests with new features and edge cases before refactors.

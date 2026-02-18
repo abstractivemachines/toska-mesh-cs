@@ -6,7 +6,7 @@ Three mesh services chained via RabbitMQ request/response:
 - `service-c` handles the final request and responds.
 
 ## Prerequisites
-- .NET 8 SDK
+- .NET 10 SDK
 - RabbitMQ
 - ToskaMesh CLI (`tools/cli`) for Kubernetes deployment
   (see `tools/cli/README.md` for setup)

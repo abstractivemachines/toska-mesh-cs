@@ -6,7 +6,7 @@ Related guide: [docs/toskastore.md](../../docs/toskastore.md) and the
 [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md).
 
 ## Prerequisites
-- .NET 8 SDK
+- .NET 10 SDK
 - Local runtime packages in `./artifacts/nuget`
 - ToskaStore running locally (see below)
 

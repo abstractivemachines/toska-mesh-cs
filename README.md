@@ -4,7 +4,7 @@
 
 **Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractivemachines)**
 
-ToskaMesh is a distributed service mesh and runtime for .NET 8. It provides the gateway, discovery plane, runtime hosts, and
+ToskaMesh is a distributed service mesh and runtime for .NET 10. It provides the gateway, discovery plane, runtime hosts, and
 operational services (auth, config, metrics, tracing) needed to build and run stateless or Orleans-backed stateful services with
 consistent routing, security, and observability. This repo is the C# implementation ported from the original Elixir project and
 includes a CLI for scaffolding and deployment.
@@ -126,8 +126,8 @@ Related guides: [docs/toskastore.md](docs/toskastore.md), the
 
 ## Quick start
 
-### Install .NET 8 SDK
-Install from https://dotnet.microsoft.com/download/dotnet/8.0 and confirm:
+### Install .NET 10 SDK
+Install from https://dotnet.microsoft.com/download/dotnet/10.0 and confirm:
 ```bash
 dotnet --version
 ```

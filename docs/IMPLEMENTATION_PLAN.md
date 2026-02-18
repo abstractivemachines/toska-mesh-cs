@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the detailed implementation plan for ToskaMesh on .NET 8, including phased delivery and the remaining work to reach production readiness.
+This document outlines the detailed implementation plan for ToskaMesh on .NET 10, including phased delivery and the remaining work to reach production readiness.
 
 Related docs: [MeshLambdaService quickstart](meshlambdaservice-quickstart.md), [Kubernetes deployment guide](kubernetes-deployment.md), [ADR index](adr/README.md), [runtime SDK design notes](runtime-sdk-design.md).
 
@@ -20,7 +20,7 @@ Related docs: [MeshLambdaService quickstart](meshlambdaservice-quickstart.md), [
 
 | Component | Choice | Rationale |
 |-----------|--------|-----------|
-| Runtime | .NET 8 CLR | Modern, high-performance runtime |
+| Runtime | .NET 10 CLR | Modern, high-performance runtime |
 | Clustering | Orleans | Virtual actor model with strong tooling and providers |
 | Message Bus | MassTransit | Enterprise-grade messaging |
 | Web Framework | ASP.NET Core | Industry-standard web framework |
@@ -406,6 +406,6 @@ dotnet run --project src/Core/ToskaMesh.Gateway
 
 ## Conclusion
 
-This implementation plan provides a structured approach to delivering ToskaMesh on C#/.NET 8. By following this plan, the team can deliver a production-ready, cloud-native service mesh that leverages the strengths of the .NET ecosystem.
+This implementation plan provides a structured approach to delivering ToskaMesh on C#/.NET 10. By following this plan, the team can deliver a production-ready, cloud-native service mesh that leverages the strengths of the .NET ecosystem.
 
 The phased approach allows for incremental delivery, continuous testing, and risk mitigation. Regular reviews and adjustments will ensure the project stays on track and meets all success criteria.

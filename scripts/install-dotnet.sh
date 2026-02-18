@@ -2,17 +2,17 @@
 set -euo pipefail
 
 DOTNET_INSTALL_DIR=${DOTNET_INSTALL_DIR:-"${HOME}/.dotnet"}
-DOTNET_CHANNEL=${DOTNET_CHANNEL:-"8.0"}
+DOTNET_CHANNEL=${DOTNET_CHANNEL:-"10.0"}
 
-has_dotnet_8() {
+has_dotnet_10() {
   if command -v dotnet >/dev/null 2>&1; then
-    if dotnet --list-sdks | awk '{print $1}' | grep -qE '^8\\.'; then
+    if dotnet --list-sdks | awk '{print $1}' | grep -qE '^10\\.'; then
       return 0
     fi
   fi
 
   if [[ -x "${DOTNET_INSTALL_DIR}/dotnet" ]]; then
-    if "${DOTNET_INSTALL_DIR}/dotnet" --list-sdks | awk '{print $1}' | grep -qE '^8\\.'; then
+    if "${DOTNET_INSTALL_DIR}/dotnet" --list-sdks | awk '{print $1}' | grep -qE '^10\\.'; then
       return 0
     fi
   fi
@@ -20,8 +20,8 @@ has_dotnet_8() {
   return 1
 }
 
-if has_dotnet_8; then
-  echo ".NET SDK 8.x already installed."
+if has_dotnet_10; then
+  echo ".NET SDK 10.x already installed."
   exit 0
 fi
 
@@ -36,7 +36,7 @@ bash "${tmp_script}" --channel "${DOTNET_CHANNEL}" --install-dir "${DOTNET_INSTA
 rm -f "${tmp_script}"
 
 cat <<EOF
-.NET SDK 8.x installed to ${DOTNET_INSTALL_DIR}
+.NET SDK 10.x installed to ${DOTNET_INSTALL_DIR}
 Add to your shell profile:
   export DOTNET_ROOT="${DOTNET_INSTALL_DIR}"
   export PATH="\${DOTNET_ROOT}:\${PATH}"

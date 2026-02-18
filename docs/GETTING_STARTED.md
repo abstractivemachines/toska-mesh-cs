@@ -3,7 +3,7 @@
 Single-page quickstart for running ToskaMesh locally.
 
 ## Local demo with Docker Compose
-- Prereqs: Docker, .NET 8 SDK (for building/running services).
+- Prereqs: Docker, .NET 10 SDK (for building/running services).
 - Set a 32+ char mesh service secret to avoid HS256 key length errors during gateway route refresh:
 ```bash
 export MESH_SERVICE_AUTH_SECRET="local-dev-mesh-service-secret-32chars"

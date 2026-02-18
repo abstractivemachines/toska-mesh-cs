@@ -3,7 +3,7 @@
 This sample shows how an end-user would consume the `ToskaMesh.Runtime` NuGet package to build a stateless HTTP service, register with the mesh, and run it locally or in Docker next to the ToskaMesh control plane.
 
 ## Prerequisites
-- .NET 8 SDK
+- .NET 10 SDK
 - Local packages built from this repo (NuGet feed at `./artifacts/nuget`)
 - Optional: Docker + Docker Compose for running with the control plane
 

@@ -7,7 +7,7 @@ Two processes:
 Todos persist across restarts because state lives in the configured key/value store.
 
 ## Prerequisites
-- .NET 8 SDK
+- .NET 10 SDK
 - Local runtime packages in `./artifacts/nuget`
 - Redis + Consul available (compose/Talos stacks already include both) or ToskaStore if configured
   (see the [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md))
