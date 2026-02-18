@@ -1,19 +1,22 @@
-# ToskaMesh - C# Implementation
+# ToskaMesh
 
+[![CI](https://github.com/abstractivemachines/toska-mesh-cs/actions/workflows/ci.yml/badge.svg)](https://github.com/abstractivemachines/toska-mesh-cs/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 **Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractivemachines)**
 
 ToskaMesh is a distributed service mesh and runtime for .NET 10. It provides the gateway, discovery plane, runtime hosts, and
 operational services (auth, config, metrics, tracing) needed to build and run stateless or Orleans-backed stateful services with
-consistent routing, security, and observability. This repo is the C# implementation ported from the original Elixir project and
-includes a CLI for scaffolding and deployment.
+consistent routing, security, and observability. A Python-based CLI (`toska`) handles scaffolding, builds, and deployments.
 
 ## What ToskaMesh gives you
 - Gateway and routing powered by YARP with health-aware load balancing and resilience policies.
 - Discovery and registry through Consul and a gRPC-based registry surface.
 - Runtime hosts (`MeshLambdaService` and `MeshStatefulLambdaService`) that wire auth, telemetry, health checks, and service registration.
-- Operational services for auth, config, metrics, and tracing to keep cross-cutting concerns consistent.
+- Messaging and evented communication via MassTransit with RabbitMQ or AWS SNS/SQS transports, plus `IMeshRpc` for request/response over the broker.
+- HealthMonitor service that continuously probes registered services and caches aggregate health status.
+- Operational services for auth, config, metrics, tracing, and observability to keep cross-cutting concerns consistent.
+- NuGet packaging of the runtime libraries so external services can consume ToskaMesh without living in the monorepo.
 - Tooling and deployment assets: Toska CLI, Docker Compose, Helm, Kubernetes manifests, and Terraform.
 
 ## Why it is beneficial
@@ -47,6 +50,7 @@ flowchart LR
         Gateway["Gateway (YARP)"]
         Discovery["Discovery + Registry\n(Consul / gRPC)"]
         Ops["Mesh Services\n(Auth | Config | Metrics | Tracing)"]
+        Broker["Message Broker\n(RabbitMQ / AWS SNS+SQS)"]
     end
 
     subgraph Service Runtime
@@ -61,6 +65,8 @@ flowchart LR
     Gateway -->|routes via registry| ServiceA
     Gateway -->|routes via registry| ServiceB
     Runtime -->|telemetry + auth hooks| Ops
+    ServiceA <-->|publish / consume| Broker
+    ServiceB <-->|publish / consume| Broker
 ```
 
 ```mermaid
@@ -79,19 +85,6 @@ flowchart TD
 ToskaStore is a lightweight HTTP/JSON key/value service that integrates with the `IKeyValueStore` abstraction in
 `ToskaMesh.Runtime`. It is a first-class provider alongside Redis, enabling simple, language-agnostic storage for stateful
 workflows or lightweight persistence needs.
-For ToskaStore deployment details and API behavior, see the
-[ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md).
-
-**Benefits**
-- HTTP/JSON API makes it easy to consume across languages and environments.
-- Fits naturally into mesh deployments: run it as a Kubernetes Deployment/Service and point services at it.
-- Supports TTLs and bulk fetch (`mget`), with optional key listing via `/kv/keys`.
-
-**How it works in ToskaMesh**
-- Select the provider with `Mesh:KeyValue:Provider = ToskaStore`.
-- Configure the base URL and optional auth token under `Mesh:KeyValue:ToskaStore`.
-- Enable the key index (`EnableKeyIndex=true`) when `/kv/keys` is not available; the runtime maintains a key list under
-  `__keys` (or your custom `KeyIndexKey`).
 
 ```mermaid
 flowchart LR
@@ -102,27 +95,17 @@ flowchart LR
     ToskaStore --> Storage[(Persistent storage)]
 ```
 
-Example configuration:
-
-```json
-{
-  "Mesh": {
-    "KeyValue": {
-      "Provider": "ToskaStore",
-      "ToskaStore": {
-        "BaseUrl": "http://toskastore.toskamesh.svc.cluster.local:4000",
-        "AuthToken": "replace-with-secret",
-        "KeyPrefix": "profiles",
-        "EnableKeyIndex": true
-      }
-    }
-  }
-}
-```
-
-Related guides: [docs/toskastore.md](docs/toskastore.md), the
+For configuration details, deployment instructions, and API behavior see
+[docs/toskastore.md](docs/toskastore.md), the
 [ToskaStore README](https://github.com/abstractivemachines/toska_store/blob/main/README.md), and the
 [profile KV store demo](examples/profile-kv-store-demo/README.md).
+
+## Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+- Python 3 (for the Toska CLI)
+- (Optional) `kubectl` / `talosctl` for Kubernetes or Talos Linux deployments
 
 ## Quick start
 
@@ -141,7 +124,7 @@ cd tools/cli
 
 ### Create a new service
 ```bash
-toska init my-service --type stateless --style lambda
+toska init my-service --type stateless
 cd my-service
 dotnet build
 ```
@@ -151,11 +134,11 @@ dotnet build
 export MESH_SERVICE_AUTH_SECRET="local-dev-mesh-service-secret-32chars"
 export MESH_SERVICE_AUTH_ISSUER="ToskaMesh.Services"
 export MESH_SERVICE_AUTH_AUDIENCE="ToskaMesh.Services"
-cd deployments
 docker-compose up -d postgres redis consul prometheus grafana gateway discovery
 ```
+The primary `docker-compose.yml` lives at the repository root.
 
-### Deploy to Kubernetes
+### Deploy to Kubernetes (EKS, Talos Linux, or other clusters)
 ```bash
 cd my-service
 toska validate                    # Check toska.yaml
@@ -168,16 +151,6 @@ toska status                      # Check deployment status
 Health checks: `curl http://localhost:5000/health` (gateway) and `curl http://localhost:5010/health` (discovery). Consul UI at `http://localhost:8500`.
 
 Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
-
-## Observability service (demo)
-- Run locally: `dotnet run --project src/Services/ToskaMesh.ObservabilityService`
-- JSON portal index: `GET http://localhost:5000/observability/portal`
-- Topology graph: `GET http://localhost:5000/observability/topology`
-- Service dashboards: `GET http://localhost:5000/observability/dashboards/service/Gateway`
-- SLO burn alerts: `GET http://localhost:5000/observability/alerts/burn-rate`
-- Release history: `GET http://localhost:5000/observability/releases`
-- Playbooks: `GET http://localhost:5000/observability/playbooks`
-- Prometheus scrape: `GET http://localhost:5000/metrics`
 
 ## CLI Reference
 
@@ -192,21 +165,53 @@ Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 | `toska destroy` | Remove deployed resources |
 | `toska status` | Show deployment status |
 | `toska services` | List deployed services |
+| `toska deployments` | List ToskaMesh user deployments |
 | `toska kubeconfig` | Generate kubeconfig from Talos |
 
 See [tools/cli/README.md](tools/cli/README.md) for full CLI documentation.
 
+## Observability service
+
+Run locally:
+```bash
+dotnet run --project src/Services/ToskaMesh.ObservabilityService
+```
+
+Key endpoints (default base URL depends on your launch configuration):
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /observability/portal` | JSON portal index |
+| `GET /observability/topology` | Service topology graph |
+| `GET /observability/metrics/summary` | Aggregated metrics summary |
+| `GET /observability/dashboards/service/{service}` | Per-service dashboard |
+| `GET /observability/slo` | SLO overview for all services |
+| `GET /observability/slo/{service}` | SLO detail for a single service |
+| `GET /observability/alerts/burn-rate` | SLO burn-rate alerts |
+| `GET /observability/releases` | Full release history |
+| `POST /observability/releases` | Ingest a new release record |
+| `POST /observability/releases/{id}/rollback` | Rollback a release |
+| `GET /observability/playbooks` | List runbooks |
+| `GET /observability/playbooks/{id}` | Fetch a single playbook |
+| `GET /metrics` | Prometheus scrape target |
+
 ## Documentation
 - Docs index: [docs/README.md](docs/README.md) for architecture, operations, deployments, and plans.
 - Runtime hosting: [docs/meshlambdaservice-quickstart.md](docs/meshlambdaservice-quickstart.md); samples under `examples/`.
+- Evented communication: [docs/evented-communication.md](docs/evented-communication.md).
+- Monitoring and alerting: [docs/monitoring-setup.md](docs/monitoring-setup.md).
 - ToskaStore key/value guide: [docs/toskastore.md](docs/toskastore.md).
+- Migration guide (v0.1 to v0.2): [docs/migration-guide-v0.2.md](docs/migration-guide-v0.2.md).
 - Decisions and history: ADRs in [docs/adr/README.md](docs/adr/README.md); changelog index in [docs/CHANGELOG.md](docs/CHANGELOG.md) with entries in `changes/`.
 
 ## Repository layout
 ```
 src/            # Core, services, and shared libraries
 tests/          # Unit/integration tests
-deployments/    # Docker Compose, Helm, Terraform, quickstarts
+deployments/    # Docker Compose, Dockerfiles, Prometheus/Grafana configs, Terraform, quickstarts
+helm/           # Helm charts
+k8s/            # Kubernetes manifests
+scripts/        # Helper scripts (e.g., install-dotnet.sh)
 examples/       # Runnable samples (stateless/stateful)
 docs/           # Guides, ADRs, plans, changelog
 tools/cli/      # Toska CLI (Python)
@@ -216,7 +221,7 @@ tools/cli/      # Toska CLI (Python)
 
 ### Using the CLI
 ```bash
-toska init inventory-api --type stateless --style lambda  # New stateless service
+toska init inventory-api --type stateless                  # New stateless service
 toska init order-tracker --type stateful --stateful-template consul  # New stateful service
 toska validate -f toska.yaml                              # Validate manifest
 toska deploy --dry-run                                    # Preview deployment
@@ -258,12 +263,15 @@ Licensed under the Apache License 2.0. See `LICENSE` and `NOTICE` for details.
 
 ## Resources
 
-- [.NET Documentation](https://docs.microsoft.com/dotnet/)
-- [ASP.NET Core](https://docs.microsoft.com/aspnet/core/)
-- [Orleans Documentation](https://docs.microsoft.com/dotnet/orleans/)
+- [.NET Documentation](https://learn.microsoft.com/dotnet/)
+- [ASP.NET Core](https://learn.microsoft.com/aspnet/core/)
+- [Orleans Documentation](https://learn.microsoft.com/dotnet/orleans/)
 - [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
 - [Polly Documentation](https://github.com/App-vNext/Polly)
-- `MeshLambdaService` quickstart: `docs/meshlambdaservice-quickstart.md`
-- Runnable example service (NuGet consumer): `examples/hello-mesh-service`
-- Runtime packaging: `docs/runtime-packaging.md`
+- [MassTransit](https://masstransit.io/)
+- [Consul](https://developer.hashicorp.com/consul)
+- [Talos Linux](https://www.talos.dev/)
+- `MeshLambdaService` quickstart: [docs/meshlambdaservice-quickstart.md](docs/meshlambdaservice-quickstart.md)
+- Runnable example service (NuGet consumer): [examples/hello-mesh-service](examples/hello-mesh-service)
+- Runtime packaging: [docs/runtime-packaging.md](docs/runtime-packaging.md)
