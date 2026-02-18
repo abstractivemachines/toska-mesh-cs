@@ -44,9 +44,9 @@ includes a CLI for scaffolding and deployment.
 ```mermaid
 flowchart LR
     subgraph Mesh Control Plane
-        Gateway[Gateway (YARP)]
-        Discovery[Discovery + Registry\n(Consul / gRPC)]
-        Ops[Mesh Services\n(Auth | Config | Metrics | Tracing)]
+        Gateway["Gateway (YARP)"]
+        Discovery["Discovery + Registry\n(Consul / gRPC)"]
+        Ops["Mesh Services\n(Auth | Config | Metrics | Tracing)"]
     end
 
     subgraph Service Runtime
