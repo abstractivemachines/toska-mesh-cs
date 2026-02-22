@@ -19,28 +19,34 @@ consistent routing, security, and observability. A Python-based CLI (`toska`) ha
 - NuGet packaging of the runtime libraries so external services can consume ToskaMesh without living in the monorepo.
 - Tooling and deployment assets: Toska CLI, Docker Compose, Helm, Kubernetes manifests, and Terraform.
 
-## Why it is beneficial
-- Standardizes service lifecycle behavior (register, route, observe, secure) without repeating boilerplate in every service.
+## Hello world
+
+```csharp
+await MeshLambdaService.RunAsync(
+    app =>
+    {
+        app.MapGet("/hello", () => Results.Ok(new { message = "Hello from ToskaMesh" }));
+    },
+    options =>
+    {
+        options.Routing.Strategy = LoadBalancingStrategy.RoundRobin;
+        options.Routing.HealthCheckEndpoint = "/health";
+    },
+    services =>
+    {
+        services.AddGrpcServiceRegistry(configuration);
+    });
+```
+
+The service auto-registers with Discovery, wires telemetry and health checks, and becomes routable through the Gateway — no boilerplate needed. See [examples/hello-mesh-service](examples/hello-mesh-service) for the full runnable version.
+
+## Why ToskaMesh
+
+- Standardizes service lifecycle (register, route, observe, secure) without repeating boilerplate in every service.
 - Supports both stateless APIs and stateful Orleans workloads behind a consistent runtime surface.
 - Makes observability a default: Prometheus metrics, tracing, and structured logs are wired for you.
-- Keeps infrastructure choices flexible (registry provider, key/value provider, deployment target).
-- Speeds onboarding by giving a predictable layout and CLI-driven workflows.
-
-## Where it accelerates delivery
-### Development
-- Scaffold stateless or stateful services with `toska init` and start coding immediately.
-- Run locally with Docker Compose while keeping parity with production runtime behavior.
-- Use the runtime hosts to focus on handlers/grains rather than plumbing.
-
-### Deployment
-- Build, push, and deploy with the Toska CLI or Helm charts in a single, repeatable flow.
-- Use Terraform guides for EKS and production-ready defaults for health checks, metrics, and auth.
-- Choose lightweight local runs or full Kubernetes deployments without changing service code.
-
-### Iteration
-- Consistent telemetry surfaces shorten the feedback loop from issue -> metric/trace -> fix.
-- Config and auth services keep rollouts and policy changes centralized.
-- Gateway routing + discovery metadata let you tune traffic without redeploying every service.
+- Keeps infrastructure choices flexible — swap registry providers, key/value backends, or deployment targets without changing service code.
+- Scaffold with `toska init`, run locally with Docker Compose, and deploy to Kubernetes with the same CLI.
 
 ## Architecture at a glance
 
@@ -206,42 +212,35 @@ Key endpoints (default base URL depends on your launch configuration):
 
 ## Repository layout
 ```
-src/            # Core, services, and shared libraries
-tests/          # Unit/integration tests
-deployments/    # Docker Compose, Dockerfiles, Prometheus/Grafana configs, Terraform, quickstarts
-helm/           # Helm charts
-k8s/            # Kubernetes manifests
-scripts/        # Helper scripts (e.g., install-dotnet.sh)
-examples/       # Runnable samples (stateless/stateful)
-docs/           # Guides, ADRs, plans, changelog
-tools/cli/      # Toska CLI (Python)
+src/
+  Core/           # Gateway (YARP), Discovery (gRPC registry), Router, HealthMonitor
+  Services/       # AuthService, ConfigService, MetricsService, TracingService, ObservabilityService
+  Shared/         # Runtime (MeshLambdaService), Common, Grpc, Protocols, Security, Telemetry
+tests/            # Unit/integration tests (mirrors src/ with .Tests suffix)
+examples/         # Runnable samples (stateless, stateful, RPC, key-value)
+deployments/      # Docker Compose, Dockerfiles, Prometheus/Grafana configs, Terraform
+helm/             # Helm charts
+k8s/              # Kubernetes manifests
+tools/cli/        # Toska CLI (Python)
+docs/             # Guides, ADRs, plans, changelog
 ```
 
-## Common commands
+## Examples
 
-### Using the CLI
-```bash
-toska init inventory-api --type stateless                  # New stateless service
-toska init order-tracker --type stateful --stateful-template consul  # New stateful service
-toska validate -f toska.yaml                              # Validate manifest
-toska deploy --dry-run                                    # Preview deployment
-toska deploy -v                                           # Deploy with verbose output
-toska services --json                                     # List services as JSON
-```
+| Project | Description |
+|---------|-------------|
+| [hello-mesh-service](examples/hello-mesh-service) | Stateless service consuming ToskaMesh.Runtime via NuGet |
+| [adder-mesh-service](examples/adder-mesh-service) | Minimal stateless service with a single `/add` endpoint |
+| [todo-mesh-service](examples/todo-mesh-service) | Stateful Orleans silo + HTTP API, state in Redis via `IKeyValueStore` |
+| [mesh-rpc-demo](examples/mesh-rpc-demo) | Three services chained via RabbitMQ request/response using `IMeshRpc` |
+| [profile-kv-store-demo](examples/profile-kv-store-demo) | Profile API persisting data through `IKeyValueStore` backed by ToskaStore |
+| [redis-grain-storage-demo](examples/redis-grain-storage-demo) | Stateful Orleans silo using Redis grain storage with local clustering |
 
-### .NET commands
-```bash
-dotnet restore ToskaMesh.sln
-dotnet build ToskaMesh.sln -c Release
-dotnet test ToskaMesh.sln
-dotnet format
-```
+## Testing
 
-### Running from source
 ```bash
-./run-gateway.sh
-./run-discovery.sh
-# Or: dotnet run --project src/Core/ToskaMesh.Gateway
+dotnet test ToskaMesh.sln                                              # Full suite
+dotnet test tests/ToskaMesh.Security.Tests/ToskaMesh.Security.Tests.csproj  # Single project
 ```
 
 ## Security & configuration
