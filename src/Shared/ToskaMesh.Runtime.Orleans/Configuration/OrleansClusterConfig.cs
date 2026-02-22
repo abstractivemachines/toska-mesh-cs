@@ -1,4 +1,4 @@
-namespace ToskaMesh.Core.Configuration;
+namespace ToskaMesh.Runtime.Orleans.Configuration;
 
 /// <summary>
 /// Configuration options for Orleans clustering.
@@ -73,7 +73,6 @@ public class OrleansClusterConfig
 
     /// <summary>
     /// Connection string for Redis-backed grain storage (optional).
-    /// When set, Redis is used for grain state and reminders fall back to in-memory unless otherwise configured.
     /// </summary>
     public string? RedisStorageConnectionString { get; set; }
 

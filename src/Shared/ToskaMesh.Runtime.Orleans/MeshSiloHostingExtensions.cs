@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ToskaMesh.Core.Configuration;
+using ToskaMesh.Runtime.Orleans.Configuration;
 using ToskaMesh.Security;
 using ToskaMesh.Telemetry;
 
