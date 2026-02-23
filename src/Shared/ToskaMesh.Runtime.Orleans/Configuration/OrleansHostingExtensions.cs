@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orleans;
@@ -5,9 +6,9 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 using OrleansDashboard;
 using System.Net;
-using ToskaMesh.Core.Storage;
+using ToskaMesh.Runtime.Orleans.Storage;
 
-namespace ToskaMesh.Core.Configuration;
+namespace ToskaMesh.Runtime.Orleans.Configuration;
 
 /// <summary>
 /// Extension methods for configuring Orleans silo hosting.

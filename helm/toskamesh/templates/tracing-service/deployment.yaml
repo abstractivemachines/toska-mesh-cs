@@ -100,6 +100,26 @@ spec:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-tracing-service-config
               key: tracing_summary_refresh_command_timeout_seconds
+        - name: Tracing__Retention__Enabled
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_retention_enabled
+        - name: Tracing__Retention__RetentionDays
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_retention_days
+        - name: Tracing__Retention__CleanupIntervalMinutes
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_retention_cleanup_interval_minutes
+        - name: Tracing__Retention__BatchSize
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-tracing-service-config
+              key: tracing_retention_batch_size
         - name: Mesh__Telemetry__TracingIngest__Enabled
           value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
         - name: Mesh__Telemetry__TracingIngest__Endpoint

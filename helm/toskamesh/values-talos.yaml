@@ -7,10 +7,6 @@ global:
   meshServiceAuthSecret: "ToskaMesh-Dev-Secret-32-Chars-Min"
   jwtSecret: "ToskaMesh-Dev-JWT-Secret-32-Chars"
 
-serviceDiscovery:
-  grpc:
-    allowInsecureTransport: true
-
 telemetry:
   sampling:
     strategy: "ParentBasedAlwaysOn"
@@ -43,13 +39,13 @@ database:
 
 # Point all services at the local registry on the laptop (adjust if your host IP changes)
 registry: "talos:30500"
-tag: "local"
+tag: "v2.0.0"
 
 gateway:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-gateway"
-    tag: "v1.3.0"
+    tag: "v2.0.3"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -64,35 +60,35 @@ discovery:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-discovery"
-    tag: "v1.2.0"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
 
 authService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-auth-service"
-    tag: "local"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
 
 configService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-config-service"
-    tag: "local"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
 
 metricsService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-metrics-service"
-    tag: "v1.1.0"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
 
 tracingService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-tracing-service"
-    tag: "local-20251231-8"
+    tag: "v2.0.1"
     pullPolicy: IfNotPresent
   queryDefaults:
     enableDefaultLookback: true
@@ -104,12 +100,17 @@ tracingService:
     refreshIntervalSeconds: 60
     refreshConcurrently: true
     commandTimeoutSeconds: 300
+  retention:
+    enabled: true
+    retentionDays: 7
+    cleanupIntervalMinutes: 5
+    batchSize: 50000
 
 observabilityService:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-observability-service"
-    tag: "v0.2.0"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -117,19 +118,15 @@ observabilityService:
     nodePort: 30082
 
 core:
-  replicaCount: 1
-  image:
-    repository: "talos:30500/toskamesh-core"
-    tag: "local"
-    pullPolicy: IfNotPresent
-  orleans:
-    serviceId: "ToskaMesh-Local"
-    clusterId: "talos-local"
-    clusterProvider: "Consul"
+  enabled: false
 
 healthMonitor:
   replicaCount: 1
   image:
     repository: "talos:30500/toskamesh-health-monitor"
-    tag: "v1.1.0"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
+  probeInterval: 30
+  httpTimeout: 5
+  tcpTimeout: 3
+  failureThreshold: 3
