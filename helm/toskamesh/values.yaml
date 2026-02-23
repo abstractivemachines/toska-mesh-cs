@@ -50,10 +50,6 @@ global:
   meshServiceAuthSecret: "super-secret-mesh-key-change-me"
   jwtSecret: "your-jwt-secret-min-32-chars-long-change-in-production"
 
-serviceDiscovery:
-  grpc:
-    allowInsecureTransport: false
-
 # Tracing pipeline (defaults to tracing-service ingest)
 telemetry:
   sampling:
@@ -232,6 +228,11 @@ tracingService:
     refreshIntervalSeconds: 5
     refreshConcurrently: true
     commandTimeoutSeconds: 300
+  retention:
+    enabled: true
+    retentionDays: 14
+    cleanupIntervalMinutes: 60
+    batchSize: 20000
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1654
@@ -284,9 +285,9 @@ observabilityService:
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
 
-# Core (Orleans) configuration
+# Core (Orleans) configuration — disabled by default (no source project exists)
 core:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: toskamesh-core
@@ -331,6 +332,10 @@ healthMonitor:
     repository: toskamesh-health-monitor
     tag: latest
     pullPolicy: IfNotPresent
+  probeInterval: 30
+  httpTimeout: 5
+  tcpTimeout: 3
+  failureThreshold: 3
   resources:
     requests:
       cpu: 50m

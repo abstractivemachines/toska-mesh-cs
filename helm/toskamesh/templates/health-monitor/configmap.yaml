@@ -8,5 +8,4 @@ metadata:
     app.kubernetes.io/component: health-monitor
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
-  discovery_grpc_address: "https://{{ include "toskamesh.fullname" . }}-discovery.{{ .Release.Namespace }}.svc.cluster.local:50051"
 {{- end }}
