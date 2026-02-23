@@ -5,16 +5,15 @@
 
 **Maintained by [@nullsync](https://github.com/nullsync) at [Abstractive Machines LLC](https://github.com/abstractivemachines)**
 
-ToskaMesh is a distributed service mesh and runtime for .NET 10. It provides the gateway, discovery plane, runtime hosts, and
-operational services (auth, config, metrics, tracing) needed to build and run stateless or Orleans-backed stateful services with
-consistent routing, security, and observability. A Python-based CLI (`toska`) handles scaffolding, builds, and deployments.
+ToskaMesh is the C# runtime SDK and business services for the ToskaMesh service mesh. It provides runtime hosts, operational
+services (auth, config, metrics, tracing), and messaging primitives needed to build and run stateless or Orleans-backed stateful
+services with consistent security and observability. The control plane (Gateway, Discovery, HealthMonitor, Router) is written in
+Go and lives in [`toska-mesh/`](../toska-mesh/). A Python-based CLI (`toska`) handles scaffolding, builds, and deployments.
 
-## What ToskaMesh gives you
-- Gateway and routing powered by YARP with health-aware load balancing and resilience policies.
-- Discovery and registry through Consul and a gRPC-based registry surface.
+## What this repo gives you
 - Runtime hosts (`MeshLambdaService` and `MeshStatefulLambdaService`) that wire auth, telemetry, health checks, and service registration.
+- Discovery client (gRPC and Consul-based `IServiceRegistry`) for registering with the Go Discovery service.
 - Messaging and evented communication via MassTransit with RabbitMQ or AWS SNS/SQS transports, plus `IMeshRpc` for request/response over the broker.
-- HealthMonitor service that continuously probes registered services and caches aggregate health status.
 - Operational services for auth, config, metrics, tracing, and observability to keep cross-cutting concerns consistent.
 - NuGet packaging of the runtime libraries so external services can consume ToskaMesh without living in the monorepo.
 - Tooling and deployment assets: Toska CLI, Docker Compose, Helm, Kubernetes manifests, and Terraform.
@@ -52,14 +51,15 @@ The service auto-registers with Discovery, wires telemetry and health checks, an
 
 ```mermaid
 flowchart LR
-    subgraph Mesh Control Plane
-        Gateway["Gateway (YARP)"]
+    subgraph Control Plane ["Control Plane (Go — toska-mesh/)"]
+        Gateway["Gateway (Go)"]
         Discovery["Discovery + Registry\n(Consul / gRPC)"]
-        Ops["Mesh Services\n(Auth | Config | Metrics | Tracing)"]
-        Broker["Message Broker\n(RabbitMQ / AWS SNS+SQS)"]
+        HealthMon["HealthMonitor"]
     end
 
-    subgraph Service Runtime
+    subgraph This Repo ["C# Runtime & Services (this repo)"]
+        Ops["Mesh Services\n(Auth | Config | Metrics | Tracing)"]
+        Broker["Message Broker\n(RabbitMQ / AWS SNS+SQS)"]
         ServiceA[Service A\nstateless or Orleans-backed]
         ServiceB[Service B\nstateless or Orleans-backed]
         Runtime[ToskaMesh.Runtime\nMeshLambdaService / MeshStatefulLambdaService]
@@ -68,6 +68,8 @@ flowchart LR
     ServiceA --> Runtime
     ServiceB --> Runtime
     Runtime -->|register + heartbeat| Discovery
+    HealthMon -->|probe| ServiceA
+    HealthMon -->|probe| ServiceB
     Gateway -->|routes via registry| ServiceA
     Gateway -->|routes via registry| ServiceB
     Runtime -->|telemetry + auth hooks| Ops
@@ -140,9 +142,9 @@ dotnet build
 export MESH_SERVICE_AUTH_SECRET="local-dev-mesh-service-secret-32chars"
 export MESH_SERVICE_AUTH_ISSUER="ToskaMesh.Services"
 export MESH_SERVICE_AUTH_AUDIENCE="ToskaMesh.Services"
-docker-compose up -d postgres redis consul prometheus grafana gateway discovery
+docker-compose up -d postgres redis consul prometheus grafana rabbitmq
 ```
-The primary `docker-compose.yml` lives at the repository root.
+The primary `docker-compose.yml` lives at the repository root. The Go control plane (Gateway, Discovery, HealthMonitor) runs separately — see [`toska-mesh/`](../toska-mesh/) for instructions.
 
 ### Deploy to Kubernetes (EKS, Talos Linux, or other clusters)
 ```bash
@@ -154,7 +156,7 @@ toska deploy                      # Apply to cluster
 toska status                      # Check deployment status
 ```
 
-Health checks: `curl http://localhost:5000/health` (gateway) and `curl http://localhost:5010/health` (discovery). Consul UI at `http://localhost:8500`.
+Health checks: `curl http://localhost:5000/health` (Go gateway, from `toska-mesh/`) and `curl http://localhost:8080/health` (Go discovery). Consul UI at `http://localhost:8500`.
 
 Full quickstart: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 
@@ -213,7 +215,6 @@ Key endpoints (default base URL depends on your launch configuration):
 ## Repository layout
 ```
 src/
-  Core/           # Gateway (YARP), Discovery (gRPC registry), Router, HealthMonitor
   Services/       # AuthService, ConfigService, MetricsService, TracingService, ObservabilityService
   Shared/         # Runtime (MeshLambdaService), Common, Grpc, Protocols, Security, Telemetry
 tests/            # Unit/integration tests (mirrors src/ with .Tests suffix)
@@ -265,9 +266,7 @@ Licensed under the Apache License 2.0. See `LICENSE` and `NOTICE` for details.
 - [.NET Documentation](https://learn.microsoft.com/dotnet/)
 - [ASP.NET Core](https://learn.microsoft.com/aspnet/core/)
 - [Orleans Documentation](https://learn.microsoft.com/dotnet/orleans/)
-- [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
-- [Polly Documentation](https://github.com/App-vNext/Polly)
 - [MassTransit](https://masstransit.io/)
 - [Consul](https://developer.hashicorp.com/consul)
 - [Talos Linux](https://www.talos.dev/)
