@@ -15,9 +15,6 @@ jobs:
           - src/Shared/ToskaMesh.Common/ToskaMesh.Common.csproj
           - src/Shared/ToskaMesh.Security/ToskaMesh.Security.csproj
           - src/Shared/ToskaMesh.Telemetry/ToskaMesh.Telemetry.csproj
-          - src/Core/ToskaMesh.Discovery/ToskaMesh.Discovery.csproj
-          - src/Core/ToskaMesh.Gateway/ToskaMesh.Gateway.csproj
-          - src/Core/ToskaMesh.Router/ToskaMesh.Router.csproj
     steps:
       - uses: actions/checkout@v4
 

@@ -166,9 +166,14 @@ WITH DATA;";
             await using var command = connection.CreateCommand();
             command.CommandText = """
 SELECT 1
-FROM information_schema.columns
-WHERE lower(table_name) = lower(@viewName)
-  AND lower(column_name) = lower(@columnName)
+FROM pg_attribute a
+JOIN pg_class c ON c.oid = a.attrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relname = @viewName
+  AND a.attname = @columnName
+  AND a.attnum > 0
+  AND NOT a.attisdropped
+  AND n.nspname = 'public'
 LIMIT 1;
 """;
             var viewParam = command.CreateParameter();

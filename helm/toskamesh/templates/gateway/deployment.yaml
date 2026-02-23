@@ -41,102 +41,59 @@ spec:
           name: http
           protocol: TCP
         env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: {{ .Values.environment }}
-        - name: ASPNETCORE_URLS
-          value: "http://+:8080"
-        - name: Urls
-          value: "http://+:8080"
-        - name: Consul__Address
+        - name: GATEWAY_PORT
+          value: "8080"
+        - name: CONSUL_ADDRESS
           valueFrom:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-gateway-config
               key: consul_address
-        - name: Mesh__ServiceDiscovery__Grpc__Address
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-config
-              key: discovery_grpc_address
-        - name: Mesh__ServiceDiscovery__Grpc__AllowInsecureTransport
-          value: {{ .Values.serviceDiscovery.grpc.allowInsecureTransport | quote }}
-        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePath
-          value: "/etc/tls/client.pfx"
-        - name: Mesh__ServiceDiscovery__Grpc__ClientCertificatePassword
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: client_pfx_password
-              optional: true
-        - name: Dashboard__PrometheusBaseUrl
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-config
-              key: dashboard_prometheus_base_url
-        - name: Dashboard__TracingBaseUrl
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-config
-              key: dashboard_tracing_base_url
-        - name: Dashboard__DiscoveryBaseUrl
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-config
-              key: dashboard_discovery_base_url
-        - name: Dashboard__HealthMonitorBaseUrl
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-gateway-config
-              key: dashboard_health_base_url
-        - name: Mesh__Telemetry__TracingIngest__Enabled
-          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
-        - name: Mesh__Telemetry__TracingIngest__Endpoint
-          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
-        - name: Mesh__Telemetry__Sampling__Strategy
-          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
-        - name: Mesh__Telemetry__Sampling__Ratio
-          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
-        - name: Mesh__Telemetry__ServiceNamespace
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: SSL_CERT_FILE
-          value: "/etc/tls/ca.crt"
-        {{- with .Values.telemetry.tracingIngest.headers }}
-        {{- range $name, $value := . }}
-        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
-        - name: Jwt__SecretKey
+        - name: JWT_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: {{ default (printf "%s-gateway-secrets" (include "toskamesh.fullname" .)) .Values.secrets.gatewayJwt.existingSecret }}
               key: {{ default "jwt_secret_key" .Values.secrets.gatewayJwt.key }}
-        - name: Mesh__ServiceAuth__Secret
+        - name: JWT_ISSUER
+          value: {{ default "ToskaMesh.Gateway" .Values.gateway.jwtIssuer | quote }}
+        - name: JWT_AUDIENCE
+          value: {{ default "ToskaMesh.Services" .Values.gateway.jwtAudience | quote }}
+        - name: DASHBOARD_PROMETHEUS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_prometheus_url
+        - name: DASHBOARD_TRACING_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_tracing_url
+        - name: DASHBOARD_DISCOVERY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_discovery_url
+        - name: DASHBOARD_HEALTHMONITOR_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "toskamesh.fullname" . }}-gateway-config
+              key: dashboard_healthmonitor_url
+        - name: MESH_SERVICE_AUTH_SECRET
           valueFrom:
             secretKeyRef:
-              name: {{ default (printf "%s-gateway-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
-              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
+              name: {{ include "toskamesh.fullname" . }}-gateway-secrets
+              key: mesh_service_auth_secret
         resources:
           {{- toYaml .Values.gateway.resources | nindent 10 }}
         livenessProbe:
           httpGet:
-            path: /health/live
+            path: /health
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 5
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health/ready
+            path: /health
             port: 8080
-          initialDelaySeconds: 5
+          initialDelaySeconds: 3
           periodSeconds: 5
-        volumeMounts:
-        - name: mesh-tls
-          mountPath: /etc/tls
-          readOnly: true
-      volumes:
-      - name: mesh-tls
-        secret:
-          secretName: {{ include "toskamesh.fullname" . }}-mtls
 {{- end }}

@@ -17,4 +17,8 @@ data:
   tracing_summary_refresh_interval_seconds: {{ default 5 .Values.tracingService.summaryRefresh.refreshIntervalSeconds | quote }}
   tracing_summary_refresh_concurrently: {{ default true .Values.tracingService.summaryRefresh.refreshConcurrently | quote }}
   tracing_summary_refresh_command_timeout_seconds: {{ default 300 .Values.tracingService.summaryRefresh.commandTimeoutSeconds | quote }}
+  tracing_retention_enabled: {{ default true .Values.tracingService.retention.enabled | quote }}
+  tracing_retention_days: {{ default 14 .Values.tracingService.retention.retentionDays | quote }}
+  tracing_retention_cleanup_interval_minutes: {{ default 60 .Values.tracingService.retention.cleanupIntervalMinutes | quote }}
+  tracing_retention_batch_size: {{ default 20000 .Values.tracingService.retention.batchSize | quote }}
 {{- end }}

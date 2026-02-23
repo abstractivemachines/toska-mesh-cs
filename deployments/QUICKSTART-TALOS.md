@@ -51,18 +51,60 @@ talosctl apply-config --talosconfig clusterconfig/talosconfig -n talos --mode=au
 Wait for the node to return (`talosctl version -n talos`).
 
 ## 4) Build and push images to the local registry
-Use the provided Dockerfiles; tag with `local` and push to the registry:
+
+### 4a) Go control plane (gateway, discovery, healthmonitor)
+
+Build from `toska-mesh/` using the multi-stage Dockerfile:
 
 ```bash
+cd ../toska-mesh   # from toska-mesh-cs
 REGISTRY=talos:30500
-TAG=local
-for svc in gateway discovery auth-service config-service metrics-service tracing-service core health-monitor; do
-  file="deployments/Dockerfile.${svc^}"
-  # handle dash to PascalCase file names
-  file=$(echo $file | sed 's/Auth-service/AuthService/;s/Config-service/ConfigService/;s/Metrics-service/MetricsService/;s/Tracing-service/TracingService/;s/Health-monitor/HealthMonitor/')
-  docker build -t ${REGISTRY}/toskamesh-${svc}:${TAG} -f ${file} .
-  docker push ${REGISTRY}/toskamesh-${svc}:${TAG}
+TAG=v2.0.0
+
+docker build --target gateway       -t ${REGISTRY}/toskamesh-gateway:${TAG}        -f Dockerfile .
+docker build --target discovery     -t ${REGISTRY}/toskamesh-discovery:${TAG}      -f Dockerfile .
+docker build --target healthmonitor -t ${REGISTRY}/toskamesh-health-monitor:${TAG} -f Dockerfile .
+
+docker push ${REGISTRY}/toskamesh-gateway:${TAG}
+docker push ${REGISTRY}/toskamesh-discovery:${TAG}
+docker push ${REGISTRY}/toskamesh-health-monitor:${TAG}
+
+cd ../toska-mesh-cs
+```
+
+### 4b) C# services (auth, config, metrics, tracing, observability)
+
+Build from the **monorepo root** (the Dockerfiles need access to `toska-mesh-proto/` for gRPC codegen):
+
+```bash
+cd ..   # to ToskaMesh monorepo root
+REGISTRY=talos:30500
+TAG=v2.0.0
+
+for svc_dockerfile in AuthService ConfigService MetricsService TracingService ObservabilityService; do
+  svc_name=$(echo ${svc_dockerfile} | sed 's/Service/-service/;s/Auth/auth/;s/Config/config/;s/Metrics/metrics/;s/Tracing/tracing/;s/Observability/observability/')
+  docker build -t ${REGISTRY}/toskamesh-${svc_name}:${TAG} -f toska-mesh-cs/deployments/Dockerfile.${svc_dockerfile} .
+  docker push ${REGISTRY}/toskamesh-${svc_name}:${TAG}
 done
+
+cd toska-mesh-cs
+```
+
+### 4c) Dashboard
+
+Build from `toska-dashboard/`:
+
+```bash
+cd ../toska-dashboard
+REGISTRY=talos:30500
+TAG=v2.0.0
+
+docker build -t ${REGISTRY}/toskamesh-dashboard:${TAG} \
+  --build-arg VITE_GATEWAY_BASE_URL=http://talos:30080 \
+  -f deployments/Dockerfile.Dashboard .
+docker push ${REGISTRY}/toskamesh-dashboard:${TAG}
+
+cd ../toska-mesh-cs
 ```
 
 ## 5) Install infra dependencies in-cluster

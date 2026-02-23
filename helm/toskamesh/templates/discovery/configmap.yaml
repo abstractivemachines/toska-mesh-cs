@@ -8,5 +8,4 @@ metadata:
     app.kubernetes.io/component: discovery
 data:
   consul_address: {{ include "toskamesh.consul.address" . | quote }}
-  rabbitmq_host: {{ include "toskamesh.rabbitmq.host" . | quote }}
 {{- end }}

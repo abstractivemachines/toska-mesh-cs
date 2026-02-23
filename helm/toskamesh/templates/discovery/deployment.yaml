@@ -38,137 +38,31 @@ spec:
         {{- end }}
         ports:
         - containerPort: 8080
-          name: http
-          protocol: TCP
-        - containerPort: 50051
           name: grpc
           protocol: TCP
-        - containerPort: 8443
-          name: https
-          protocol: TCP
         env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: {{ .Values.environment }}
-        - name: ASPNETCORE_URLS
-          value: "http://+:8080"
-        - name: Urls
-          value: "http://+:8080"
-        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:8080"
-        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Url
-          value: "https://+:50051"
-        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols
-          value: "Http2"
-        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__ClientCertificateMode
-          value: "AllowCertificate"
-        - name: Kestrel__Endpoints__Grpc__Url
-          value: "https://+:50051"
-        - name: Kestrel__Endpoints__Grpc__Protocols
-          value: "Http2"
-        - name: Kestrel__Endpoints__Grpc__ClientCertificateMode
-          value: "AllowCertificate"
-        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Path
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_path
-        - name: ASPNETCORE_Kestrel__Endpoints__Grpc__Certificate__Password
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_password
-        - name: Kestrel__Endpoints__Grpc__Certificate__Path
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_path
-        - name: Kestrel__Endpoints__Grpc__Certificate__Password
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_password
-        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: https_url
-        - name: ASPNETCORE_Kestrel__Endpoints__Https__ClientCertificateMode
-          value: "RequireCertificate"
-        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_path
-        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-mtls
-              key: server_pfx_password
-        - name: SSL_CERT_FILE
-          value: "/etc/tls/ca.crt"
-        - name: Consul__Address
+        - name: DISCOVERY_PORT
+          value: "8080"
+        - name: CONSUL_ADDRESS
           valueFrom:
             configMapKeyRef:
               name: {{ include "toskamesh.fullname" . }}-discovery-config
               key: consul_address
-        - name: Messaging__RabbitMqHost
-          valueFrom:
-            configMapKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-discovery-config
-              key: rabbitmq_host
-        - name: Messaging__RabbitMqUsername
+        - name: RABBITMQ_URL
           valueFrom:
             secretKeyRef:
               name: {{ include "toskamesh.fullname" . }}-discovery-secrets
-              key: rabbitmq_username
-        - name: Messaging__RabbitMqPassword
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "toskamesh.fullname" . }}-discovery-secrets
-              key: rabbitmq_password
-        - name: Mesh__Telemetry__TracingIngest__Enabled
-          value: {{ default false .Values.telemetry.tracingIngest.enabled | quote }}
-        - name: Mesh__Telemetry__TracingIngest__Endpoint
-          value: {{ default (printf "http://%s-tracing-service:8080/api/traces/ingest" (include "toskamesh.fullname" .)) .Values.telemetry.tracingIngest.endpoint | quote }}
-        - name: Mesh__Telemetry__Sampling__Strategy
-          value: {{ default "ParentBasedAlwaysOn" .Values.telemetry.sampling.strategy | quote }}
-        - name: Mesh__Telemetry__Sampling__Ratio
-          value: {{ default 1.0 .Values.telemetry.sampling.ratio | quote }}
-        - name: Mesh__Telemetry__ServiceNamespace
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        {{- with .Values.telemetry.tracingIngest.headers }}
-        {{- range $name, $value := . }}
-        - name: Mesh__Telemetry__TracingIngest__Headers__{{ $name }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
-        - name: Mesh__ServiceAuth__Secret
-          valueFrom:
-            secretKeyRef:
-              name: {{ default (printf "%s-discovery-secrets" (include "toskamesh.fullname" .)) .Values.secrets.meshServiceAuth.existingSecret }}
-              key: {{ default "mesh_service_auth_secret" .Values.secrets.meshServiceAuth.key }}
+              key: rabbitmq_url
         resources:
           {{- toYaml .Values.discovery.resources | nindent 10 }}
         livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health/ready
+          grpc:
             port: 8080
           initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          grpc:
+            port: 8080
+          initialDelaySeconds: 3
           periodSeconds: 5
-        volumeMounts:
-        - name: mesh-tls
-          mountPath: /etc/tls
-          readOnly: true
-      volumes:
-      - name: mesh-tls
-        secret:
-          secretName: {{ include "toskamesh.fullname" . }}-mtls
 {{- end }}

@@ -15,14 +15,6 @@ dotnet format ToskaMesh.sln
 # Run a single test project
 dotnet test tests/ToskaMesh.Security.Tests/ToskaMesh.Security.Tests.csproj
 
-# Run a specific service
-dotnet run --project src/Core/ToskaMesh.Gateway
-dotnet run --project src/Core/ToskaMesh.Discovery
-
-# Convenience scripts
-./run-gateway.sh
-./run-discovery.sh
-
 # Local infrastructure
 docker-compose up -d postgres redis consul prometheus grafana rabbitmq
 ```
@@ -39,17 +31,19 @@ make test     # pytest
 
 ## Architecture
 
-ToskaMesh is a distributed service mesh for .NET 10. External traffic enters through the **Gateway** (YARP reverse proxy, port 5000), which dynamically builds routes from service metadata in **Discovery** (gRPC registry backed by Consul, port 8080). Services use the **ToskaMesh.Runtime** NuGet library to auto-register, wire telemetry, and expose health endpoints. **MassTransit** provides pub/sub and RPC messaging over RabbitMQ or AWS SNS/SQS.
+ToskaMesh is a distributed service mesh. The **control plane** (Gateway, Discovery, HealthMonitor, Router) has been rewritten in Go and lives in `../toska-mesh/`. This C# repository now contains the **runtime SDK** and **business services** that join the mesh.
+
+External traffic enters through the Go **Gateway** (port 5000), which dynamically builds routes from service metadata in Go **Discovery** (gRPC registry backed by Consul, port 8080). C# services use the **ToskaMesh.Runtime** NuGet library to auto-register, wire telemetry, and expose health endpoints. **MassTransit** provides pub/sub and RPC messaging over RabbitMQ or AWS SNS/SQS.
 
 ### Key Interaction Flow
 
 1. Service starts via `MeshLambdaService.RunAsync()` → `MeshAutoRegistrar` registers with Discovery/Consul
 2. `MeshHeartbeatService` renews TTL health checks at configured intervals
-3. Gateway's `ConsulProxyConfigProvider` polls Discovery every 30s, builds YARP routes from healthy instances
+3. Go Gateway polls Consul every 30s, builds routes from healthy instances
 4. Routes are `/{RoutePrefix}/{serviceName}/{**catch-all}` (default prefix: `/api/`)
-5. Load balancing strategy, weight, scheme, and health endpoint are driven by service metadata — no hardcoded routes
-6. `HealthMonitor` (`HealthProbeWorker` BackgroundService) continuously probes services with Polly circuit breakers
-7. Health transitions publish `ServiceHealthChangedEvent` via MassTransit; unhealthy instances are filtered from Gateway routes
+5. Load balancing strategy, weight, scheme, and health endpoint are driven by service metadata
+6. Go HealthMonitor continuously probes services with circuit breakers
+7. Health transitions publish `ServiceHealthChangedEvent` via RabbitMQ; unhealthy instances are filtered from Gateway routes
 
 ### Service Registry Abstraction
 
@@ -90,20 +84,16 @@ builder.Services.AddMeshInfrastructure(builder.Configuration, options => {
 
 ### Configuration Sections
 
-- `Mesh:Gateway:Routing` — `GatewayRoutingOptions` (RoutePrefix)
-- `Mesh:Gateway:RateLimit`, `Mesh:Gateway:Cors`, `Mesh:Gateway:Resilience`
-- `Mesh:HealthMonitor` — `HealthMonitorOptions` (ProbeIntervalSeconds)
 - `Mesh:Telemetry` — `MeshTelemetryOptions`
 - `Mesh:ServiceAuth` — `MeshServiceAuthOptions` (service-to-service JWT)
-- `Jwt` — `JwtTokenOptions` (Gateway/Auth/Config)
+- `Jwt` — `JwtTokenOptions` (Auth/Config services)
 
-### Resilience (Gateway)
+### Resilience
 
-`ResilientForwarderHttpClientFactory` wraps YARP's HTTP client with Polly: exponential backoff + jitter retry, circuit breaker with configurable thresholds (`GatewayResilienceOptions`). YARP active health checks probe `/health` every 10s.
+The Go Gateway implements retry with exponential backoff + jitter and per-service circuit breakers. See `../toska-mesh/CLAUDE.md` for details.
 
 ## Project Structure
 
-- **`src/Core/`** — Gateway (YARP), Discovery (gRPC registry), Router (load-balancing algorithms), HealthMonitor (background probing)
 - **`src/Services/`** — AuthService (JWT/Identity), ConfigService (centralized config/YAML), MetricsService (Prometheus aggregation), TracingService (Jaeger/Zipkin), ObservabilityService (portal with topology/SLOs)
 - **`src/Shared/`** — Runtime (MeshLambdaService), Runtime.Stateful/Orleans, Common (Consul/gRPC registries, MassTransit, messaging contracts), Grpc (protobuf), Protocols (IServiceRegistry), Security (JWT/auth policies), Telemetry (OpenTelemetry)
 - **`tests/`** — Mirrors production namespaces with `.Tests` suffix

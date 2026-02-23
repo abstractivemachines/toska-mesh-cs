@@ -8,7 +8,7 @@ using Orleans.Runtime;
 using Orleans.Storage;
 using StackExchange.Redis;
 
-namespace ToskaMesh.Core.Storage;
+namespace ToskaMesh.Runtime.Orleans.Storage;
 
 /// <summary>
 /// Redis-backed grain storage with optimistic concurrency (ETag) and no TTL/eviction.
